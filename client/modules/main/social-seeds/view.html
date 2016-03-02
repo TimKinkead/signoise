@@ -1,0 +1,34 @@
+<div class="container">
+    <button class="btn btn-info pull-right" ng-click="create()">Create</button>
+    <h1 class="text-center">Social Seeds</h1>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <th style="cursor: pointer;" class="hidden-xs"
+                ng-repeat="field in fields"
+                ng-click="filter(field)">
+                <i ng-if="orderBy === field"
+                   class="pull-right glyphicon"
+                   ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+                {{field|capitalize}}
+            </th>
+            <th class="visible-xs"
+                ng-click="filter('platform')">
+                <i class="pull-right glyphicon"
+                   ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+                Platform <br/>
+                <span class="text-info">Query</span>
+            </th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="seed in seeds|orderBy:orderBy:-reverse" ng-click="edit(seed)">
+                <td ng-repeat="field in fields" class="hidden-xs">
+                    {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
+                </td>
+                <td class="visible-xs">
+                    {{seed.platform}} <br/>
+                    <span class="text-info">{{seed.query}}</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

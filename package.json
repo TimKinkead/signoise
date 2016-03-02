@@ -1,0 +1,57 @@
+{
+  "name": "signal-noise",
+  "description": "Signal in the Noise",
+  "version": "0.0.0",
+  "author": "Preva Group",
+  "engines": {
+    "node": "5.7.0",
+    "npm": "3.7.5"
+  },
+  "scripts": {},
+  "homepage": "https://github.com/PrevaGroup/signal-noise",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:PrevaGroup/signal-noise.git"
+  },
+  "dependencies": {
+    "body-parser": "~1.9.0",
+    "bson": "^0.4.19",
+    "chalk": "~0.5",
+    "compression": "~1.2.0",
+    "connect-mongo": "^0.8.2",
+    "consolidate": "~0.13.1",
+    "cookie-parser": "~1.3.2",
+    "crypto": "0.0.3",
+    "express": "~4.10.1",
+    "express-session": "~1.9.1",
+    "glob": "~4.0.5",
+    "he": "^0.5.0",
+    "helmet": "~0.5.0",
+    "lodash": "~2.4.1",
+    "method-override": "~2.3.0",
+    "mongoose": "~3.8.24",
+    "morgan": "~1.4.1",
+    "oauth": "^0.9.14",
+    "passport": "^0.3.0",
+    "passport-facebook": "2.0.0",
+    "passport-instagram": "^1.0.0",
+    "passport-local": "~1.0.0",
+    "passport-twitter": "^1.0.3",
+    "request": "^2.57.0",
+    "sendgrid": "^1.9.2",
+    "swig": "~1.4.1"
+  },
+  "devDependencies": {
+    "bower": "~1.3.8",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-htmlmin": "^0.4.0",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-less": "^0.12.0",
+    "grunt-contrib-uglify": "~0.6.0",
+    "grunt-express-server": "^0.4.19",
+    "grunt-html2js": "^0.3.5",
+    "grunt-lesslint": "^1.1.13",
+    "load-grunt-tasks": "~1.0.0"
+  }
+}

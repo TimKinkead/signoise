@@ -1,0 +1,34 @@
+<div class="container">
+    <button class="btn btn-info pull-right" ng-click="pullTwitter()">Pull Twitter</button>
+    <h1 class="text-center">Social Media</h1>
+    <table class="table table-bordered table-hover">
+        <thead>
+        <th style="cursor: pointer;" class="hidden-xs"
+            ng-repeat="field in fields"
+            ng-click="filter(field)">
+            <i ng-if="orderBy === field"
+               class="pull-right glyphicon"
+               ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+            {{field|capitalize}}
+        </th>
+        <th class="visible-xs"
+            ng-click="filter('platform')">
+            <i class="pull-right glyphicon"
+               ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+            Platform (Status)<br/>
+            <span class="text-info">Social Media Data</span>
+        </th>
+        </thead>
+        <tbody>
+        <tr ng-repeat="doc in media|orderBy:orderBy:-reverse">
+            <td ng-repeat="field in fields" class="hidden-xs">
+                {{(dates.indexOf(field) > -1) ? (doc[field]|date:'shortDate') : doc[field]}}
+            </td>
+            <td class="visible-xs">
+                {{doc.platform}} ({{doc.status}})<br/>
+                <span class="text-info">{{doc.data}}</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

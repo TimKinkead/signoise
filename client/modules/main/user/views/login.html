@@ -1,0 +1,23 @@
+<div style="max-width:500px; width: 100%; margin: 0 auto; padding: 15px;">
+
+    <h2>Login</h2>
+
+    <div ng-show="status.processing">
+        ...logging in...
+    </div>
+
+    <form ng-submit="login()" ng-hide="status.processing">
+        <div class="form-group">
+            <label>email</label>
+            <input class="form-control" type="email" ng-model="user.email" required>
+        </div>
+        <div class="form-group">
+            <label>password</label>
+            <input class="form-control" type="password" ng-model="user.password" required>
+        </div>
+        <button type="submit" class="btn btn-success">Login</button>
+        <span class="text-info" style="margin-left: 10px;" ng-show="status.message">{{status.message}}</span>
+    </form>
+
+</div>
+

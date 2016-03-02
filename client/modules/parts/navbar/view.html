@@ -1,0 +1,65 @@
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed"
+                    ng-click="toggleNavbar()">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href ui-sref="home">
+                <span class="glyphicon glyphicon-star"></span>
+                Signal in the Noise
+            </a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li ui-sref-active="active"><a href ui-sref="dashboard">Dashboard</a></li>
+                <li class="dropdown" uib-dropdown>
+                    <a href="#" class="dropdown-toggle" uib-dropdown-toggle>
+                        Tables <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                        <li ng-repeat="table in tables">
+                            <a href ui-sref="{{table.state}}">{{table.name}}</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <!--
+            <form class="navbar-form navbar-left" role="search"
+                  ng-submit="search()">
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="Search"
+                           ng-model="query.term">
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+            -->
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown" uib-dropdown
+                    ng-if="user.username">
+                    <a href="#" class="dropdown-toggle" uib-dropdown-toggle>
+                        {{user.username}} <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+                        <li><a href ui-sref="user.settings">Settings</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#" ng-click="logout($event)">Logout</a></li>
+                    </ul>
+                </li>
+                <li ui-sref-active="active"
+                    ng-if="!user.username">
+                    <a href ui-sref="user.signup">Sign Up</a>
+                </li>
+                <li ui-sref-active="active"
+                    ng-if="!user.username">
+                    <a href ui-sref="user.login">Login</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

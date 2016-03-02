@@ -1,0 +1,22 @@
+'use strict';
+
+//----------------------------------------------------------------------------------------------------------------------
+// Controllers
+
+var core = require('../core');
+
+//----------------------------------------------------------------------------------------------------------------------
+// Routes
+
+module.exports = function(app) {
+
+    // render index.html (angular application skeleton)
+	app.route('/').get(core.index);
+
+    // return 200 for load balancer health check
+    app.route('/data/ping').get(core.ping);
+
+    // render unsupported.html for old browsers
+    app.route('/unsupported').get(core.unsupported);
+
+};

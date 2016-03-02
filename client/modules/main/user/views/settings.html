@@ -1,0 +1,65 @@
+<div style="max-width:500px; width: 100%; margin: 0 auto; padding: 15px;">
+
+    <h2>Settings</h2>
+
+    <div class="text-center" ng-show="status.processing">
+        ...please wait...
+    </div>
+
+    <div class="alert alert-success" role="alert" ng-show="status.successMessage">
+        * {{status.successMessage}}
+    </div>
+
+    <hr/>
+
+    <div ng-if="user.$resolved">
+        <button class="btn btn-block btn-default"
+                ng-if="!editEmail" ng-click="showEdit('Email')">
+            Update Email Address
+        </button>
+        <div class="well well-sm" ng-if="editEmail">
+            <h5 class="text-center">Update Email Address</h5>
+            <p class="text-danger" style="padding-top: 5px; font-weight: bold;"
+               ng-show="status.message">
+                * {{status.message}}
+            </p>
+            <form ng-submit="update('Email')" ng-hide="status.processing">
+                <div class="form-group">
+                    <label>email</label>
+                    <input class="form-control" type="email" ng-model="user.email" required>
+                </div>
+                <button type="submit" class="btn btn-success">save</button>
+            </form>
+        </div>
+
+        <button class="btn btn-block btn-default"
+                ng-if="!editPassword" ng-click="showEdit('Password')">
+            Change Password
+        </button>
+        <div class="well well-sm" style="margin-top: 20px;" ng-if="editPassword">
+            <h5 class="text-center">Change Password</h5>
+            <p class="text-danger" style="padding-top: 5px; font-weight: bold;"
+               ng-show="status.message">
+                * {{status.message}}
+            </p>
+            <form ng-submit="update('Password')" ng-hide="status.processing">
+                <div class="form-group">
+                    <label>current password</label>
+                    <input class="form-control" type="password" ng-model="user.password">
+                </div>
+                <div class="form-group">
+                    <label>new password</label>
+                    <input class="form-control" type="password" ng-model="user.newPassword">
+                </div>
+                <button type="submit" class="btn btn-success">change</button>
+            </form>
+        </div>
+
+        <button class="btn btn-block" ng-class="{'btn-info': !user.twitter, 'btn-warning': user.twitter}"
+                ng-click="toggleTwitter()">
+            {{user.twitter ? 'Disconnect' : 'Connect'}} Twitter
+        </button>
+    </div>
+
+</div>
+
