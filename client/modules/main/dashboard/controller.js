@@ -5,7 +5,7 @@ angular.module('app').controller('DashboardController', [
     'CurrentUser',
     function ($scope, CurrentUser) {
 
-        $scope.user = CurrentUser;
+        $scope.user = CurrentUser.data;
 
         // connect to a user's twitter account
         $scope.connectTwitter = function() {

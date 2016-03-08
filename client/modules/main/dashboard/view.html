@@ -4,7 +4,7 @@
 
 <div class="alert alert-danger text-center" role="alert"
     style="max-width:500px; margin:0 auto 20px;"
-    ng-if="user.$resolved && !user.twitter">
+    ng-if="!user.twitter">
     <p>Please connect your Twitter account.</p>
     <button class="btn btn-info" style="margin-top:5px;"
             ng-click="connectTwitter()">

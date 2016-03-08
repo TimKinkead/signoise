@@ -39,6 +39,7 @@ exports.create = function(req, res) {
         //case 'facebook':
         //case 'instagram':
         case 'twitter':
+            if (!req.user.twitter) {return errorMessage(403, 'Please go to settings and connect your Twitter account if you want to create a social seed.');}
             if (!req.body.query) {return errorMessage(400, 'Please provide a valid query if you want to create a Twitter social seed.');}
             break;
         default:
