@@ -22,5 +22,5 @@ node_modules
 client/lib
 
 # grunt temporary
-public/
-styles.css
+#public/
+#styles.css
