@@ -14,8 +14,8 @@ console.log(chalk.green.bold('STARTING SERVER'));
 
 // default environment variables
 if (!process.env.NODE_ENV) {process.env.NODE_ENV = 'development';}
-if (!process.env.PORT) {process.env.PORT = 3000;}
 if (!process.env.SERVER) {process.env.SERVER = 'local';}
+if (!process.env.PORT) {process.env.PORT = 3000;}
 if (!process.env.DB_CONNECTION) {process.env.DB_CONNECTION = 'localhost';}
 if (!process.env.LOGGER) {process.env.LOGGER = 'on';}
 

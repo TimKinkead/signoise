@@ -48,7 +48,7 @@ exports.twitterConnect = function(req, res, next) {
 
                 // done
                 return res.redirect(
-                    req.protocol+'://'+req.get('host')+
+                    req.protocol+'://'+req.get('host')+'/dashboard'+
                     '?header=Twitter Connected!'+
                     '&message=Your Twitter account has been connected.'
                 );

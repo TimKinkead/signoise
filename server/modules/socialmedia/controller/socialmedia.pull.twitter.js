@@ -3,8 +3,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Dependencies
 
-var OAuth = require('oauth'),
-    he = require('he');
+var OAuth = require('oauth');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Variables
@@ -17,6 +16,8 @@ var auth = require('../../../../auth.js');
 var mongoose = require('mongoose'),
     SocialMedia = mongoose.model('SocialMedia'),
     SocialSeed = mongoose.model('SocialSeed'),
+    Page = mongoose.model('Page'),
+    Site = mongoose.model('Site'),
     User = mongoose.model('User');
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -29,10 +30,16 @@ var error = require('../../error'),
 // Methods
 
 /**
- * Get a twitter token and secret from any user.
+ * Get a twitter token and secret from current user or any user.
+ * @param user - the current user (req.user)
  * @param clbk - return clbk(err, token, secret)
  */
-function getTokenAndSecret(clbk) {
+function getTokenAndSecret(user, clbk) {
+
+    // check current user
+    if (user && user.twitterToken && user.twitterSecret) {
+        return clbk(null, user.twitterToken, user.twitterSecret);
+    }
 
     // get users with twitter token and secret
     User.find({twitterToken: {$exists: true}, twitterSecret: {$exists: true}})
@@ -42,8 +49,8 @@ function getTokenAndSecret(clbk) {
             if (!userDocs.length) {return clbk(new Error('!userDocs.length'));}
 
             // pick a user and grab their token and secret
-            var random = Math.floor(Math.random() * userDocs.length),
-                user = userDocs[random];
+            var random = Math.floor(Math.random() * userDocs.length);
+            user = userDocs[random];
 
             // done
             return clbk(null, user.twitterToken, user.twitterSecret);
@@ -84,13 +91,13 @@ function getSeeds(clbk) {
     }
 
     // (1) get new seeds
-    getSeeds({platform: 'twitter', frequency: {$ne: 'never'}, lastPull: {$exists: false}}, 'new');
+    getSeeds({platform: 'twitter', frequency: {$ne: 'never'}, initialized: {$exists: false}}, 'new');
     // (2) get weekly seeds
-    getSeeds({platform: 'twitter', frequency: 'weekly', lastPull: {$lt: oneWeekAgo}}, 'weekly');
+    getSeeds({platform: 'twitter', frequency: 'weekly', lastPulled: {$lt: oneWeekAgo}}, 'weekly');
     // (3) get daily seeds
-    getSeeds({platform: 'twitter', frequency: 'daily', lastPull: {$lt: oneDayAgo}}, 'daily');
+    getSeeds({platform: 'twitter', frequency: 'daily', lastPulled: {$lt: oneDayAgo}}, 'daily');
     // (4) get hourly seeds
-    getSeeds({platform: 'twitter', frequency: 'hourly', lastPull: {$lt: oneHourAgo}}, 'hourly');
+    getSeeds({platform: 'twitter', frequency: 'hourly', lastPulled: {$lt: oneHourAgo}}, 'hourly');
 }
 
 /**
@@ -113,8 +120,40 @@ function saveSeed(query) {
         } else {
 
             // create new seed
-            SocialSeed.create({platform: 'twitter', query: query}, function(err, newSeedDoc) {
+            SocialSeed.create({platform: 'twitter', query: query, references: 1}, function(err, newSeedDoc) {
                 if (err || !newSeedDoc) {error.log(new Error(err || '!newSeedDoc'));}
+            });
+        }
+    });
+}
+
+/**
+ * Save a potential web page based on tweet information.
+ * @param url - the url of a tweeted link
+ */
+function savePage(url) {
+    if (!url) {return error.log(new Error('!url'));}
+
+    // check if page already exists in mongodb
+    Page.findOne({url: url}, function(err, pageDoc) {
+        if (err) {return error.log(new Error(err));}
+        if (pageDoc) {
+
+            // update page doc
+            Page.update({_id: pageDoc._id}, {$inc: {referencesSocialMedia: 1}}, function(err) {
+                if (err) {error.log(new Error(err));}
+            });
+
+        } else {
+
+            // find or create new site
+            Site.findOrCreate(url, function(err, siteDoc) {
+                if (err || !siteDoc) {return error.log(new Error(err || '!siteDoc'));}
+
+                // create new page
+                Page.create({url: url, site: siteDoc._id, referencesSocialMedia: 1}, function(err, newPageDoc) {
+                    if (err || !newPageDoc) {error.log(new Error(err || '!newPageDoc'));}
+                });
             });
         }
     });
@@ -142,16 +181,21 @@ function saveTweet(tweet, clbk) {
         SocialMedia.create({platform: 'twitter', data: tweet}, function(err, newMediaDoc) {
             if (err || !newMediaDoc) {error.log(new Error(err || '!newMediaDoc')); return clbk();}
 
-            // save potential new seeds
+            // save potential new seeds & web pages
             var i, x,
                 hashtags = (tweet.entities && tweet.entities.hashtags) ? tweet.entities.hashtags : [],
-                user_mentions = (tweet.entities && tweet.entities.user_mentions) ? tweet.entities.user_mentions : [];
+                user_mentions = (tweet.entities && tweet.entities.user_mentions) ? tweet.entities.user_mentions : [],
+                urls = (tweet.entities && tweet.entities.urls) ? tweet.entities.urls : [];
             for (i=0, x=hashtags.length; i<x; i++) {
                 if (hashtags[i].text) {saveSeed('#'+hashtags[i].text.toLowerCase());}
             }
             for (i=0, x=user_mentions.length; i<x; i++) {
                 if (user_mentions[i].screen_name) {saveSeed('@'+user_mentions[i].screen_name.toLowerCase());}
             }
+            for (i=0, x=urls.length; i<x; i++) {
+                if (urls[i].expanded_url) {savePage(urls[i].expanded_url.toLowerCase());}
+            }
+
 
             // done
             return clbk(true);
@@ -194,7 +238,9 @@ function getTweets(seed, url, token, secret) {
     // get tweets from twitter
     oauth.get(url, token, secret, function(err, data, response) {
         if (err || !data) {return error.log(new Error(err || '!data'));}
-        var tweets = JSON.parse(data).statuses;
+        data = JSON.parse(data);
+
+        var tweets = data.statuses;
         if (!tweets) {return error.log(new Error('!tweets'));}
         if (!tweets.length) {logger.result('no tweets'); return;}
 
@@ -206,17 +252,20 @@ function getTweets(seed, url, token, secret) {
             if (cnt === 0) {
 
                 // update seed
+                seed.lastPulled = new Date();
                 seed.media += newTweets;
                 seed.history = [{date: new Date(), total: tweets.length, new: newTweets}].concat(seed.history);
                 if (seed.history.length > 100) {seed.history = seed.history.slice(0, 100);}
                 if (!seed.initialized) {seed.initialized = new Date();}
-                seed.save(function(err) {if (err) {error.log(new Error(err));}});
+                seed.save(function(err) {
+                    if (err) {error.log(new Error(err));}
 
-                // go again if initializing new seed
-                var fifteenMinutesAgo = (function(){var d = new Date(); d.setMinutes(d.getMinutes()-15); return d;})();
-                if (seed.initialized > fifteenMinutesAgo && data.search_metadata && data.search_metadata.next_results) {
-                    setTimeout(getTweets(seed, 'https://api.twitter.com/1.1/search/tweets.json'+data.search_metadata.next_results, token, secret), 5000); // 5 sec delay
-                }
+                    // go again if initializing new seed
+                    var fifteenMinutesAgo = (function(){var d = new Date(); d.setMinutes(d.getMinutes()-15); return d;})();
+                    if (seed.initialized > fifteenMinutesAgo && data.search_metadata && data.search_metadata.next_results) {
+                        setTimeout(getTweets(seed, 'https://api.twitter.com/1.1/search/tweets.json'+data.search_metadata.next_results, token, secret), 5000); // 5 sec delay
+                    }
+                });
             }
         }
 
@@ -259,7 +308,7 @@ exports.pullTwitter = function(req, res) {
     }
 
     // get twitter token and secret
-    getTokenAndSecret(function(err, token, secret) {
+    getTokenAndSecret(req.user, function(err, token, secret) {
         if (err) {error.log(new Error(err)); return errorMessage();}
         if (!token) {error.log(new Error('!token')); return errorMessage();}
         if (!secret) {error.log(new Error('!secret')); return errorMessage();}

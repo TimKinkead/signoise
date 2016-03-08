@@ -1,4 +1,27 @@
-<div class="container">
-    <h1 class="text-center">Dashboard</h1>
-    <p>{{message}}</p>
+<div class="text-center" style="margin-bottom: 20px;">
+    <h1>Dashboard</h1>
+</div>
+
+<div class="alert alert-danger text-center" role="alert"
+    style="max-width:500px; margin:0 auto 20px;"
+    ng-if="user.$resolved && !user.twitter">
+    <p>Please connect your Twitter account.</p>
+    <button class="btn btn-info" style="margin-top:5px;"
+            ng-click="connectTwitter()">
+        Connect Twitter
+    </button>
+</div>
+
+<div class="jumbotron" style="margin-bottom: 0; background-color:lightgoldenrodyellow">
+    <div class="container">
+        <h1>Charts & Graphs</h1>
+        <p>Visual stuff...</p>
+    </div>
+</div>
+
+<div class="jumbotron" style="margin-bottom: 0; background-color:lightcyan;">
+    <div class="container">
+        <h1>more charts, more graphs</h1>
+        <p>eventually...</p>
+    </div>
 </div>

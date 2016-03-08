@@ -33,23 +33,28 @@ exports.list = function(req, res) {
 
     // mongodb query parameters
     var query, sort;
-    if (req.query.active) {
-        query = {frequency: {$in: ['hourly', 'daily', 'weekly']}};
-        sort = {media: -1};
-    } else if (req.query.pending) {
-        query = {frequency: {$exists: false}};
-        sort = {references: -1};
-    } else {
-        query = {};
-        sort = {media: -1, references: -1};
+    switch (req.query.filterBy) {
+        case 'active':
+            query = {frequency: {$in: ['hourly', 'daily', 'weekly']}};
+            sort = {media: -1};
+            break;
+        case 'inactive':
+            query = {frequency: {$exists: false}};
+            sort = {references: -1};
+            break;
+        //case 'all':
+        default:
+            query = {};
+            sort = {media: -1, references: -1};
     }
+    if (req.query.platform) {query.platform = req.query.platform;}
     
     // list social seeds
     SocialSeed.find(query)
         .select('-history')
         .sort(sort)
         .skip(req.query.skip)
-        .limit(req.query.limit)
+        .limit(req.query.limit || 100)
         .exec(function(err, seedDocs) {
             if (err) {error.log(new Error(err)); return errorMessage();}
             

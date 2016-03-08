@@ -35,7 +35,7 @@ exports.summary = function(req, res) {
     var summary = {};
 
     // check done
-    var cnt = 4;
+    var cnt;
     function checkDone() {
         cnt -= 1;
         if (cnt === 0) {
@@ -52,15 +52,12 @@ exports.summary = function(req, res) {
         });
     }
 
-    // (1) count all media docs
-    countSocialMedia({}, 'total');
-
-    // (2) count all facebook media docs
-    countSocialMedia({platform: 'facebook'}, 'facebook');
-
-    // (3) count all instagram media docs
-    countSocialMedia({platform: 'instagram'}, 'instagram');
-
-    // (4) count all twitter media docs
-    countSocialMedia({platform: 'twitter'}, 'twitter');
+    cnt = 7;
+    countSocialMedia({}, 'all');                            // 1
+    countSocialMedia({status: 'ready'}, 'ready');           // 2
+    countSocialMedia({status: 'failed'}, 'failed');         // 3
+    countSocialMedia({status: 'complete'}, 'complete');     // 4
+    countSocialMedia({platform: 'facebook'}, 'facebook');   // 5
+    countSocialMedia({platform: 'instagram'}, 'instagram'); // 6
+    countSocialMedia({platform: 'twitter'}, 'twitter');     // 7
 };

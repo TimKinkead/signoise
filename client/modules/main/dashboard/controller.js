@@ -2,7 +2,14 @@
 
 angular.module('app').controller('DashboardController', [
     '$scope',
-    function ($scope) {
-        $scope.message = 'Bird\'s eye view of the project';
+    'CurrentUser',
+    function ($scope, CurrentUser) {
+
+        $scope.user = CurrentUser;
+
+        // connect to a user's twitter account
+        $scope.connectTwitter = function() {
+            window.location.assign('/data/user/twitter/connect');
+        };
     }
 ]);

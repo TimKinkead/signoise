@@ -49,9 +49,9 @@ exports.signIn = function(req, res, next) {
             logger.result('user authenticated and logged in');
             return res.status(200).send({
                 _id: user._id,
-                firstName: user.firstName,
                 username: user.username,
-                facebookLogin: user.facebookLogin
+                twitter: user.twitter,
+                admin: user.admin
             });
         });
     })(req, res, next);

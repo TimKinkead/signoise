@@ -98,6 +98,46 @@ var SiteSchema = new Schema({
 //----------------------------------------------------------------------------------------------------------------------
 // Static Methods
 
+/**
+ * Get domain from a url.
+ * @param url - the url of a webpage
+ * @returns {*} - return domain
+ */
+SiteSchema.statics.getDomain = function(url) {
+    if (!url) {return;}
+    var urlParts = url.split('://'),
+        protocol = urlParts[0],
+        slashIndex = urlParts[1].indexOf('/'),
+        domain = (slashIndex > -1) ? urlParts[1].slice(0, slashIndex) : urlParts[1];
+    while(domain.indexOf('.') !== domain.lastIndexOf('.')) {
+        domain = domain.slice(domain.indexOf('.')+1);
+    }
+    return domain;
+};
+
+/**
+ * Find an existing site or create a new site based on a url.
+ *  - Used to get Site when creating a new page.
+ * @param url - the url of a webpage
+ * @param clbk - return clbk(err, siteDoc)
+ */
+SiteSchema.statics.findOrCreate = function(url, clbk) {
+    var Site = this;
+    if (!url) {return clbk(new Error('!url'));}
+
+    // look for existing site
+    Site.findOne({domain: Site.getDomain(url)}, function(err, siteDoc) {
+        if (err) {return clbk(new Error(err));}
+        if (siteDoc) {return clbk(null, siteDoc);}
+
+        // create new site
+        Site.create({url: url}, function(err, newSiteDoc) {
+            if (err || !newSiteDoc) {return clbk(new Error(err || '!newSiteDoc'));}
+            return clbk(null, newSiteDoc);
+        });
+    });
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Pre & Post Methods
 

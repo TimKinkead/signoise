@@ -18,10 +18,20 @@ var mongoose = require('mongoose'),
  * ERROR.LOG
  * - Log error to database (create error doc).
  */
-exports.log = function(errObj) {
-    if (!errObj || (errObj.constructor !== Error && typeof errObj !== 'object')) {return;}
-    Err.create(errObj, function(err, newErrDoc) {
-        if (err || !newErrDoc) {
+exports.log = function(err) {
+    if (!err || (err.constructor !== Error && typeof err !== 'object')) {return;}
+
+    // construct error doc
+    var errObj = new Err({
+        name: err.name,
+        message: (err.message) ? JSON.stringify(err.message) : err.message,
+        stack: err.stack,
+        info: (err.info) ? err.info : err.message
+    });
+
+    // save error doc
+    errObj.save(function(err) {
+        if (err) {
             console.error(chalk.red('Error not saved!'));
             console.log(chalk.bold('> save error:'));
             console.log(err || '!newErrorDoc');

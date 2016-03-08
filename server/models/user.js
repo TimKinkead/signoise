@@ -97,7 +97,7 @@ UserSchema.virtual('instagram').get(function() {
  * Virtual field for checking if twitter account is connected.
  */
 UserSchema.virtual('twitter').get(function() {
-    return (this.twitterToken && this.twitterSecret);
+    return (this.twitterToken && this.twitterSecret) ? true : false;
 });
 
 //----------------------------------------------------------------------------------------------------------------------

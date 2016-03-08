@@ -42,7 +42,7 @@ var PageSchema = new Schema({
             'redirected',   // webpage redirected to somewhere else
             'scheduled'     // webpage is ready to be crawled
         ],
-        required: true
+        default: 'pending'
     },
 
     // -- CRAWL RESULTS -- >>>
@@ -85,6 +85,12 @@ var PageSchema = new Schema({
         type: Schema.ObjectId,
         ref: 'Page'
     }],
+
+    // how many social media docs reference this webpage
+    referencesSocialMedia: {
+        type: Number,
+        default: 0
+    },
 
     // timestamp - when the page doc was created
     created: {

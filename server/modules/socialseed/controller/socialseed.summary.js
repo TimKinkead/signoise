@@ -35,7 +35,7 @@ exports.summary = function(req, res) {
     var summary = {};
 
     // check done
-    var cnt = 4;
+    var cnt;
     function checkDone() {
         cnt -= 1;
         if (cnt === 0) {
@@ -52,15 +52,11 @@ exports.summary = function(req, res) {
         });
     }
 
-    // (1) count all seed docs
-    countSocialSeeds({}, 'total');
-
-    // (2) count all facebook seed docs
-    countSocialSeeds({platform: 'facebook'}, 'facebook');
-
-    // (3) count all instagram seed docs
-    countSocialSeeds({platform: 'instagram'}, 'instagram');
-
-    // (4) count all twitter seed docs
-    countSocialSeeds({platform: 'twitter'}, 'twitter');
+    cnt = 6;
+    countSocialSeeds({}, 'all');                                                    // 1
+    countSocialSeeds({frequency: {$in: ['hourly', 'daily', 'weekly']}}, 'active');  // 2
+    countSocialSeeds({frequency: {$exists: false}}, 'inactive');                    // 3
+    countSocialSeeds({platform: 'facebook'}, 'facebook');                           // 4
+    countSocialSeeds({platform: 'instagram'}, 'instagram');                         // 5
+    countSocialSeeds({platform: 'twitter'}, 'twitter');                             // 6
 };

@@ -61,7 +61,9 @@ exports.signUp = function(req, res, next) {
                 logger.result('user signed up and logged in');
                 return res.status(200).send({
                     _id: user._id,
-                    username: user.username
+                    username: user.username,
+                    twitter: user.twitter,
+                    admin: user.admin
                 });
             });
         });

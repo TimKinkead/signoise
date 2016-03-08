@@ -1,34 +1,71 @@
+<!-- Social Media Table -->
+
 <div class="container">
-    <button class="btn btn-info pull-right" ng-click="pullTwitter()">Pull Twitter</button>
+
+    <div>
+        <div class="pull-right">
+            <button class="btn btn-success" style="margin-bottom: 5px;" ng-click="download()">Download CSV File</button>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'ready'">
+                Ready <span class="badge" ng-if="summary.ready" ng-bind="summary.ready"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'failed'">
+                Failed <span class="badge" ng-if="summary.failed" ng-bind="summary.failed"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'complete'">
+                Complete <span class="badge" ng-if="summary.complete" ng-bind="summary.complete"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'all'">
+                All <span class="badge" ng-if="summary.all" ng-bind="summary.all"></span>
+            </button>
+        </div>
+    </div>
+
     <h1 class="text-center">Social Media</h1>
-    <table class="table table-bordered table-hover">
+    <div class="text-center" ng-if="showPullBtns">
+        <button class="btn btn-success" style="margin-bottom: 5px;" ng-click="pullTwitter()">Pull Twitter</button>
+    </div>
+    <table class="table table-bordered">
         <thead>
-        <th style="cursor: pointer;" class="hidden-xs"
-            ng-repeat="field in fields"
-            ng-click="filter(field)">
-            <i ng-if="orderBy === field"
-               class="pull-right glyphicon"
-               ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+        <th ng-repeat="field in fields"
+            style="cursor: pointer;" class="hidden-xs">
             {{field|capitalize}}
         </th>
-        <th class="visible-xs"
-            ng-click="filter('platform')">
-            <i class="pull-right glyphicon"
-               ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+        <th class="visible-xs">
             Platform (Status)<br/>
             <span class="text-info">Social Media Data</span>
         </th>
         </thead>
         <tbody>
-        <tr ng-repeat="doc in media|orderBy:orderBy:-reverse">
+        <tr ng-repeat="doc in media"
+            ng-class="{'last-row': $last}">
             <td ng-repeat="field in fields" class="hidden-xs">
-                {{(dates.indexOf(field) > -1) ? (doc[field]|date:'shortDate') : doc[field]}}
+                <div ng-if="field !== 'username' && field !== 'text' && field !== 'date'">
+                    {{(dates.indexOf(field) > -1) ? (doc[field]|date:'shortDate') : doc[field]}}
+                </div>
+                <div ng-if="field === 'username'">
+                    {{(doc.data && doc.data.user && doc.data.user.screen_name) ? '@'+doc.data.user.screen_name : ''}}
+                </div>
+                <div ng-if="field === 'text'">
+                    {{(doc.data && doc.data.text) ? getTwitterText(doc.data.text) : ''}}
+                </div>
+                <div ng-if="field === 'date'">
+                    {{(doc.data && doc.data.created_at) ? (getTwitterDate(doc.data.created_at)|date:'shortDate') : ''}}
+                </div>
             </td>
             <td class="visible-xs">
-                {{doc.platform}} ({{doc.status}})<br/>
-                <span class="text-info">{{doc.data}}</span>
+                {{doc.platform}} ({{doc.status}})
+                <div class="text-info">
+                    <button class="btn-link"
+                            ng-click="doc.showData = !doc.showData;">
+                        {{doc.showData ? 'Hide' : 'Show'}}
+                    </button>
+                    <pre ng-if="doc.showData">{{doc.data|json}}</pre>
+                </div>
             </td>
         </tr>
         </tbody>
     </table>
+
 </div>

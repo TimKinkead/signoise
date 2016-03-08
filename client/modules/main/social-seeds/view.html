@@ -1,5 +1,22 @@
+<!-- Social Seeds Table -->
+
 <div class="container">
-    <button class="btn btn-info pull-right" ng-click="create()">Create</button>
+
+    <div>
+        <button class="btn btn-success pull-right" style="margin-bottom: 5px;" ng-click="create()">Create</button>
+        <div class="btn-group">
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'active'">
+                Active <span class="badge" ng-if="summary.active" ng-bind="summary.active"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'inactive'">
+                Inactive <span class="badge" ng-if="summary.inactive" ng-bind="summary.inactive"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'all'">
+                All <span class="badge" ng-if="summary.all" ng-bind="summary.all"></span>
+            </button>
+        </div>
+    </div>
+
     <h1 class="text-center">Social Seeds</h1>
     <table class="table table-bordered table-hover">
         <thead>
@@ -20,7 +37,9 @@
             </th>
         </thead>
         <tbody>
-            <tr ng-repeat="seed in seeds|orderBy:orderBy:-reverse" ng-click="edit(seed)">
+            <tr ng-repeat="seed in seeds|orderBy:orderBy:-reverse"
+                ng-class="{'last-row': $last}"
+                ng-click="edit(seed)">
                 <td ng-repeat="field in fields" class="hidden-xs">
                     {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
                 </td>
@@ -31,4 +50,5 @@
             </tr>
         </tbody>
     </table>
+
 </div>

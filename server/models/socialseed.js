@@ -68,9 +68,9 @@ var SocialSeedSchema = new Schema({
     }],
 
     // timestamp - when social media was last pulled for this seed
-    /*lastPull: {
+    lastPulled: {
         type: Date
-    },*/
+    },
 
     // timestamp - when the site doc was created
     created: {

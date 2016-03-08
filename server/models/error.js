@@ -33,6 +33,9 @@ var ErrorSchema = new Schema({
     // the stack trace
     stack: {type: String},
 
+    // any other info
+    info: {type: Schema.Types.Mixed},
+
     // the application version when the error happened
     release: {
         type: String,
