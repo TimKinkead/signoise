@@ -53,8 +53,8 @@ exports.list = function(req, res) {
     SocialSeed.find(query)
         .select('-history')
         .sort(sort)
-        .skip(req.query.skip)
-        .limit(req.query.limit || 100)
+        .skip(Number(req.query.skip))
+        .limit((req.query.limit) ? Number(req.query.limit) : 100)
         .exec(function(err, seedDocs) {
             if (err) {error.log(new Error(err)); return errorMessage();}
             

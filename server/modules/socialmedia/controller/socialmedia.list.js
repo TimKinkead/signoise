@@ -56,8 +56,8 @@ exports.list = function(req, res) {
     // list social media
     SocialMedia.find(query)
         .sort(sort)
-        .skip(req.query.skip)
-        .limit(req.query.limit || 100)
+        .skip(Number(req.query.skip))
+        .limit((req.query.limit) ? Number(req.query.limit) : 100)
         .exec(function(err, mediaDocs) {
             if (err) {error.log(new Error(err)); return errorMessage();}
 
