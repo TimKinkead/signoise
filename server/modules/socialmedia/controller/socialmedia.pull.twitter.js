@@ -91,7 +91,7 @@ function getSeeds(clbk) {
     }
 
     // (1) get new seeds
-    getSeeds({platform: 'twitter', frequency: {$ne: 'never'}, initialized: {$exists: false}}, 'new');
+    getSeeds({platform: 'twitter', initialized: {$exists: false}, frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
     // (2) get weekly seeds
     getSeeds({platform: 'twitter', frequency: 'weekly', lastPulled: {$lt: oneWeekAgo}}, 'weekly');
     // (3) get daily seeds
@@ -140,9 +140,11 @@ function savePage(url) {
         if (pageDoc) {
 
             // update page doc
-            Page.update({_id: pageDoc._id}, {$inc: {referencesSocialMedia: 1}}, function(err) {
-                if (err) {error.log(new Error(err));}
-            });
+            Page.update(
+                {_id: pageDoc._id},
+                {$inc: {referencesSocialMedia: 1}},
+                function(err) {if (err) {error.log(new Error(err));}}
+            );
 
         } else {
 
@@ -171,9 +173,11 @@ function saveTweet(tweet, clbk) {
     SocialMedia.findOne({platform: 'twitter', 'data.id': tweet.id}, function(err, mediaDoc) {
         if (err) {error.log(new Error(err)); return clbk();}
         if (mediaDoc) { // update tweet data
-            mediaDoc.data = tweet;
-            mediaDoc.modified = new Date();
-            mediaDoc.save(function(err) {if (err) {error.log(new Error(err));}});
+            SocialMedia.update(
+                {_id: mediaDoc._id},
+                {$set: {data: tweet, modified: new Date()}},
+                function(err) {if (err) {error.log(new Error(err));}}
+            );
             return clbk(false);
         }
 
@@ -183,17 +187,36 @@ function saveTweet(tweet, clbk) {
 
             // save potential new seeds & web pages
             var i, x,
+                timeout, timeoutInc = 1000,
                 hashtags = (tweet.entities && tweet.entities.hashtags) ? tweet.entities.hashtags : [],
                 user_mentions = (tweet.entities && tweet.entities.user_mentions) ? tweet.entities.user_mentions : [],
                 urls = (tweet.entities && tweet.entities.urls) ? tweet.entities.urls : [];
+
+            // hashtags
+            timeout = 0;
             for (i=0, x=hashtags.length; i<x; i++) {
-                if (hashtags[i].text) {saveSeed('#'+hashtags[i].text.toLowerCase());}
+                if (hashtags[i].text) {
+                    setTimeout(saveSeed('#'+hashtags[i].text.toLowerCase()), timeout);
+                    timeout += timeoutInc;
+                }
             }
+
+            // accounts
+            timeout = 0;
             for (i=0, x=user_mentions.length; i<x; i++) {
-                if (user_mentions[i].screen_name) {saveSeed('@'+user_mentions[i].screen_name.toLowerCase());}
+                if (user_mentions[i].screen_name) {
+                    setTimeout(saveSeed('@'+user_mentions[i].screen_name.toLowerCase()), timeout);
+                    timeout += timeoutInc;
+                }
             }
+
+            // web pages
+            timeout = 0;
             for (i=0, x=urls.length; i<x; i++) {
-                if (urls[i].expanded_url) {savePage(urls[i].expanded_url.toLowerCase());}
+                if (urls[i].expanded_url) {
+                    setTimeout(savePage(urls[i].expanded_url.toLowerCase()), timeout);
+                    timeout += timeoutInc;
+                }
             }
 
 
@@ -238,7 +261,10 @@ function getTweets(seed, url, token, secret) {
     // get tweets from twitter
     oauth.get(url, token, secret, function(err, data, response) {
         if (err || !data) {return error.log(new Error(err || '!data'));}
-        data = JSON.parse(data);
+
+        // json parse data
+        try {data = JSON.parse(data);}
+        catch (e) {return error.log(new Error(e || 'JSON.parse error!'));}
 
         var tweets = data.statuses;
         if (!tweets) {return error.log(new Error('!tweets'));}
@@ -263,7 +289,7 @@ function getTweets(seed, url, token, secret) {
                     // go again if initializing new seed
                     var fifteenMinutesAgo = (function(){var d = new Date(); d.setMinutes(d.getMinutes()-15); return d;})();
                     if (seed.initialized > fifteenMinutesAgo && data.search_metadata && data.search_metadata.next_results) {
-                        setTimeout(getTweets(seed, 'https://api.twitter.com/1.1/search/tweets.json'+data.search_metadata.next_results, token, secret), 5000); // 5 sec delay
+                        setTimeout(getTweets(seed, 'https://api.twitter.com/1.1/search/tweets.json'+data.search_metadata.next_results, token, secret), 1000*30); // 30 sec delay
                     }
                 });
             }
@@ -275,8 +301,11 @@ function getTweets(seed, url, token, secret) {
         }
 
         // save tweets
+        var timeout = 0,
+            timeoutInc = 1000; // 1 sec delay
         for (var i=0, x=tweets.length; i<x; i++) {
-            saveTweet(tweets[i], saveTweetClbk);
+            setTimeout(saveTweet(tweets[i], saveTweetClbk), timeout);
+            timeout += timeoutInc;
         }
     });
 }

@@ -31,10 +31,10 @@ exports.delete = function(req, res) {
 
     if (!req.user || !req.user._id) {return errorMessage(403, 'Please login or sign up if you want to delete a social seed.');}
     if (!req.user.admin) {return errorMessage(403, 'Only admins can delete social seeds.');}
-    if (!req.body.socialseed) {return errorMessage(400, 'Please provide a social seed ID if you want to delete a social seed.');}
+    if (!req.body._id) {return errorMessage(400, 'Please provide a social seed ID if you want to delete a social seed.');}
 
     // delete seed
-    SocialSeed.remove({_id: req.body.socialseed}, function(err) {
+    SocialSeed.remove({_id: req.body._id}, function(err) {
         if (err) {error.log(new Error(err)); return errorMessage();}
 
         // done
