@@ -1,7 +1,9 @@
+<!-- Navigation Bar -->
+
 <nav class="navbar navbar-default">
     <div class="container-fluid">
 
-        <!-- Brand and toggle get grouped for better mobile display -->
+        <!-- brand & toggle for mobile -->
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed"
                     ng-click="toggleNavbar()">
@@ -15,8 +17,10 @@
             </a>
         </div>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- navbar buttons, dropdowns, etc -->
         <div class="collapse navbar-collapse" id="navbar-collapse">
+
+            <!-- dashboard & tables -->
             <ul class="nav navbar-nav"
                 ng-if="user.username">
                 <li ui-sref-active="active"><a href ui-sref="dashboard">Dashboard</a></li>
@@ -31,16 +35,8 @@
                     </ul>
                 </li>
             </ul>
-            <!--
-            <form class="navbar-form navbar-left" role="search"
-                  ng-submit="search()">
-                <div class="form-group">
-                    <input type="text" class="form-control" placeholder="Search"
-                           ng-model="query.term">
-                </div>
-                <button type="submit" class="btn btn-default">Submit</button>
-            </form>
-            -->
+
+            <!-- user drop down -or- sign up / login buttons -->
             <ul class="nav navbar-nav navbar-right">
                 <li class="dropdown" uib-dropdown
                     ng-if="user.username">
@@ -62,6 +58,7 @@
                     <a href ui-sref="user.login">Login</a>
                 </li>
             </ul>
+
         </div>
     </div>
 </nav>

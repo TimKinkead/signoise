@@ -31,7 +31,9 @@ var ErrorSchema = new Schema({
     message: {type: String},
 
     // the stack trace
-    stack: {type: String},
+    stack: [{
+        type: String
+    }],
 
     // any other info
     info: {type: Schema.Types.Mixed},
@@ -54,6 +56,25 @@ var ErrorSchema = new Schema({
 
 //----------------------------------------------------------------------------------------------------------------------
 // Pre & Post Methods
+
+/**
+ * Pre-validation hook to transform stack string into more readable array.
+ */
+ErrorSchema.pre('validate', function(next) {
+    if (this.stack) {
+        var stackString;
+        if (this.stack.length) {
+            stackString = '';
+            for (var i=0,x=this.stack.length; i<x; i++) {
+                stackString += this.stack[i].toString()+'\n';
+            }
+        } else {
+            stackString = this.stack.toString();
+        }
+        this.stack = stackString.split(/\n\s*/);
+    }
+    next();
+});
 
 //----------------------------------------------------------------------------------------------------------------------
 // Initialize Model

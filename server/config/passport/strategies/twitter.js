@@ -19,19 +19,13 @@ var auth = require('../../../../auth.js');
  */
 module.exports = function() {
 
-    var twitterKey, twitterSecret;
-    if (process.env.SERVER === 'local') {
-        twitterKey = auth.twitterConsumerKeyDev;
-        twitterSecret = auth.twitterConsumerSecretDev;
-    } else {
-        twitterKey = auth.twitterConsumerKey;
-        twitterSecret = auth.twitterConsumerSecret;
-    }
+    var consumerKey = (process.env.SERVER === 'local') ? auth.twitterConsumerKeyDev : auth.twitterConsumerKey,
+        consumerSecret = (process.env.SERVER === 'local') ? auth.twitterConsumerSecretDev : auth.twitterConsumerSecret;
 
 	// twitter strategy
 	passport.use('twitter', new TwitterStrategy({
-            consumerKey: twitterKey,
-            consumerSecret: twitterSecret
+            consumerKey: consumerKey,
+            consumerSecret: consumerSecret
         },
         function(token, secret, profile, clbk) {
             // passing object to clbk b/c multiple parameters not working -> return clbk(accessToken, profile) would pass 2nd argument as undefined.

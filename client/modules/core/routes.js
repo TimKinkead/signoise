@@ -4,23 +4,22 @@ angular.module('app').config([
     '$stateProvider',
     function($stateProvider) {
 
+        // -- Home Page --
+
         $stateProvider.state('home', {
             url: '/',
             templateUrl: 'modules/main/home/view.html',
             controller: 'HomeController'
         });
 
+        // -- Dashboard --
+
         $stateProvider.state('dashboard', {
             url: '/dashboard',
             templateUrl: 'modules/main/dashboard/view.html',
-            controller: 'DashboardController'
+            controller: 'DashboardController',
+            data: {memberOnly: true}
         });
-
-        /*$stateProvider.state('settings', {
-            url: '/settings',
-            templateUrl: 'modules/main/settings/view.html',
-            controller: 'SettingsController'
-        });*/
 
         // -- User States --
 
@@ -53,22 +52,32 @@ angular.module('app').config([
         $stateProvider.state('socialseeds', {
             url: '/social-seeds',
             templateUrl: 'modules/main/social-seeds/view.html',
-            controller: 'SocialSeedsController'
+            controller: 'SocialSeedsController',
+            data: {memberOnly: true}
         });
 
         $stateProvider.state('socialmedia', {
             url: '/social-media',
             templateUrl: 'modules/main/social-media/view.html',
-            controller: 'SocialMediaController'
+            controller: 'SocialMediaController',
+            data: {memberOnly: true}
         });
 
+        // -- Web States --
 
+        $stateProvider.state('webpages', {
+            url: '/web-pages',
+            templateUrl: 'modules/main/web-pages/view.html',
+            controller: 'WebPagesController',
+            data: {memberOnly: true}
+        });
 
-        /*
-         {state: 'seedlist', name: 'Seed List'},
-         {state: 'blacklist', name: 'Blacklist'},
-         {state: 'crawlstats', name: 'Crawl Stats'},
-         {state: 'links', name: 'Referenced Links'}
-         */
+        $stateProvider.state('websites', {
+            url: '/web-sites',
+            templateUrl: 'modules/main/web-sites/view.html',
+            controller: 'WebSitesController',
+            data: {memberOnly: true}
+        });
+
     }
 ]);

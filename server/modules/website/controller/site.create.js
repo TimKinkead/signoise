@@ -4,7 +4,7 @@
 // Models
 
 var mongoose = require('mongoose'),
-    Site = mongoose.model('Site');
+    WebSite = mongoose.model('WebSite');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -21,15 +21,15 @@ exports.create = function(req, res) {
     var patt = /^(https?|ftp):\/\/[\S]+\.[a-zA-Z]+\/?[\S]*$/;
     if (!req.body.url || !patt.test(req.body.url)) {
         return res.status(500).send({
-            header: 'Create Site Error!',
-            message: 'Please provide a valid url to create a new site.'
+            header: 'Create WebSite Error!',
+            message: 'Please provide a valid url to create a new website.'
         });
     }
 
-    // TODO: check if Site Doc already exists, if not create it
+    // TODO: check if WebSite Doc already exists, if not create it
 
     // init mongoose model
-    var site = new Site({});
+    var site = new WebSite({});
 
 
 

@@ -1,0 +1,57 @@
+<!-- Web Sites Table -->
+
+<div class="container">
+
+    <div>
+        <button class="btn btn-success pull-right" style="margin-bottom: 5px;" ng-click="create()">Create</button>
+        <div class="btn-group">
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'active'">
+                Crawl <span class="badge" ng-if="summary.crawl" ng-bind="summary.crawl"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'inactive'">
+                No Crawl <span class="badge" ng-if="summary.noCrawl" ng-bind="summary.noCrawl"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'active'">
+                Pending <span class="badge" ng-if="summary.pending" ng-bind="summary.pending"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'all'">
+                All <span class="badge" ng-if="summary.all" ng-bind="summary.all"></span>
+            </button>
+        </div>
+    </div>
+
+    <h1 class="text-center">Web Sites</h1>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <th style="cursor: pointer;" class="hidden-xs"
+                ng-repeat="field in fields"
+                ng-click="filter(field)">
+                <i ng-if="orderBy === field"
+                   class="pull-right glyphicon"
+                   ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+                {{field|capitalize}}
+            </th>
+            <th class="visible-xs"
+                ng-click="filter('platform')">
+                <i class="pull-right glyphicon"
+                   ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+                Platform <br/>
+                <span class="text-info">Query</span>
+            </th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="site in sites|orderBy:orderBy:-reverse"
+                ng-class="{'last-row': $last}"
+                ng-click="edit(site)">
+                <td ng-repeat="field in fields" class="hidden-xs">
+                    {{(dates.indexOf(field) > -1) ? (site[field]|date:'shortDate') : site[field]}}
+                </td>
+                <td class="visible-xs">
+                    {{site.platform}} <br/>
+                    <span class="text-info">{{site.query}}</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
