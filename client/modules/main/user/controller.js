@@ -143,5 +143,23 @@ angular.module('app').controller('UserController', [
                     .error(errorMessage);
             }
         };
+
+        $scope.toggleFacebook = function() {
+            status.processing = true;
+            if (!user.facebook) {
+                // connect facebook
+                window.location.assign('/data/user/facebook/connect');
+            } else {
+                // disconnect facebook
+                $http
+                    .get('/data/user/facebook/disconnect')
+                    .success(function() {
+                        user.facebook = false;
+                        status.processing = false;
+                        successMessage('Facebook Disconnected!');
+                    })
+                    .error(errorMessage);
+            }
+        };
     }
 ]);

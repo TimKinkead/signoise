@@ -83,14 +83,14 @@ UserSchema.virtual('username').get(function() {
  * Virtual field for checking if facebook account is connected.
  */
 UserSchema.virtual('facebook').get(function() {
-    return (this.facebookAccessToken);
+    return this.facebookAccessToken ? true : false;
 });
 
 /**
  * Virtual field for checking if instagram account is connected.
  */
 UserSchema.virtual('instagram').get(function() {
-    return (this.instagramAccessToken);
+    return this.instagramAccessToken ? true : false;
 });
 
 /**

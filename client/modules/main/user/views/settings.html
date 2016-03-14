@@ -55,10 +55,17 @@
             </form>
         </div>
 
+        <hr>
+
         <button class="btn btn-block" ng-class="{'btn-info': !user.twitter, 'btn-warning': user.twitter}"
                 ng-click="toggleTwitter()">
             {{user.twitter ? 'Disconnect' : 'Connect'}} Twitter
         </button>
+        <button class="btn btn-block" ng-class="{'btn-info': !user.facebook, 'btn-warning': user.facebook}"
+                ng-click="toggleFacebook()">
+            {{user.facebook ? 'Disconnect' : 'Connect'}} Facebook
+        </button>
+
     </div>
 
 </div>

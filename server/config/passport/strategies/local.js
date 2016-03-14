@@ -13,10 +13,11 @@ var mongoose = require('mongoose'),
 	User = mongoose.model('User');
 
 //----------------------------------------------------------------------------------------------------------------------
-// Strategies
+// Main
 
 /**
- * Local Strategy
+ * Local Authentication Strategy
+ * - Sign Up / Login
  */
 module.exports = function() {
 

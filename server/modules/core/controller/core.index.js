@@ -17,6 +17,8 @@ exports.index = function(req, res) {
             {
                 _id: req.user._id,
                 username: req.user.username,
+                facebook: req.user.facebook,
+                instagram: req.user.instagram,
                 twitter: req.user.twitter,
                 admin: req.user.admin
             } :

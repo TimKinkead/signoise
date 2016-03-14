@@ -12,6 +12,16 @@
     </button>
 </div>
 
+<div class="alert alert-danger text-center" role="alert"
+     style="max-width:500px; margin:0 auto 20px;"
+     ng-if="user.twitter && !user.facebook">
+    <p>Please connect your Facebook account.</p>
+    <button class="btn btn-info" style="margin-top:5px;"
+            ng-click="connectFacebook()">
+        Connect Facebook
+    </button>
+</div>
+
 <div class="jumbotron" style="margin-bottom: 0; background-color:lightgoldenrodyellow">
     <div class="container">
         <h1>Charts & Graphs</h1>

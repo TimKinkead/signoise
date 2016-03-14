@@ -11,5 +11,10 @@ angular.module('app').controller('DashboardController', [
         $scope.connectTwitter = function() {
             window.location.assign('/data/user/twitter/connect');
         };
+
+        // connect to a user's facebook account
+        $scope.connectFacebook = function() {
+            window.location.assign('/data/user/facebook/connect');
+        };
     }
 ]);

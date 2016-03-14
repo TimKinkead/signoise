@@ -42,7 +42,7 @@ module.exports = function(app) {
         .put(user.updateSettings);
 
     // -- FACEBOOK --
-    /*
+
     // connect facebook account
     app.route('/data/user/facebook/connect')
         .get(user.facebookAuthorization);
@@ -54,7 +54,7 @@ module.exports = function(app) {
     // disconnect facebook account
     app.route('/data/user/facebook/disconnect')
         .get(user.facebookDisconnect);
-    */
+
     // -- INSTAGRAM --
     /*
     // connect instagram account
