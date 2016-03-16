@@ -21,15 +21,15 @@ var logger = require('../../../logger');
 /**
  * SOCIALMEDIA.TWITTER.API.GET
  * - Perform a get request at a twitter api endpoint.
- * @param url - twitter api request url
+ * @param twitterUrl - twitter api request url
  * @param token - twitter user token
  * @param secret - twitter user secret
  * @param clbk - return clbk(err, data)
  */
-exports.twitterApiGet = function(url, token, secret, clbk) {
+exports.twitterApiGet = function(twitterUrl, token, secret, clbk) {
     logger.filename(__filename);
 
-    if (!url) {return clbk(new Error('!url'));}
+    if (!twitterUrl) {return clbk(new Error('!twitterUrl'));}
     if (!token) {return clbk(new Error('!token'));}
     if (!secret) {return clbk(new Error('!secret'));}
 
@@ -49,7 +49,7 @@ exports.twitterApiGet = function(url, token, secret, clbk) {
         );
 
     // get tweets from twitter
-    oauth.get(url, token, secret, function (err, data, response) {
+    oauth.get(twitterUrl, token, secret, function (err, data, response) {
         if (err) {return clbk(new Error(err));}
         if (!data) {return clbk(new Error('!data'));}
 

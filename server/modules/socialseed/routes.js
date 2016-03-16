@@ -24,4 +24,8 @@ module.exports = function(app) {
     app.route('/data/socialseed/summary')
         .get(socialseed.summary);
 
+    // get facebook search results (groups and pages)
+    app.route('/data/socialseed/facebook/search')
+        .get(socialseed.searchFacebook);
+
 };

@@ -134,6 +134,14 @@ function getTweets(url, seed, token, secret) {
 
             // update social seed
             if (seed) {
+                SocialSeed.update(
+                    {_id: seed._id},
+                    {$set: {lastPulled: now}},
+                    function(err) {
+                        if (err) {return error.log(new Error(err));}
+                    }
+                );
+
                 if (newTweets) {seed.media += newTweets;}
                 seed.lastPulled = now;
                 seed.history = [{date: now, total: tweets.length, new: newTweets}].concat(seed.history || []);

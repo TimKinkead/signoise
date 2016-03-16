@@ -7,11 +7,14 @@ angular.module('app').controller('SocialSeedsCreateController', [
     '$scope',
     '$uibModalInstance',
     '$http',
-    function ($scope, $modalInstance, $http) {
+    '$resource',
+    function ($scope, $modalInstance, $http, $resource) {
 
         // variables
-        var platforms = $scope.platforms = ['facebook', 'instagram', 'twitter'],
-            seed = $scope.seed = {platform: 'twitter', frequency: 'daily'};
+        var status = $scope.status = {},
+            step = $scope.step = 1,
+            platforms = $scope.platforms = ['facebook', 'instagram', 'twitter'],
+            seed = $scope.seed = {platform: 'facebook', frequency: 'daily'};
 
         // cancel & close create modal
         $scope.cancel = function () {
@@ -48,5 +51,23 @@ angular.module('app').controller('SocialSeedsCreateController', [
                 seed.platform = platforms[nV];
             }
         });
+
+        // search facebook for groups and pages
+        $scope.searchFacebook = function() {
+            status.processing = true;
+            status.errorMessage = null;
+            $scope.facebookResults = $resource('data/socialseed/facebook/search').get(
+                {query: seed.query},
+                function() { status.processing = false; },
+                function(err) { status.processing = false; status.errorMessage = 'Error! Please try again.\n'+err; }
+            );
+        };
+
+        // select a facebook group or page
+        $scope.selectFacebook = function(fbItem) {
+            step = 2;
+            seed.facebookId = 0;
+        };
+
     }
 ]);

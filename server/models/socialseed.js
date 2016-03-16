@@ -32,6 +32,22 @@ var SocialSeedSchema = new Schema({
         type: String
     },
 
+    // facebook group or page id
+    facebookId: {
+        type: String
+    },
+
+    // facebook group or page name
+    facebookName: {
+        type: String
+    },
+
+    // facebook group or page
+    facebookType: {
+        type: String,
+        enum: ['group', 'page']
+    },
+
     // how often should social media be pulled from this seed?
     frequency: {
         type: String,

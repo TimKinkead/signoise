@@ -41,17 +41,21 @@ function saveScreenName(sn, index, total) {
  * Loop through screen names and save as social seeds.
  * - Use setTimeout to spread out requests.
  */
+function bulkInsert() {
+    console.log('\n-- saving screen names --\n');
 
-console.log('\n-- saving screen names --\n');
+    var screenNames = require('./socialseed.screennames.js'),
+        total = screenNames.length;
 
-var screenNames = require('./socialseed.screennames.js'),
-    total = screenNames.length;
+    var timeout = 0,
+        timeoutInc = 50;
+    screenNames.forEach(function(sn, index) {
+        function saveThisScreenName() {saveScreenName(sn, index, total);}
+        setTimeout(saveThisScreenName, timeout);
+        timeout += timeoutInc;
+    });
+}
 
-var timeout = 0,
-    timeoutInc = 50;
-screenNames.forEach(function(sn, index) {
-    function saveThisScreenName() {saveScreenName(sn, index, total);}
-    setTimeout(saveThisScreenName, timeout);
-    timeout += timeoutInc;
-});
+// start
+// bulkInsert();
 
