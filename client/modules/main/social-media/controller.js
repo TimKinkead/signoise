@@ -4,12 +4,8 @@ angular.module('app').controller('SocialMediaController', [
     '$scope',
     '$resource',
     '$uibModal',
-    '$http',
     '$window',
-    function($scope, $resource, $modal, $http, $window) {
-
-        // only show pull buttons if running locally (pull is run by cron job on cloud servers)
-        $scope.showPullBtns = $window.location.hostname === 'localhost';
+    function($scope, $resource, $modal, $window) {
 
         // get summary info
         $scope.summary = $resource('data/socialmedia/summary').get();
@@ -20,28 +16,9 @@ angular.module('app').controller('SocialMediaController', [
         // variables
         var skip = 0, limit = 20,
             media = $scope.media = $resource('data/socialmedia/list').query({skip: skip, limit: limit, filterBy: $scope.filterBy}),
-            fields = $scope.fields = ['platform', 'status', 'processed', 'username', 'text', 'date'],
-            dates = $scope.dates = ['processed', 'modified', 'created'];
-
-        // table header filters
-        $scope.orderBy = fields[0];
-        $scope.reverse = false;
-        $scope.filter = function(key) {
-            $scope.reverse = ($scope.orderBy === key && !$scope.reverse);
-            $scope.orderBy = key;
-        };
-
-        // pull social media from twitter seeds
-        $scope.pullTwitter = function () {
-            $http.get('/data/socialmedia/pull/twitter')
-                .success(function(data) {})
-                .error(function(err) {});
-        };
-
-        // download social media data as csv file
-        $scope.download = function() {
-            $window.location.href = 'http://'+$window.location.host+'/data/socialmedia/download';
-        };
+            fields = $scope.fields = ['date', 'text', 'seed', 'platform', 'status', 'processed'],
+            dates = $scope.dates = ['date', 'processed', 'modified', 'created'];
+        
 
         // lazy load social media docs
         function loadMore() {
@@ -84,15 +61,27 @@ angular.module('app').controller('SocialMediaController', [
             }
         });
 
-        // get text from twitter
-        $scope.getTwitterText = function(twitterText) {
-            return decodeURIComponent(twitterText);
+        // download social media data as csv file
+        $scope.download = function() {
+            $window.location.href = 'http://'+$window.location.host+'/data/socialmedia/download';
         };
 
-        // create date object from twitter date string and return
-        $scope.getTwitterDate = function(twitterDate) {
-            return new Date(twitterDate);
+        // launch read modal
+        $scope.read = function (mediaDoc) {
+            var modalInstance = $modal.open({
+                templateUrl: 'modules/main/social-media/read/view.html',
+                controller: 'SocialMediaReadController',
+                resolve: {
+                    info: function() { return {mediaDocId: mediaDoc._id}; }
+                }
+            });
+            modalInstance.result.then(
+                // close modal
+                function () {console.log('close');},
+                // dismiss modal
+                function () {console.log('dismiss');}
+            );
         };
-
+        
     }
 ]);

@@ -16,7 +16,7 @@ var fs = require('fs'),
     cookieParser = require('cookie-parser'),                    // parse session cookies
     helmet = require('helmet'),						            // security
     passport = require('passport'),                             // authentication
-    mongoStore = require('connect-mongo')({session: session}),  // mongo specific sessions
+    mongoStore = require('connect-mongo')(session),             // mongo specific sessions
     consolidate = require('consolidate');			            // template engine consolidation library
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ var file = require('./modules/file');
 //----------------------------------------------------------------------------------------------------------------------
 // Initialize Application
 
-module.exports = function(db) {
+module.exports = function(mongoose) {
 
     // -- MODELS --
 
@@ -91,15 +91,22 @@ module.exports = function(db) {
 
     // express mongodb session storage
     app.use(session({
-        saveUninitialized: true,
-        resave: true,
-        secret: 'keyboardcat',
-        store: new mongoStore({
-            db: db.connection.db,
+        db: new mongoStore({
+            mongooseConnection: mongoose.connection,
             collection: 'sessions',
             autoReconnect: true
             //stringify: false
         }),
+        saveUninitialized: true,
+        resave: true,
+        secret: 'keyboardcat',
+        maxAge: new Date(Date.now() + 1000*60*24*14), // 14 days
+        /*store: new mongoStore({
+            db: db.connection.db,
+            collection: 'sessions',
+            autoReconnect: true
+            //stringify: false
+        }),*/
         name: 'signal-noise'
     }));
 

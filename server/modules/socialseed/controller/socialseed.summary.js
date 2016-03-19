@@ -52,11 +52,12 @@ exports.summary = function(req, res) {
         });
     }
 
-    cnt = 6;
-    countSocialSeeds({}, 'all');                                                    // 1
-    countSocialSeeds({frequency: {$in: ['hourly', 'daily', 'weekly']}}, 'active');  // 2
-    countSocialSeeds({frequency: {$exists: false}}, 'inactive');                    // 3
-    countSocialSeeds({platform: 'facebook'}, 'facebook');                           // 4
-    countSocialSeeds({platform: 'instagram'}, 'instagram');                         // 5
-    countSocialSeeds({platform: 'twitter'}, 'twitter');                             // 6
+    cnt = 7;
+    countSocialSeeds({frequency: {$in: ['hourly', 'daily', 'weekly']}}, 'active');  // 1
+    countSocialSeeds({frequency: {$exists: false}}, 'pending');                     // 2
+    countSocialSeeds({frequency: 'never'}, 'never');                                // 3
+    countSocialSeeds({}, 'all');                                                    // 4
+    countSocialSeeds({platform: 'facebook'}, 'facebook');                           // 5
+    countSocialSeeds({platform: 'instagram'}, 'instagram');                         // 6
+    countSocialSeeds({platform: 'twitter'}, 'twitter');                             // 7
 };

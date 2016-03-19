@@ -13,6 +13,7 @@ module.exports = function(app) {
     // CRUD operation for social seeds
     app.route('/data/socialseed')
         .post(socialseed.create)
+        .get(socialseed.read)
         .put(socialseed.update)
         .delete(socialseed.delete);
 

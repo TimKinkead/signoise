@@ -19,6 +19,29 @@ var SocialMediaSchema = new Schema(
 
         //_id: {type: ObjectId} // automatically created for each document
 
+        // post or tweet date
+        // - pulled from 'data' via pre-validation hook
+        date: {
+            type: Date
+            //required: true
+        },
+        
+        // facebook post 'message' or tweet 'text'
+        // - pulled from 'data' via pre-validation hook
+        text: {
+            type: String
+            //required: true
+        },
+
+        // the social seed used to pull this social media
+        // - necessary for connecting fb posts to fb groups/pages
+        // - not very important for twitter
+        socialseed: {
+            type: Schema.ObjectId,
+            ref: 'SocialSeed'
+            // required: true
+        },
+
         // the social media platform
         platform: {
             type: String,
@@ -26,8 +49,7 @@ var SocialMediaSchema = new Schema(
             required: true
         },
 
-        // json data returned by platform
-        // - this is the raw post or tweet
+        // json data - the raw post or tweet
         data: {
             type: Object,
             required: true
@@ -80,6 +102,25 @@ var SocialMediaSchema = new Schema(
 
 //----------------------------------------------------------------------------------------------------------------------
 // Pre & Post Methods
+
+/**
+ * Pre-validation hook grab text & date.
+ */
+SocialMediaSchema.pre('validate', function(next) {
+    if (this.data) {
+        switch(this.platform) {
+            case 'facebook':
+                if (this.data.message) {this.text = this.data.message;}
+                if (this.data.created_time) {this.date = new Date(this.data.created_time);}
+                break;
+            case 'twitter':
+                if (this.data.text) {this.text = this.data.text;}
+                if (this.data.created_at) {this.date = new Date(this.data.created_at);}
+                break;
+        }
+    }
+    next();
+});
 
 //----------------------------------------------------------------------------------------------------------------------
 // Static Methods

@@ -58,6 +58,7 @@ exports.list = function(req, res) {
         .sort(sort)
         .skip(Number(req.query.skip))
         .limit((req.query.limit) ? Number(req.query.limit) : 100)
+        .populate('socialseed', 'title')
         .exec(function(err, mediaDocs) {
             if (err) {error.log(new Error(err)); return errorMessage();}
 

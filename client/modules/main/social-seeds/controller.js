@@ -8,27 +8,18 @@ angular.module('app').controller('SocialSeedsController', [
     '$resource',
     '$uibModal',
     '$window',
-    function($scope, $resource, $modal, $window) {
+    '$http',
+    function($scope, $resource, $modal, $window, $http) {
 
         // get summary info
         $scope.summary = $resource('data/socialseed/summary').get();
 
-        // filter by 'active' by default
-        $scope.filterBy = 'active';
-
         // variables
         var skip = 0, limit = 20,
-            seeds = $scope.seeds = $resource('data/socialseed/list').query({skip: skip, limit: limit, filterBy: $scope.filterBy}),
-            fields = $scope.fields = ['platform', 'query', 'frequency', 'references', 'media', 'activated'],
+            filterBy = $scope.filterBy = 'active',
+            seeds = $scope.seeds = $resource('data/socialseed/list').query({filterBy: filterBy, skip: skip, limit: limit}),
+            fields = $scope.fields = ['title', 'platform', 'frequency', 'references', 'media', 'activated'],
             dates = $scope.dates = ['activated', 'initialized', 'created'];
-
-        // table header filters
-        $scope.orderBy = fields[0];
-        $scope.reverse = false;
-        $scope.filter = function(key) {
-            $scope.reverse = ($scope.orderBy === key && !$scope.reverse);
-            $scope.orderBy = key;
-        };
 
         // launch create modal and handle result
         $scope.create = function () {
@@ -37,8 +28,10 @@ angular.module('app').controller('SocialSeedsController', [
                 controller: 'SocialSeedsCreateController'
             });
             modalInstance.result.then(
-                function (seed) {seeds.push(seed);}, // close modal
-                function () {console.log('dismiss');} // dismiss modal
+                // close modal
+                function (seed) {seeds.push(seed);},
+                // dismiss modal
+                function () {console.log('dismiss');}
             );
         };
 
@@ -54,11 +47,13 @@ angular.module('app').controller('SocialSeedsController', [
                 }
             });
             modalInstance.result.then(
-                function (data) { // close modal
+                // close modal
+                function (data) {
                     if (data.update) {seed = angular.extend(seed, data.update);}
                     else if (data.delete) {seeds.splice(seeds.indexOf(seed), 1);}
                 },
-                function () {console.log('dismiss');} // dismiss modal
+                // dismiss modal
+                function () {console.log('dismiss');}
             );
         };
 
@@ -74,7 +69,7 @@ angular.module('app').controller('SocialSeedsController', [
             if (last && last < loadHeight) {
                 skip += limit;
                 $resource('data/socialseed/list').query(
-                    {skip: skip, limit: limit},
+                    {filterBy: filterBy, skip: skip, limit: limit},
                     function(items) {
                         if (items.length < limit) {
                             angular.element($window).unbind('scroll');
@@ -95,11 +90,28 @@ angular.module('app').controller('SocialSeedsController', [
                 angular.element($window).unbind('scroll');
                 skip = 0;
                 seeds = $scope.seeds = $resource('data/socialseed/list').query(
-                    {skip: skip, limit: limit, filterBy: nV},
+                    {filterBy: nV, skip: skip, limit: limit},
                     function() {angular.element($window).bind('scroll', loadMore);}
                 );
             }
         });
 
+        // only show pull buttons if running locally (pull is run by cron job on cloud servers)
+        $scope.showPullBtns = $window.location.hostname === 'localhost';
+        
+        // pull social media from twitter seeds
+        $scope.pullTwitter = function () {
+            $http.get('/data/socialmedia/pull/twitter')
+                .success(function(data) {})
+                .error(function(err) {});
+        };
+
+        // pull social media from facebook seeds
+        $scope.pullFacebook = function () {
+            $http.get('/data/socialmedia/pull/facebook')
+                .success(function(data) {})
+                .error(function(err) {});
+        };
+        
     }
 ]);

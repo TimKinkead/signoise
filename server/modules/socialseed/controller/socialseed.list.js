@@ -38,8 +38,12 @@ exports.list = function(req, res) {
             query = {frequency: {$in: ['hourly', 'daily', 'weekly']}};
             sort = {media: -1};
             break;
-        case 'inactive':
+        case 'pending':
             query = {frequency: {$exists: false}};
+            sort = {references: -1};
+            break;
+        case 'never':
+            query = {frequency: 'never'};
             sort = {references: -1};
             break;
         //case 'all':

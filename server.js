@@ -20,7 +20,7 @@ if (!process.env.DB_CONNECTION) {process.env.DB_CONNECTION = 'localhost';}
 if (!process.env.LOGGER) {process.env.LOGGER = 'on';}
 
 // connect to mongodb database
-var db = mongoose.connect(
+mongoose.connect(
     'mongodb://'+process.env.DB_CONNECTION+'/signal-noise',
     function(err) {
         if (err) {
@@ -31,7 +31,7 @@ var db = mongoose.connect(
         console.log(chalk.green('connected to mongodb at '+process.env.DB_CONNECTION));
 
         // initialize express application
-        var app = require('./server/express.js')(db);
+        var app = require('./server/express.js')(mongoose);
 
         // start http server
         http.createServer(app).listen(process.env.PORT, function() {

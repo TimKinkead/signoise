@@ -1,0 +1,104 @@
+<!-- Social Media Read Modal -->
+
+<!-- Close Modal Button -->
+<div class="modal-header">
+    <span class="close" ng-click="cancel()">&times;</span>
+    <h3 class="modal-title">Social Media Doc</h3>
+</div>
+
+<!-- Social Media Info -->
+<div class="modal-body">
+
+    <!-- Social Media Info Table -->
+    <table class="table table-bordered">
+        <thead>
+            <th>Field</th>
+            <th>Value</th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="field in fields">
+                <td><strong>{{field|capitalize}}</strong></td>
+                <td>
+
+                    <!-- default -->
+                    <span ng-if="['text', 'seed', 'data', 'meta'].indexOf(field) < 0">
+                        {{(dates.indexOf(field) > -1) ? (mediaDoc[field]|date:'shortDate') : mediaDoc[field]}}
+                    </span>
+
+                    <!-- text -->
+                    <span ng-if="field === 'text' && mediaDoc.platform === 'facebook'">
+                        <a ng-if="mediaDoc.data && mediaDoc.data.id"
+                           ng-href="https://facebook.com/{{mediaDoc.data.id}}"
+                           target="_blank"
+                           data-toggle="tooltip" title="view on facebook">
+                            {{getMediaText(mediaDoc);}}
+                        </a>
+                        <span ng-if="!mediaDoc.data || !mediaDoc.data.id">
+                            getMediaText(mediaDoc);
+                        </span>
+                    </span>
+                    <span ng-if="field === 'text' && mediaDoc.platform === 'twitter'">
+                        <a ng-if="mediaDoc.data && mediaDoc.data.user && mediaDoc.data.user.screen_name && mediaDoc.data.id"
+                           ng-href="https://twitter.com/{{mediaDoc.data.user.screen_name}}/status/{{mediaDoc.data.id}}"
+                           target="_blank"
+                           data-toggle="tooltip" title="view on facebook">
+                            getMediaText(mediaDoc);
+                        </a>
+                        <span ng-if="!mediaDoc.data || !mediaDoc.data.user || !mediaDoc.data.user.screen_name || !mediaDoc.data.id">
+                            getMediaText(mediaDoc);
+                        </span>
+                    </span>
+                    <span ng-if="field === text && ['facebook', 'twitter'].indexOf(mediaDoc.platform) < 0">
+                        getMediaText(mediaDoc);
+                    </span>
+
+                    <!-- social seed -->
+                    <span ng-if="field === 'seed'">
+                        {{mediaDoc.socialseed.title}}
+                    </span>
+
+                    <!-- data & meta -->
+                    <span ng-if="field === 'data' || field === 'meta'">
+                        see below
+                    </span>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Show/Hide Buttos for Data & Meta -->
+    <div class="row" style="margin: 0 0 10px;">
+        <div class="col-xs-6" style="padding: 0 2px 0 0;">
+            <button class="btn btn-block btn-default"
+                    ng-click="toggleData()">
+                {{(!showData) ? 'show data' : 'hide data'}} (raw post or tweet)
+            </button>
+        </div>
+        <div class="col-xs-6" style="padding: 0 2px 0 0;">
+            <button class="btn btn-block btn-default"
+                    ng-click="toggleMeta()">
+                {{(!showMeta) ? 'show meta data' : 'hide meta data'}} (processing results)
+            </button>
+        </div>
+    </div>
+
+    <!-- Show Data -->
+    <pre ng-if="showData && mediaDoc.data">
+        {{getDataAsJSON()}}
+    </pre>
+    <div ng-if="showData && !mediaDoc.data"
+         class="well text-center">
+        - no data -
+    </div>
+
+    <!-- Show Meta -->
+    <pre ng-if="showMeta && mediaDoc.meta">
+        {{getMetaAsJSON()}}
+    </pre>
+    <div ng-if="showMeta && !mediaDoc.meta"
+         class="well text-center">
+        - no meta data -
+    </div>
+
+</div>

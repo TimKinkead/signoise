@@ -8,10 +8,15 @@ angular.module('app').controller('SocialSeedsEditController', [
     '$uibModalInstance',
     'info',
     '$http',
-    function ($scope, $modalInstance, info, $http) {
-
+    '$resource',
+    function ($scope, $modalInstance, info, $http, $resource) {
+        
         // append info to scope
         $scope = angular.extend($scope, info);
+
+        // variables
+        $scope.showHistory = false;
+        $scope.fullSeed = null;
 
         // cancel & close edit modal
         $scope.cancel = function () {
@@ -45,7 +50,15 @@ angular.module('app').controller('SocialSeedsEditController', [
             $modalInstance.close({delete: true});
         };
 
-        // return uri encoded query string for twitter preview
+        // show/hide pull history
+        $scope.toggleHistory = function() {
+            $scope.showHistory = !$scope.showHistory;
+            if (!$scope.fullSeed) {
+                $scope.fullSeed = $resource('data/socialseed').get({_id: info.seed._id});
+            }
+        };
+
+        // return uri encoded query string for view on twitter link
         $scope.getQuery = function(query) {
             return encodeURIComponent(query);
         };

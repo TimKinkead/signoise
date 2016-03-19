@@ -2,14 +2,18 @@
 
 <div class="container">
 
+    <!-- Filter By Buttons -->
     <div>
         <button class="btn btn-success pull-right" style="margin-bottom: 5px;" ng-click="create()">Create</button>
         <div class="btn-group">
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'active'">
                 Active <span class="badge" ng-if="summary.active" ng-bind="summary.active"></span>
             </button>
-            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'inactive'">
-                Inactive <span class="badge" ng-if="summary.inactive" ng-bind="summary.inactive"></span>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'pending'">
+                Pending <span class="badge" ng-if="summary.pending" ng-bind="summary.pending"></span>
+            </button>
+            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'never'">
+                Never <span class="badge" ng-if="summary.never" ng-bind="summary.never"></span>
             </button>
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'all'">
                 All <span class="badge" ng-if="summary.all" ng-bind="summary.all"></span>
@@ -17,35 +21,34 @@
         </div>
     </div>
 
+    <!-- Table (desktop & mobile) -->
     <h1 class="text-center">Social Seeds</h1>
+    <div class="text-center" ng-if="showPullBtns">
+        <button class="btn btn-default" style="margin-bottom: 5px;" ng-click="pullTwitter()">Pull Twitter</button>
+        <button class="btn btn-default" style="margin-bottom: 5px;" ng-click="pullFacebook()">Pull Facebook</button>
+    </div>
     <table class="table table-bordered table-hover">
         <thead>
-            <th style="cursor: pointer;" class="hidden-xs"
-                ng-repeat="field in fields"
-                ng-click="filter(field)">
-                <i ng-if="orderBy === field"
-                   class="pull-right glyphicon"
-                   ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
+            <th class="hidden-xs"
+                ng-repeat="field in fields">
                 {{field|capitalize}}
             </th>
-            <th class="visible-xs"
-                ng-click="filter('platform')">
-                <i class="pull-right glyphicon"
-                   ng-class="{'glyphicon-triangle-top': !reverse, 'glyphicon-triangle-bottom': reverse}"></i>
-                Platform <br/>
-                <span class="text-info">Query</span>
+            <th class="visible-xs">
+                Title <br/>
+                <span class="text-info">Platform</span>
             </th>
         </thead>
         <tbody>
-            <tr ng-repeat="seed in seeds|orderBy:orderBy:-reverse"
+            <tr ng-repeat="seed in seeds"
                 ng-class="{'last-row': $last}"
-                ng-click="edit(seed)">
+                ng-click="edit(seed)"
+                style="cursor:pointer;">
                 <td ng-repeat="field in fields" class="hidden-xs">
                     {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
                 </td>
                 <td class="visible-xs">
-                    {{seed.platform}} <br/>
-                    <span class="text-info">{{seed.query}}</span>
+                    {{seed.title}} <br/>
+                    <span class="text-info">{{seed.platform}}</span>
                 </td>
             </tr>
         </tbody>

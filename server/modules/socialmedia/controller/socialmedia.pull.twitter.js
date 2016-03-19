@@ -3,8 +3,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Dependencies
 
-var OAuth = require('oauth'),
-    _ = require('lodash');
+var _ = require('lodash');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Variables
@@ -15,11 +14,7 @@ var auth = require('../../../../auth.js');
 // Models
 
 var mongoose = require('mongoose'),
-    SocialMedia = mongoose.model('SocialMedia'),
-    SocialSeed = mongoose.model('SocialSeed'),
-    WebPage = mongoose.model('WebPage'),
-    WebSite = mongoose.model('WebSite'),
-    User = mongoose.model('User');
+    SocialSeed = mongoose.model('SocialSeed');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -57,8 +52,8 @@ function getSeeds(clbk) {
         }
     }
 
-    // get seeds
-    function getSeeds(query, frequency) {
+    // get some seeds
+    function getSomeSeeds(query, frequency) {
         SocialSeed.find(query)
             .sort({lastPull: 1})
             .exec(function(err, seedDocs) {
@@ -71,13 +66,13 @@ function getSeeds(clbk) {
     // start
     if (process.env.NODE_ENV === 'development') {
         cnt = 1;
-        getSeeds({platform: 'twitter', frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
+        getSomeSeeds({platform: 'twitter', frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
     } else {
         cnt = 4;
-        getSeeds({platform: 'twitter', initialized: {$exists: false}, frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
-        getSeeds({platform: 'twitter', frequency: 'weekly', lastPulled: {$lt: oneWeekAgo}}, 'weekly');
-        getSeeds({platform: 'twitter', frequency: 'daily', lastPulled: {$lt: oneDayAgo}}, 'daily');
-        getSeeds({platform: 'twitter', frequency: 'hourly', lastPulled: {$lt: oneHourAgo}}, 'hourly');
+        getSomeSeeds({platform: 'twitter', initialized: {$exists: false}, frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
+        getSomeSeeds({platform: 'twitter', frequency: 'weekly', lastPulled: {$lt: oneWeekAgo}}, 'weekly');
+        getSomeSeeds({platform: 'twitter', frequency: 'daily', lastPulled: {$lt: oneDayAgo}}, 'daily');
+        getSomeSeeds({platform: 'twitter', frequency: 'hourly', lastPulled: {$lt: oneHourAgo}}, 'hourly');
     }
 }
 
@@ -169,7 +164,6 @@ function getTweets(url, seed, token, secret) {
         });
     });
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 // Main

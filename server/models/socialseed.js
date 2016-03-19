@@ -18,6 +18,12 @@ var SocialSeedSchema = new Schema({
 
     //_id: {type: ObjectId} // automatically created for each document
 
+    // title
+    title: {
+        type: String
+        //required: true
+    },
+
     // the social media platform
     platform: {
         type: String,
@@ -25,27 +31,26 @@ var SocialSeedSchema = new Schema({
         required: true
     },
 
-    // twitter query
+    // twitter query // TODO - remove!!
     // - https://dev.twitter.com/rest/public/search
     // - https://dev.twitter.com/rest/reference/get/search/tweets
     query: {
         type: String
     },
 
-    // facebook group or page id
-    facebookId: {
-        type: String
+    // twitter
+    twitter: {
+        query: {type: String},
+        hashtag: {type: Boolean},
+        username: {type: Boolean}
     },
 
-    // facebook group or page name
-    facebookName: {
-        type: String
-    },
-
-    // facebook group or page
-    facebookType: {
-        type: String,
-        enum: ['group', 'page']
+    // facebook
+    facebook: {
+        id: {type: String},
+        name: {type: String},
+        type: {type: String, enum: ['group', 'page']},
+        category: {type: String}
     },
 
     // how often should social media be pulled from this seed?
@@ -66,11 +71,6 @@ var SocialSeedSchema = new Schema({
         default: 0
     },
 
-    // timestamp - when frequency was set to anything except 'never'
-    activated: {
-        type: Date
-    },
-
     // if/when historical tweets were pulled for this social seed
     initialized: {
         type: Date
@@ -78,6 +78,7 @@ var SocialSeedSchema = new Schema({
 
     // pull history
     history: [{
+        _id: false,
         date: {type: Date},
         total: {type: Number},
         new: {type: Number}
@@ -98,36 +99,6 @@ var SocialSeedSchema = new Schema({
 //----------------------------------------------------------------------------------------------------------------------
 // Virtual Fields
 
-/**
- * Virtual field for last pull date.
- */
-SocialSeedSchema.virtual('lastPullDate').get(function() {
-    if (this.history && this.history[0] && this.history[0].date) {
-        return this.history[0].date;
-    }
-    return null;
-});
-
-/**
- * Virtual field for total social media posts returned from last pull.
- */
-SocialSeedSchema.virtual('lastPullTotal').get(function() {
-    if (this.history && this.history[0] && this.history[0].total) {
-        return this.history[0].total;
-    }
-    return 0;
-});
-
-/**
- * Virtual field for new social media posts returned from last pull.
- */
-SocialSeedSchema.virtual('lastPullNew').get(function() {
-    if (this.history && this.history[0] && this.history[0].new) {
-        return this.history[0].new;
-    }
-    return 0;
-});
-
 //----------------------------------------------------------------------------------------------------------------------
 // Instance Methods
 
@@ -135,11 +106,28 @@ SocialSeedSchema.virtual('lastPullNew').get(function() {
 // Pre & Post Methods
 
 /**
- * Pre-save hook to set activated.
+ * Pre-validation hook to set title & other fields.
  */
-SocialSeedSchema.pre('save', function(next) {
-    if (this.frequency && this.frequency !== 'never') {
-        this.activated = new Date();
+SocialSeedSchema.pre('validate', function(next) {
+    if (!this.title) {
+        switch(this.platform) {
+            case 'facebook':
+                if (this.facebook && this.facebook.name) {
+                    this.title = this.facebook.name;
+                }
+                break;
+            case 'twitter':
+                if (this.twitter && this.twitter.query) {
+                    this.title = this.twitter.query;
+                    if (this.twitter.query.indexOf('#') === 0 && this.twitter.query.indexOf(' ') < 0) {
+                        this.twitter.hashtag = true;
+                    }
+                    if (this.twitter.query.indexOf('@') === 0 && this.twitter.query.indexOf(' ') < 0) {
+                        this.twitter.username = true;
+                    }
+                }
+                break;
+        }
     }
     next();
 });

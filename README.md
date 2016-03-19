@@ -21,10 +21,11 @@ This project uses a MEAN stack. (MongoDB, Express, Angular, Node)
     * Run `npm install`.
     * The node package dependencies listed in `package.json` will be installed in the `node_modules` directory.
   * Install the web package dependencies using [Bower](http://bower.io/).
+    * Install Bower globally with `npm install bower -g`.
     * Run `bower install`.
     * The web packages listed in `bower.json` will be installed in the `client/lib` directory.
-* Install [Grunt](http://gruntjs.com/) globally. 
-  * Run `npm install grunt -g`. 
+* Install [Grunt](http://gruntjs.com/)'s command line interface globally.
+  * Run `npm install grunt-cli -g`.
   * Grunt is a javascript task runner.
 
 ### Starting The Application Locally
@@ -43,6 +44,7 @@ This project uses a MEAN stack. (MongoDB, Express, Angular, Node)
 * Start the [mongo shell](https://docs.mongodb.org/manual/reference/program/mongo/).
   * Change directory to MongoDB's install location. `cd C:\Program Files\MongoDB\Server\3.0\bin`
   * Start the mongo shell with the command `mongo`.
+* Note: If you add MongoDB's install location to your path environment variable, you can run `mongod` and `mongo` from any directory.
 
 ### The Project Root Directory
 | Name | Description |

@@ -38,7 +38,7 @@ exports.getFacebookToken = function(user, clbk) {
             if (!userDocs) {return clbk(new Error('!userDocs'));}
             if (!userDocs.length) {return clbk(new Error('!userDocs.length'));}
 
-            // pick a user and grab their token and secret
+            // pick a user and grab their token
             var random = Math.floor(Math.random() * userDocs.length);
             user = userDocs[random];
 
