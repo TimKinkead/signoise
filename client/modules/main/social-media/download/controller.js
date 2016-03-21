@@ -10,15 +10,14 @@ angular.module('app').controller('SocialMediaDownloadController', [
     function ($scope, $modalInstance, $window) {
         
         // variables
-        var skip = $scope.skip = 0,
-            limit = $scope.limit = 5000;
+        var params = $scope.params = {skip: 0, limit: 5000};
         
         // download social media data
         $scope.download = function() {
             $window.location.href = 
                 'http://'+$window.location.host+'/data/socialmedia/download'+
-                '?skip='+skip+
-                '&limit='+limit;
+                '?skip='+params.skip+
+                '&limit='+params.limit;
         };
 
         // cancel & close download modal
