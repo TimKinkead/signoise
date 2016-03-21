@@ -9,7 +9,7 @@ module.exports = {
                 dest: 'public',
                 src: [
                     'humans.txt', 'robots.txt',
-                    'modules/core/img/favicon.ico',
+                    'favicon.ico',
                     'lib/bootstrap/fonts/**'
                 ],
                 cwd: 'client',

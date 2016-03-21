@@ -11,7 +11,7 @@ angular.module('app').controller('SocialMediaDownloadController', [
         
         // variables
         var skip = $scope.skip = 0,
-            limit = $scope.limit = 100000;
+            limit = $scope.limit = 5000;
         
         // download social media data
         $scope.download = function() {
