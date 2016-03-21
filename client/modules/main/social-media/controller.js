@@ -63,7 +63,16 @@ angular.module('app').controller('SocialMediaController', [
 
         // download social media data as csv file
         $scope.download = function() {
-            $window.location.href = 'http://'+$window.location.host+'/data/socialmedia/download';
+            var modalInstance = $modal.open({
+                templateUrl: 'modules/main/social-media/download/view.html',
+                controller: 'SocialMediaDownloadController'
+            });
+            modalInstance.result.then(
+                // close modal
+                function () {console.log('close');},
+                // dismiss modal
+                function () {console.log('dismiss');}
+            );
         };
 
         // launch read modal

@@ -25,7 +25,7 @@ function saveGeoCode(geocode, index, total) {
     
     request.post(
         {
-            url: url.parse('http://localhost:3000/data/socialseed'),
+            url: url.parse('http://signoise.prevagroup.com/data/socialseed'),
             json: true,
             body: {'platform': 'twitter', twitter: geocode, 'frequency': 'daily'}
         },

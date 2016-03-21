@@ -1,0 +1,50 @@
+<!-- Social Media Download Modal -->
+
+<!-- Modal Title & Close Button -->
+<div class="modal-header">
+    <span class="close" ng-click="cancel()">&times;</span>
+    <h3 class="modal-title">Download Social Media Data</h3>
+</div>
+
+<!-- Download Options -->
+<div class="modal-body">
+    <div class="row" style="margin:0;">
+        <div class="col-xs-6">
+            <div class="form-group">
+                <label>skip</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" required
+                           ng-model="skip"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="form-group">
+                <label>limit</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" required
+                           ng-model="limit"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p style="margin-top:10px;"><u>Example Usage:</u></p>
+    <ul>
+        <li style="margin-bottom:10px;">
+            <em>skip=0 limit=100</em> | Return the 100 most recent social media documents.
+        </li>
+        <li style="margin-bottom:10px;">
+            <em>skip=100 limit=100</em> | Skip the 100 most recent documents and return the next 100.
+        </li>
+    </ul>
+</div>
+
+<!-- Download Button -->
+<div class="modal-footer">
+    <div class="text-center">
+        <button class="btn btn-success"
+                ng-click="download()">
+            Download
+        </button>
+    </div>
+</div>

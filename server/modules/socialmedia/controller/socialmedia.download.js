@@ -184,6 +184,9 @@ exports.download = function(req, res) {
 
     // stream social media docs
     SocialMedia.find()
+        .sort({date: -1})
+        .skip((req.query.skip) ? Number(req.query.skip) : 0)
+        .limit((req.query.limit) ? Number(req.query.limit) : 100000)
         .populate('socialseed', 'title')
         .stream()
         .on('data', function(mediaDoc) {
