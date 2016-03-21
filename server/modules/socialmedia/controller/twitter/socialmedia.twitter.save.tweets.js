@@ -19,11 +19,15 @@ var saveTweet = require('./socialmedia.twitter.save.tweet.js').saveTweet;
  * - Save tweets to socialmedia mongodb collection.
  * - Use setTimeout to spread out saving tweets to avoid mongodb duplicate key errors.
  * @param tweets - an array of tweet objects
+ * @param seed - the social seed used to pull the social media (optional)
  * @param clbk - return clbk(errs, newTweets)
  */
-exports.saveTweets = function(tweets, clbk) {
+exports.saveTweets = function(tweets, seed, clbk) {
     if (!tweets) {return clbk([new Error('!tweets')]);}
     if (!tweets.length) {return clbk(null, 0);}
+
+    // handle optional seed parameter
+    if (!clbk) { clbk = seed; seed = null; }
 
     var errs = [],
         newTweets = 0,
@@ -44,7 +48,7 @@ exports.saveTweets = function(tweets, clbk) {
     tweets.forEach(function(cV) {
 
         function saveThisTweet() {
-            saveTweet(cV, function(err, newTweet) {
+            saveTweet(cV, seed, function(err, newTweet) {
                 if (err) {errs.push(err);}
                 if (newTweet) {newTweets += 1;}
                 checkDone();

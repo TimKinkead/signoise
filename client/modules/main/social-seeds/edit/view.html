@@ -22,12 +22,15 @@
                             {{seed.title}}
                         </a>
                     </span>
-                    <span ng-if="field === 'title' && seed.twitter">
+                    <span ng-if="field === 'title' && seed.twitter && seed.twitter.type !== 'geocode'">
                         <a ng-href="https://twitter.com/search?f=tweets&q={{getQuery(seed.query)}}"
                            target="_blank"
                            data-toggle="tooltip" title="view on twitter">
                             {{seed.title}}
                         </a>
+                    </span>
+                    <span ng-if="field === 'title' && seed.twitter && seed.twitter.type === 'geocode'">
+                        {{seed.title}}
                     </span>
                     <span ng-if="field === 'frequency'">
                         <select class="form-control" style="cursor:pointer;" required

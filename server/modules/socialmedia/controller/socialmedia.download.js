@@ -28,28 +28,56 @@ function csvEscape(str) {
 
 function getHeaders() {
     return [
+        
+        // general
         '_id',
         'platform',
+        'date',
+        'text',
+        
+        // seed
+        'seed._id',
+        'seed.title',
 
-        'tweet id',
-        'tweet text',
-        'tweet retweet_cnt',
-        'tweet favorite_cnt',
-        'tweet created_at',
+        // twitter tweet
+        'tw.id',
+        'tw.text',
+        'tw.retweet_cnt',
+        'tw.favorite_cnt',
+        'tw.created_at',
 
-        'user id',
-        'user screen_name',
-        'user name',
-        'user description',
-        'user location',
-        'user url',
-        'user followers_count',
-        'user friends_count',
-        'user statuses_count',
-        'user profile_image_url',
-        'user created_at',
+        // twitter user
+        'tw.user.id',
+        'tw.user.screen_name',
+        'tw.user.name',
+        'tw.user.description',
+        'tw.user.location',
+        'tw.user.url',
+        'tw.user.followers_count',
+        'tw.user.friends_count',
+        'tw.user.statuses_count',
+        'tw.user.profile_image_url',
+        'tw.user.created_at',
 
+        // facebook post
+        'fb.id',
+        'fb.type',
+        'fb.message',
+        //'fb.likes',
+        //'fb.comments',
+        //'fb.attachments',
+        'fb.created_time',
+        
+        // facebook user
+        'fb.from.id',
+        'fb.from.name',
+        'fb.from.picture.data.url',
+        
+        // processing
         'status',
+        'processed',
+        
+        // timestamps
         'modified',
         'created'
     ].map(csvEscape).join(',');
@@ -57,32 +85,62 @@ function getHeaders() {
 
 function docToCSV(doc) {
 
-    var tweet = (doc.data) ? doc.data : {},
-        user = (doc.data && doc.data.user) ? doc.data.user : {};
+    var seed = (doc.socialseed) ? doc.socialseed : {},
+        tweet = (doc.platform === 'twitter' && doc.data) ? doc.data : {},
+        twUser = (doc.platform === 'twitter' && doc.data && doc.data.user) ? doc.data.user : {},
+        fbPost = (doc.platform === 'facebook' && doc.data) ? doc.data : {},
+        fbUser = (doc.platform === 'facebook' && doc.data && doc.data.from) ? doc.data.from : {};
 
     return [
+        // general
         doc._id,
         doc.platform,
+        doc.date,
+        doc.text,
+        
+        // seed
+        seed._id,
+        seed.title,
 
+        // tweet
         tweet.id,
         tweet.text,
         tweet.retweet_count,
         tweet.favorite_count,
         tweet.created_at,
 
-        user.id,
-        user.screen_name,
-        user.name,
-        user.description,
-        user.location,
-        user.url,
-        user.followers_count,
-        user.friends_count,
-        user.statuses_count,
-        user.profile_image_url,
-        user.created_at,
+        // twitter user
+        twUser.id,
+        twUser.screen_name,
+        twUser.name,
+        twUser.description,
+        twUser.location,
+        twUser.url,
+        twUser.followers_count,
+        twUser.friends_count,
+        twUser.statuses_count,
+        twUser.profile_image_url,
+        twUser.created_at,
 
+        // facebook post
+        fbPost.id,
+        fbPost.type,
+        fbPost.message,
+        //fbPost.likes...
+        //fbPost.comments...
+        //fbPost.attachments...
+        fbPost.created_time,
+
+        // facebook user
+        fbUser.id,
+        fbUser.name,
+        (fbUser.picture && fbUser.picture.data) ? fbUser.picture.data.url : '',
+        
+        // processing
         doc.status,
+        doc.processed,
+        
+        // timestamps
         doc.modified,
         doc.created
     ].map(csvEscape).join(',');
@@ -126,6 +184,7 @@ exports.download = function(req, res) {
 
     // stream social media docs
     SocialMedia.find()
+        .populate('socialseed', 'title')
         .stream()
         .on('data', function(mediaDoc) {
             if (!streamStarted) {startStream();}

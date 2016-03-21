@@ -26,6 +26,7 @@ exports.saveFacebookPosts = function(posts, seed, clbk) {
     if (!posts) {return clbk([new Error('!posts')]);}
     if (!posts.length) {return clbk(null, 0);}
 
+    // handle optional seed parameter
     if (!clbk) { clbk = seed; seed = null; }
 
     var errs = [],

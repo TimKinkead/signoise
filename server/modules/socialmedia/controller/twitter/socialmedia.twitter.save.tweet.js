@@ -30,7 +30,7 @@ function saveSocialSeeds(queries) {
     function saveSocialSeed(query) {
 
         // check if social seed already exists in mongodb
-        SocialSeed.findOne({platform: 'twitter', query: query}, function(err, seedDoc) {
+        SocialSeed.findOne({platform: 'twitter', 'twitter.query': query}, function(err, seedDoc) {
             if (err) {return error.log(new Error(err));}
 
             // update social seed if it already exists
@@ -42,7 +42,7 @@ function saveSocialSeeds(queries) {
 
             // otherwise create new social seed
             else {
-                SocialSeed.create({platform: 'twitter', query: query, references: 1}, function(err, newPageDoc) {
+                SocialSeed.create({platform: 'twitter', twitter: {query: query}, references: 1}, function(err, newPageDoc) {
                     if (err) {return error.log(new Error(err));}
                 });
             }
@@ -172,10 +172,14 @@ function checkTweetEntities(entities) {
  * SOCIALMEDIA.TWITTER.SAVE.TWEET
  * - Save a tweet to the mongodb socialmedia collection.
  * @param tweet - the tweet object from twitter
+ * @param seed - the social seed used to pull the social media (optional)
  * @param clbk - return clbk(err, newTweet)
  */
-exports.saveTweet = function(tweet, clbk) {
+exports.saveTweet = function(tweet, seed, clbk) {
     if (!tweet) {return clbk(new Error('!tweet'));}
+
+    // handle optional seed parameter
+    if (!clbk) { clbk = seed; seed = null; }
 
     // check if tweet already exists in mongodb
     SocialMedia.findOne({platform: 'twitter', 'data.id': tweet.id}, function(err, mediaDoc) {
@@ -198,7 +202,7 @@ exports.saveTweet = function(tweet, clbk) {
         // otherwise save new tweet
         else {
             SocialMedia.create(
-                {platform: 'twitter', data: tweet},
+                {platform: 'twitter', data: tweet, socialseed: (seed) ? seed._id : null},
                 function(err, newMediaDoc) {
                     if (err) {return clbk(new Error(err));}
 

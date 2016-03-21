@@ -8,16 +8,24 @@ var http = require('http'),
 	chalk = require('chalk');
 
 //----------------------------------------------------------------------------------------------------------------------
+// Environment Variables
+
+console.log(chalk.blue.bold('\nENVIRONMENT VARIABLES'));
+[
+    {var: 'NODE_ENV', default: 'development'},
+    {var: 'SERVER', default: 'local'},
+    {var: 'PORT', default: '3000'},
+    {var: 'DB_CONNECTION', default: 'localhost'},
+    {var: 'LOGGER', default: 'on'}
+].forEach(function(env) {
+    if (!process.env[env.var]) {process.env[env.var] = env.default;}
+    console.log(chalk.blue(env.var+'='+process.env[env.var]));
+});
+
+//----------------------------------------------------------------------------------------------------------------------
 // Start Server
 
-console.log(chalk.green.bold('STARTING SERVER'));
-
-// default environment variables
-if (!process.env.NODE_ENV) {process.env.NODE_ENV = 'development';}
-if (!process.env.SERVER) {process.env.SERVER = 'local';}
-if (!process.env.PORT) {process.env.PORT = 3000;}
-if (!process.env.DB_CONNECTION) {process.env.DB_CONNECTION = 'localhost';}
-if (!process.env.LOGGER) {process.env.LOGGER = 'on';}
+console.log(chalk.green.bold('\nSTARTING SERVER'));
 
 // connect to mongodb database
 mongoose.connect(

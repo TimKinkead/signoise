@@ -18,10 +18,10 @@ var SocialSeedSchema = new Schema({
 
     //_id: {type: ObjectId} // automatically created for each document
 
-    // title
+    // title // TODO - update existing seeds
     title: {
-        type: String
-        //required: true
+        type: String,
+        required: true
     },
 
     // the social media platform
@@ -34,15 +34,15 @@ var SocialSeedSchema = new Schema({
     // twitter query // TODO - remove!!
     // - https://dev.twitter.com/rest/public/search
     // - https://dev.twitter.com/rest/reference/get/search/tweets
-    query: {
-        type: String
-    },
+    //query: {type: String},
 
-    // twitter
+    // twitter // TODO - update existing seeds
     twitter: {
         query: {type: String},
-        hashtag: {type: Boolean},
-        username: {type: Boolean}
+        latitude: {type: Number},
+        longitude: {type: Number},
+        radius: {type: Number}, // miles
+        type: {type: String, enum: ['query', 'hashtag', 'screen_name', 'geocode']}
     },
 
     // facebook
@@ -117,13 +117,19 @@ SocialSeedSchema.pre('validate', function(next) {
                 }
                 break;
             case 'twitter':
-                if (this.twitter && this.twitter.query) {
-                    this.title = this.twitter.query;
-                    if (this.twitter.query.indexOf('#') === 0 && this.twitter.query.indexOf(' ') < 0) {
-                        this.twitter.hashtag = true;
-                    }
-                    if (this.twitter.query.indexOf('@') === 0 && this.twitter.query.indexOf(' ') < 0) {
-                        this.twitter.username = true;
+                if (this.twitter) {
+                    if (this.twitter.query) {
+                        this.title = this.twitter.query;
+                        if (this.twitter.query.indexOf('#') === 0 && this.twitter.query.indexOf(' ') < 0) {
+                            this.twitter.type = 'hashtag';
+                        } else if (this.twitter.query.indexOf('@') === 0 && this.twitter.query.indexOf(' ') < 0) {
+                            this.twitter.type = 'screen_name';
+                        } else {
+                            this.twitter.type = 'query';
+                        }
+                    } else if (this.twitter.latitude && this.twitter.longitude && this.twitter.radius) {
+                        this.title = this.twitter.latitude + ',' + this.twitter.longitude + ',' + this.twitter.radius + 'mi';
+                        this.twitter.type = 'geocode';
                     }
                 }
                 break;

@@ -126,7 +126,7 @@ exports.saveFacebookPost = function(post, seed, clbk) {
         // otherwise save new post
         else {
             SocialMedia.create(
-                {platform: 'facebook', data: post, socialseed: seed._id},
+                {platform: 'facebook', data: post, socialseed: (seed) ? seed._id : null},
                 function(err, newMediaDoc) {
                     if (err) {return clbk(new Error(err));}
 

@@ -11,10 +11,6 @@
 
     <!-- Social Media Info Table -->
     <table class="table table-bordered">
-        <thead>
-            <th>Field</th>
-            <th>Value</th>
-        </thead>
         <tbody>
             <tr ng-repeat="field in fields">
                 <td><strong>{{field|capitalize}}</strong></td>
@@ -34,7 +30,7 @@
                             {{getMediaText(mediaDoc);}}
                         </a>
                         <span ng-if="!mediaDoc.data || !mediaDoc.data.id">
-                            getMediaText(mediaDoc);
+                            {{getMediaText(mediaDoc);}}
                         </span>
                     </span>
                     <span ng-if="field === 'text' && mediaDoc.platform === 'twitter'">
@@ -42,14 +38,14 @@
                            ng-href="https://twitter.com/{{mediaDoc.data.user.screen_name}}/status/{{mediaDoc.data.id}}"
                            target="_blank"
                            data-toggle="tooltip" title="view on facebook">
-                            getMediaText(mediaDoc);
+                            {{getMediaText(mediaDoc);}}
                         </a>
                         <span ng-if="!mediaDoc.data || !mediaDoc.data.user || !mediaDoc.data.user.screen_name || !mediaDoc.data.id">
-                            getMediaText(mediaDoc);
+                            {{getMediaText(mediaDoc);}}
                         </span>
                     </span>
                     <span ng-if="field === text && ['facebook', 'twitter'].indexOf(mediaDoc.platform) < 0">
-                        getMediaText(mediaDoc);
+                        {{getMediaText(mediaDoc);}}
                     </span>
 
                     <!-- social seed -->

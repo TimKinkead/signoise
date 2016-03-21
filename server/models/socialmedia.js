@@ -39,7 +39,7 @@ var SocialMediaSchema = new Schema(
         socialseed: {
             type: Schema.ObjectId,
             ref: 'SocialSeed'
-            // required: true
+            //required: true
         },
 
         // the social media platform

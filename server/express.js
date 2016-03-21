@@ -91,7 +91,7 @@ module.exports = function(mongoose) {
 
     // express mongodb session storage
     app.use(session({
-        db: new mongoStore({
+        store: new mongoStore({
             mongooseConnection: mongoose.connection,
             collection: 'sessions',
             autoReconnect: true
@@ -100,13 +100,6 @@ module.exports = function(mongoose) {
         saveUninitialized: true,
         resave: true,
         secret: 'keyboardcat',
-        maxAge: new Date(Date.now() + 1000*60*24*14), // 14 days
-        /*store: new mongoStore({
-            db: db.connection.db,
-            collection: 'sessions',
-            autoReconnect: true
-            //stringify: false
-        }),*/
         name: 'signal-noise'
     }));
 

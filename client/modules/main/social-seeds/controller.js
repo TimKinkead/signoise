@@ -18,8 +18,8 @@ angular.module('app').controller('SocialSeedsController', [
         var skip = 0, limit = 20,
             filterBy = $scope.filterBy = 'active',
             seeds = $scope.seeds = $resource('data/socialseed/list').query({filterBy: filterBy, skip: skip, limit: limit}),
-            fields = $scope.fields = ['title', 'platform', 'frequency', 'references', 'media', 'activated'],
-            dates = $scope.dates = ['activated', 'initialized', 'created'];
+            fields = $scope.fields = ['title', 'platform', 'frequency', 'references', 'media', 'initialized'],
+            dates = $scope.dates = ['initialized', 'created'];
 
         // launch create modal and handle result
         $scope.create = function () {
