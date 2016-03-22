@@ -17,7 +17,7 @@ var request = require('request'),
 // save a single screen name
 function saveScreenName(sn, index, total) {
     if (!sn || sn.indexOf('@') !== 0 || sn.indexOf(' ') > -1) {return console.log('\n* NOT SAVING '+sn+' *\n');}
-
+    
     request.post(
         {
             url: url.parse('http://signoise.prevagroup.com/data/socialseed'),
@@ -26,7 +26,7 @@ function saveScreenName(sn, index, total) {
         },
         function(err, response, body) {
             if (err) {console.log('\n* ERROR '+sn+' *'); console.log(err); console.log('\n'); return;}
-            //console.log(sn);
+            console.log(sn);
             if (index && total && index >= 100 && index % 100 === 0) {
                 console.log('\n*** '+index+'/'+total+'('+Math.floor(index/total*100)+'%) ***\n');
             }
@@ -44,7 +44,7 @@ function saveScreenName(sn, index, total) {
 function bulkInsert() {
     console.log('\n-- saving screen names --\n');
 
-    var screenNames = require('./twitter.screen_names.json'),
+    var screenNames = require('./twitter.screen_names_2.json'),
         total = screenNames.length;
 
     var timeout = 0,
@@ -57,5 +57,5 @@ function bulkInsert() {
 }
 
 // start
-// bulkInsert();
+//bulkInsert();
 

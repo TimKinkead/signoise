@@ -32,24 +32,20 @@ exports.list = function(req, res) {
     if (!req.user || !req.user._id) {return errorMessage(403, 'Please login or sign up if you want to list social media.');}
 
     // mongodb query parameters
-    var query, sort;
+    var query, sort = {date: -1};
     switch (req.query.filterBy) {
         case 'ready':
             query = {status: 'ready'};
-            sort = {created: -1};
             break;
         case 'failed':
             query = {status: 'failed'};
-            sort = {processed: -1};
             break;
         case 'complete':
             query = {status: 'complete'};
-            sort = {processed: -1};
             break;
         //case 'all':
         default:
             query = {};
-            sort = {created: -1};
     }
     if (req.query.platform) {query.platform = req.query.platform;}
 

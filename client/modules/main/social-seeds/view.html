@@ -2,32 +2,67 @@
 
 <div class="container">
 
-    <!-- Filter By Buttons -->
-    <div>
-        <button class="btn btn-success pull-right" style="margin-bottom: 5px;" ng-click="create()">Create</button>
+    <!-- Create & Pull Buttons -->
+    <div class="container">
+        <button ng-click="create()"
+                class="btn btn-success pull-right">
+            Create
+        </button>
+        <button ng-if="showPullBtns" ng-click="pullTwitter()"
+                class="btn btn-default pull-left" style="margin: 0 2px;">
+            Pull Twitter
+        </button>
+        <button ng-if="showPullBtns" ng-click="pullFacebook()"
+                class="btn btn-default pull-left" style="margin: 0 2px;">
+            Pull Facebook
+        </button>
+    </div>
+
+    <!-- Title -->
+    <h1 class="text-center">Social Seeds</h1>
+
+    <!-- Filter By Status Buttons -->
+    <div class="text-center" style="margin: 5px 0;">
         <div class="btn-group">
-            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'active'">
-                Active <span class="badge" ng-if="summary.active" ng-bind="summary.active"></span>
+            <button ng-repeat="status in filterByStatuses"
+                    ng-model="filterBy.status"
+                    class="btn" ng-class="{'btn-filter': platform !== 'all'}"
+                    uib-btn-radio="status">
+                {{status|capitalize}} <span class="badge" ng-if="summary[status]" ng-bind="summary[status]"></span>
             </button>
-            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'pending'">
-                Pending <span class="badge" ng-if="summary.pending" ng-bind="summary.pending"></span>
+        </div>
+    </div>
+
+    <!-- Filter By Platform Buttons -->
+    <div class="text-center" style="margin: 5px 0;">
+        <div class="btn-group">
+            <button ng-repeat="platform in filterByPlatforms"
+                    ng-model="filterBy.platform"
+                    class="btn" ng-class="{'btn-filter': platform !== 'all'}"
+                    uib-btn-radio="platform">
+                {{platform|capitalize}} <span class="badge" ng-if="summary[platform]" ng-bind="summary[platform]"></span>
             </button>
-            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'never'">
-                Never <span class="badge" ng-if="summary.never" ng-bind="summary.never"></span>
-            </button>
-            <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'all'">
-                All <span class="badge" ng-if="summary.all" ng-bind="summary.all"></span>
+        </div>
+    </div>
+
+    <!-- Filter By Type Buttons -->
+    <div ng-if="filterBy.platform && filterBy.platform !== 'all'"
+         class="text-center" style="margin: 5px 0;">
+        <div class="btn-group">
+            <button ng-repeat="type in filterByTypes[filterBy.platform]"
+                    ng-model="filterBy.type"
+                    class="btn" ng-class="{'btn-filter': type !== 'all'}"
+                    uib-btn-radio="type">
+                {{type|capitalize}}
+                <span class="badge" ng-if="summary[filterBy.platform+'-'+type]" ng-bind="summary[filterBy.platform+'-'+type]"></span>
+                <span class="badge" ng-if="type === 'all' && summary[filterBy.platform]" ng-bind="summary[filterBy.platform]"></span>
             </button>
         </div>
     </div>
 
     <!-- Table (desktop & mobile) -->
-    <h1 class="text-center">Social Seeds</h1>
-    <div class="text-center" ng-if="showPullBtns">
-        <button class="btn btn-default" style="margin-bottom: 5px;" ng-click="pullTwitter()">Pull Twitter</button>
-        <button class="btn btn-default" style="margin-bottom: 5px;" ng-click="pullFacebook()">Pull Facebook</button>
-    </div>
-    <table class="table table-bordered table-hover">
+
+    <table class="table table-bordered table-hover" style="margin-top: 15px;">
         <thead>
             <th class="hidden-xs"
                 ng-repeat="field in fields">
@@ -44,7 +79,12 @@
                 ng-click="edit(seed)"
                 style="cursor:pointer;">
                 <td ng-repeat="field in fields" class="hidden-xs">
-                    {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
+                    <div ng-if="['type'].indexOf(field) < 0">
+                        {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
+                    </div>
+                    <div ng-if="field === 'type'">
+                        {{seed[seed.platform].type}}
+                    </div>
                 </td>
                 <td class="visible-xs">
                     {{seed.title}} <br/>
@@ -53,5 +93,19 @@
             </tr>
         </tbody>
     </table>
+
+    <!-- no results -->
+    <div ng-if="!seeds || !seeds.length"
+         class="text-center">
+        - No Social Seeds - <br/>
+        (
+        status={{filterBy.status}}
+        {{(filterBy.platform) ? ' / platform='+filterBy.platform : ''}}
+        {{(filterBy.type) ? ' / type='+filterBy.type : ''}}
+        )
+    </div>
+
+    <!-- spinner -->
+    <div ng-if="status.processing" class="spinner"></div>
 
 </div>

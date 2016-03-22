@@ -33,7 +33,7 @@ exports.list = function(req, res) {
 
     // mongodb query parameters
     var query, sort;
-    switch (req.query.filterBy) {
+    switch (req.query.status) {
         case 'active':
             query = {frequency: {$in: ['hourly', 'daily', 'weekly']}};
             sort = {media: -1};
@@ -52,6 +52,7 @@ exports.list = function(req, res) {
             sort = {media: -1, references: -1};
     }
     if (req.query.platform) {query.platform = req.query.platform;}
+    if (req.query.type) {query[req.query.platform+'.type'] = req.query.type;}
     
     // list social seeds
     SocialSeed.find(query)

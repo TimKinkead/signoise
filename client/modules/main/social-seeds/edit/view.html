@@ -15,6 +15,9 @@
             <tr ng-repeat="field in fields">
                 <td><strong>{{field|capitalize}}</strong></td>
                 <td>
+                    <span ng-if="['title', 'type', 'frequency'].indexOf(field) < 0">
+                        {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
+                    </span>
                     <span ng-if="field === 'title' && seed.facebook">
                         <a ng-href="https://facebook.com/{{seed.facebook.id}}"
                            target="_blank"
@@ -32,6 +35,9 @@
                     <span ng-if="field === 'title' && seed.twitter && seed.twitter.type === 'geocode'">
                         {{seed.title}}
                     </span>
+                    <span ng-if="field === 'type'">
+                        {{seed[seed.platform].type}}
+                    </span>
                     <span ng-if="field === 'frequency'">
                         <select class="form-control" style="cursor:pointer;" required
                                 ng-model="seed.frequency">
@@ -41,10 +47,6 @@
                             <option value="never">never</option>
                         </select>
                     </span>
-                    <span ng-if="['title', 'frequency'].indexOf(field) < 0">
-                        {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
-                    </span>
-
                 </td>
             </tr>
         </tbody>

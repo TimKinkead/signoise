@@ -52,7 +52,7 @@ exports.summary = function(req, res) {
         });
     }
 
-    cnt = 7;
+    cnt = 13;
     countSocialSeeds({frequency: {$in: ['hourly', 'daily', 'weekly']}}, 'active');  // 1
     countSocialSeeds({frequency: {$exists: false}}, 'pending');                     // 2
     countSocialSeeds({frequency: 'never'}, 'never');                                // 3
@@ -60,4 +60,10 @@ exports.summary = function(req, res) {
     countSocialSeeds({platform: 'facebook'}, 'facebook');                           // 5
     countSocialSeeds({platform: 'instagram'}, 'instagram');                         // 6
     countSocialSeeds({platform: 'twitter'}, 'twitter');                             // 7
+    countSocialSeeds({platform: 'facebook', 'facebook.type': 'group'}, 'facebook-group');               // 8
+    countSocialSeeds({platform: 'facebook', 'facebook.type': 'page'}, 'facebook-page');                 // 9
+    countSocialSeeds({platform: 'twitter', 'twitter.type': 'query'}, 'twitter-query');                  // 10
+    countSocialSeeds({platform: 'twitter', 'twitter.type': 'hashtag'}, 'twitter-hashtag');              // 11
+    countSocialSeeds({platform: 'twitter', 'twitter.type': 'screen_name'}, 'twitter-screen_name');      // 12
+    countSocialSeeds({platform: 'twitter', 'twitter.type': 'geocode'}, 'twitter-geocode');              // 13
 };
