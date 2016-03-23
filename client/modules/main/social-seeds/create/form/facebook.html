@@ -1,18 +1,23 @@
 <!-- Create Facebook Social Seed -->
 
+<!-- spinner -->
+<div ng-if="status.processing" class="spinner"></div>
+
+<!-- Error Message -->
+<div ng-show="status.errorMessage"
+     class="alert alert-danger" role="alert">
+    {{status.errorMessage}}
+</div>
+
 <!-- Step 1 : Provide search box & display search results. -->
 <div ng-if="status.step === 1">
-
-    <div ng-show="status.processing" class="text-center">
-        {{status.message ? status.message : '...please wait...'}}
-    </div>
 
     <!-- Search Box -->
     <form ng-if="!status.processing" ng-submit="searchFacebook()">
         <label>search facebook</label>
         <div class="input-group">
             <input type="text" class="form-control" required
-                   ng-model="seed.facebook.title"
+                   ng-model="seed.facebook.query"
                    placeholder="group or page"/>
         <span class="input-group-btn">
             <button class="btn btn-success" type="submit">
@@ -22,12 +27,9 @@
         </div>
     </form>
 
-    <div class="alert alert-danger" role="alert" ng-show="status.errorMessage">
-        {{status.errorMessage}}
-    </div>
-
     <!-- Search Results -->
-    <uib-tabset ng-if="facebookResults && !status.processing" style="margin: 10px;">
+    <uib-tabset ng-if="facebookResults && !status.processing"
+                style="margin: 10px;">
         <uib-tab data-ng-repeat="resultType in ['groups','pages']"
                  heading="{{resultType|capitalize}}">
 
@@ -40,6 +42,7 @@
                class="text-center" style="margin: 5px;">
                 Click to select a {{resultType.slice(0, resultType.length-1)}}.
             </p>
+
             <button data-ng-repeat="result in facebookResults[resultType]"
                     data-ng-click="selectFacebook(result)"
                     class="btn btn-block btn-default"
@@ -69,6 +72,13 @@
 
 <!-- Step 2 : Show selected group or page & save. -->
 <div ng-if="status.step === 2">
+
+    <!-- Back Button -->
+    <button ng-if="facebookResults && !status.processing && status.step === 2"
+            ng-click="step1Facebook()"
+            class="btn btn-default pull-left" style="margin-bottom: 10px;">
+        <i class="glyphicon glyphicon-arrow-left"></i> back to search results
+    </button>
 
     <!-- Table -->
     <table class="table table-bordered">
@@ -100,6 +110,13 @@
     <!-- Save Button -->
     <div style="text-align: center;">
         <button class="btn btn-success" ng-click="save()">Create Facebook Seed</button>
+    </div>
+
+    <!-- Save & Go Back Button -->
+    <div style="text-align: center; margin-top: 10px;">
+        <button class="btn btn-default" ng-click="saveAndStep1Facebook()">
+            Create Seed & Back To Results
+        </button>
     </div>
 
 </div>

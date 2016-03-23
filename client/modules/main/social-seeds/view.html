@@ -95,7 +95,7 @@
     </table>
 
     <!-- no results -->
-    <div ng-if="!seeds || !seeds.length"
+    <div ng-if="!status.processing && (!seeds || !seeds.length)"
          class="text-center">
         - No Social Seeds - <br/>
         (
