@@ -13,7 +13,9 @@ angular.module('app').controller('SocialSeedsCreateController', [
         // variables
         var status = $scope.status = {step: 1},
             platforms = $scope.platforms = ['facebook', 'instagram', 'twitter'],
-            seed = $scope.seed = {platform: 'facebook', frequency: 'daily'};
+            seed = $scope.seed = {platform: 'facebook', frequency: 'daily'},
+
+            facebookResultTypes = $scope.facebookResultTypes = ['groups', 'pages'];
 
         // cancel & close create modal
         $scope.cancel = function () {
@@ -35,8 +37,8 @@ angular.module('app').controller('SocialSeedsCreateController', [
         };
 
         // switch tabs in create form
-        $scope.active = platforms.indexOf(seed.platform);
-        $scope.$watch('active', function (nV, oV) {
+        $scope.activePlatform = platforms.indexOf(seed.platform);
+        $scope.$watch('activePlatform', function (nV, oV) {
             if (nV !== oV) {
                 seed.platform = platforms[nV];
                 switch(seed.platform) {
@@ -50,6 +52,19 @@ angular.module('app').controller('SocialSeedsCreateController', [
                 }
             }
         });
+
+        // -- FACEBOOK --
+
+        // switch result type tabs
+        var activeFacebookResultType = $scope.activeFacebookResultType = facebookResultTypes.indexOf('groups');
+        $scope.getActiveFacebookResultType = function() {
+            console.log('get', activeFacebookResultType);
+            return activeFacebookResultType;
+        };
+        $scope.setActiveFacebookResultType = function(resultType) {
+            console.log('set', resultType);
+            activeFacebookResultType = facebookResultTypes.indexOf(resultType);
+        };
 
         // search facebook for groups and pages
         $scope.searchFacebook = function() {

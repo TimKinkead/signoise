@@ -29,8 +29,11 @@
 
     <!-- Search Results -->
     <uib-tabset ng-if="facebookResults && !status.processing"
+                active="activeFacebookResultType"
                 style="margin: 10px;">
-        <uib-tab data-ng-repeat="resultType in ['groups','pages']"
+        <uib-tab data-ng-repeat="resultType in facebookResultTypes"
+                 ng-click="setActiveFacebookResultType(resultType)"
+                 index="$index"
                  heading="{{resultType|capitalize}}">
 
             <div data-ng-if="facebookResults[resultType] && !facebookResults[resultType].length"

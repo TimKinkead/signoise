@@ -6,7 +6,7 @@
 </div>
 
 <div class="modal-body">
-    <uib-tabset active="active">
+    <uib-tabset active="activePlatform">
         <uib-tab ng-repeat="platform in platforms"
                  index="$index" heading="{{platform|capitalize}}">
             <div ng-include="'modules/main/social-seeds/create/form/'+platform+'.html'"

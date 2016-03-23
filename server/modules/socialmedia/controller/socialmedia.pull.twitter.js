@@ -54,8 +54,9 @@ function getSeeds(clbk) {
 
     // get some seeds
     function getSomeSeeds(query, frequency) {
+        var sort = (frequency === 'new') ? {} : {lastPulled: 1};
         SocialSeed.find(query)
-            .sort({lastPull: 1})
+            .sort(sort)
             .exec(function(err, seedDocs) {
                 if (err || !seedDocs) {error.log(new Error(err || '!seedDocs'));}
                 if (seedDocs.length) {seedList[frequency] = seedDocs;}
@@ -97,8 +98,9 @@ function getTweets(url, seed, token, secret) {
     if (!secret) {return error.log(new Error('!secret'));}
 
     var tweetCount = 100,
+        qLengthLimit = 500, // q=encodeURIComponent(commonTerms) must be < 500 characters (science & assessment not included)
         commonTerms = [
-            'common core', 'school', 'education', 'students', 'schools', 'learning', 'district', 'teachers', 'teacher',
+            '"common core"', 'school', 'education', 'students', 'schools', 'learning', 'district', 'teachers', 'teacher',
             'student', 'policy', 'public', 'college', 'national', 'standards', 'program', 'teaching', 'research', 'lesson',
             'leadership', 'support', 'professional', 'charter', 'grade', 'development', 'community', 'board', 'read', 'programs',
             'classroom', 'children', 'science', 'assessment'
@@ -123,14 +125,14 @@ function getTweets(url, seed, token, secret) {
                 } else if (seed.twitter.query) {
                     url += '?q='+encodeURIComponent(seed.twitter.query);
                 } else if (seed.twitter.latitude && seed.twitter.longitude && seed.twitter.radius) {
-                    var qStr = encodeURIComponent(commonTerms[0]), // limited to 500 characters
+                    var qStr = commonTerms[0], // limited to 500 characters
                         i = 1;
-                    while (i<commonTerms.length && encodeURIComponent(' OR '+commonTerms[i]).length + qStr.length < 500) {
-                        qStr += encodeURIComponent(' OR '+commonTerms[i]);
+                    while (i<commonTerms.length && encodeURIComponent(qStr+' OR '+commonTerms[i]).length < qLengthLimit) {
+                        qStr += ' OR '+commonTerms[i];
                         i++;
                     }
                     url += '?q='+encodeURIComponent(qStr);
-                    url += '&geocode='+encodeURIComponent(seed.twitter.latitude+','+seed.twitter.longitude+','+Math.ceil(seed.twitter.radius)+'mi');
+                    url += '&geocode='+seed.twitter.latitude+','+seed.twitter.longitude+','+Math.ceil(seed.twitter.radius)+'mi';
                 }
                 url += '&result_type=recent&count='+tweetCount;
         }
@@ -140,15 +142,16 @@ function getTweets(url, seed, token, secret) {
 
     // get tweets from twitter
     socialmedia.twitterApiGet(url, token, secret, function(err, data) {
-        if (err) {error.log(err);}
-        if (!data) {error.log(new Error('!data'));}
+        if (err) {return error.log(err);}
+        if (!data) {return error.log(new Error('!data'));}
 
         var now = new Date();
         
         // tweets
         var tweets = (seed.twitter.type === 'screen_name') ? data : data.statuses;
         if (!tweets) {return error.log(new Error('!tweets'));}
-        if (!tweets.length) {return logger.result('no tweets pulled for url=\n'+url);}
+        //if (!tweets.length) {return logger.result('no tweets pulled for url=\n'+url);}
+        logger.result(tweets.length+' tweets');
         
         // save tweets
         socialmedia.saveTweets(tweets, seed, function(errs, newTweets) {
@@ -156,23 +159,32 @@ function getTweets(url, seed, token, secret) {
 
             // update social seed
             if (seed) {
-                var update = {
-                    $set: {lastPulled: now, initialized: seed.initialized || now},
-                    $inc: {media: newTweets},
-                    $push: {history: {
-                        $position: 0,
-                        $each: [{date: now, total: tweets.length, new: newTweets}],
-                        $slice: 100
-                    }}
-                };
-                SocialSeed.update({_id: seed._id}, update, function(err) {
-                    if (err) {return error.log(new Error(err));}
-                });
+                seed.initialized = seed.initialized || now;
+                SocialSeed.update(
+                    {_id: seed._id},
+                    {
+                        $set: {
+                            lastPulled: now,
+                            initialized: seed.initialized
+                        },
+                        $inc: {
+                            media: newTweets
+                        },
+                        $push: {history: {
+                            $position: 0,
+                            $each: [{date: now, total: tweets.length, new: newTweets || 0}],
+                            $slice: 100
+                        }}
+                    }, 
+                    function(err) {
+                        if (err) {return error.log(new Error(err));}
+                    }
+                );
             }
 
             // go again if initializing new seed
             var fifteenMinutesAgo = (function(){var d = new Date(); d.setMinutes(d.getMinutes()-15); return d;})();
-            if (seed && !seed.initialized || seed.initialized > fifteenMinutesAgo) {
+            if (seed && seed.initialized > fifteenMinutesAgo) {
                 var nextUrl;
                 if (seed.twitter.type === 'screen_name' && tweets[tweets.length-1] && tweets[tweets.length-1].id) {
                     nextUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json'+

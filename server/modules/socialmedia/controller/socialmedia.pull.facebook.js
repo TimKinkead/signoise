@@ -56,8 +56,9 @@ function getSeeds(clbk) {
 
     // get some seeds
     function getSomeSeeds(query, frequency) {
+        var sort = (frequency === 'new') ? {} : {lastPulled: 1};
         SocialSeed.find(query)
-            .sort({lastPull: 1})
+            .sort(sort)
             .exec(function(err, seedDocs) {
                 if (err || !seedDocs) {error.log(new Error(err || '!seedDocs'));}
                 if (seedDocs.length) {seedList[frequency] = seedDocs;}
@@ -111,13 +112,13 @@ function getPosts(url, seed, token) {
 
     // get posts from facebook
     socialmedia.facebookApiGet(url, function(err, data) {
-        if (err) {error.log(err);}
-        if (!data) {error.log(new Error('!data'));}
+        if (err) {return error.log(err);}
+        if (!data) {return error.log(new Error('!data'));}
 
         // posts
         var posts = (data.feed && data.feed.data) ? data.feed.data : null;
         if (!posts) {return error.log(new Error('!posts'));}
-        if (!posts.length) {return logger.result('no posts pulled for url=\n'+url);}
+        //if (!posts.length) {return logger.result('no posts pulled for url=\n'+url);}
 
         // save posts
         socialmedia.saveFacebookPosts(posts, seed, function(errs, newPosts) {
@@ -127,22 +128,27 @@ function getPosts(url, seed, token) {
 
             // update social seed
             if (seed) {
+                seed.initialized = seed.initialized || now;
                 SocialSeed.update(
                     {_id: seed._id},
-                    {$set: {lastPulled: now}},
+                    {
+                        $set: {
+                            lastPulled: now,
+                            initialized: seed.initialized
+                        },
+                        $inc: {
+                            media: newPosts
+                        },
+                        $push: {history: {
+                            $position: 0,
+                            $each: [{date: now, total: posts.length, new: newPosts || 0}],
+                            $slice: 100
+                        }}
+                    },
                     function(err) {
                         if (err) {return error.log(new Error(err));}
                     }
                 );
-
-                if (newPosts) {seed.media += newPosts;}
-                seed.lastPulled = now;
-                seed.history = [{date: now, total: posts.length, new: newPosts}].concat(seed.history || []);
-                if (seed.history.length > 100) {seed.history = seed.history.slice(0, 100);}
-                if (!seed.initialized) {seed.initialized = now;}
-                seed.save(function (err) {
-                    if (err) {return error.log(new Error(err));}
-                });
             }
 
             // go again if initializing new seed

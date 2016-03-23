@@ -8,13 +8,13 @@
         </div>
         <div class="btn-group">
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'ready'">
-                Ready <span class="badge" ng-if="summary.ready" ng-bind="summary.ready"></span>
+                Ready <span class="badge" ng-if="summary.ready" ng-bind="summary.ready|roughNumber"></span>
             </button>
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'failed'">
-                Failed <span class="badge" ng-if="summary.failed" ng-bind="summary.failed"></span>
+                Failed <span class="badge" ng-if="summary.failed" ng-bind="summary.failed|roughNumber"></span>
             </button>
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'complete'">
-                Complete <span class="badge" ng-if="summary.complete" ng-bind="summary.complete"></span>
+                Complete <span class="badge" ng-if="summary.complete" ng-bind="summary.complete|roughNumber"></span>
             </button>
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'all'">
                 All <span class="badge" ng-if="summary.all" ng-bind="summary.all"></span>
