@@ -60,6 +60,39 @@ function saveSocialSeeds(queries) {
     });
 }
 
+// create or update a single website
+
+/**
+ * Create or update a single website.
+ * @param webpage - webpage doc
+ * @param clbk - return clbk(err)
+ */
+function saveWebSite(webpage, clbk) {
+    if (!webpage) { return clbk(new Error('!webpage')); }
+    if (!webpage.subdomain) { return clbk(new Error('!webpage.subdomain')); }
+
+    // check if website already exists in mongodb
+    WebSite.findOne({subdomain: webpage.subdomain}, function(err, siteDoc) {
+        if (err) { return clbk(new Error(err)); }
+
+        // update website if it already exists
+        if (siteDoc) {
+            WebSite.update({_id: siteDoc._id}, {$inc: {socialReferences: 1}}, function(err) {
+                if (err) { return clbk(new Error(err)); }
+                return clbk();
+            });
+        }
+
+        // otherwise create new website (domain & subdomain set via pre-validation hook)
+        else {
+            WebSite.create({url: webpage.url, socialReferences: 1}, function(err, newSiteDoc) {
+                if (err) { return clbk(new Error(err)); }
+                return clbk();
+            });
+        }
+    });
+}
+
 /**
  * Save new webpage docs to mongodb based on urls from a tweet.
  * - Use setTimeout to spread out saving webpages to avoid mongodb duplicate key errors.
@@ -68,66 +101,49 @@ function saveSocialSeeds(queries) {
  */
 function saveWebPages(urls) {
     if (!urls) {return;}
-
-    // create or update a single website
-    function saveWebSite(webpage) {
-        if (!webpage) {return error.log(new Error('!webpage'));}
-        if (!webpage.subdomain) {return error.log(new Error('!webpage.subdomain'));}
-
-        // check if website already exists in mongodb
-        WebSite.findOne({subdomain: webpage.subdomain}, function(err, siteDoc) {
-            if (err) {return error.log(new Error(err));}
-
-            // update website if it already exists
-            if (siteDoc) {
-                WebSite.update({_id: siteDoc._id}, {$inc: {socialReferences: 1}}, function(err) {
-                    if (err) {error.log(new Error(err));}
-                });
-            }
-
-            // otherwise create new website (domain & subdomain set via pre-validation hook)
-            else {
-                WebSite.create({url: webpage.url, socialReferences: 1}, function(err, newSiteDoc) {
-                    if (err) {error.log(new Error(err));}
-                });
-            }
-        });
-    }
+    if (!urls.length) {return;}
 
     // create or update a single webpage
-    function saveWebPage(url) {
+    var urlIndex = 0;
+    function saveWebPage() {
+        var url = urls[urlIndex];
+
+        function nextUrl() {
+            urlIndex++;
+            if (urls[urlIndex]) { saveWebPage(); }
+        }
 
         // check if webpage already exists in mongodb
         WebPage.findOne({url: url}, function(err, pageDoc) {
-            if (err) {return error.log(new Error(err));}
+            if (err) { error.log(new Error(err)); nextUrl(); return; }
 
             // update webpage if it already exists
             if (pageDoc) {
                 WebPage.update({_id: pageDoc._id}, {$inc: {socialReferences: 1}}, function(err) {
-                    if (err) {return error.log(new Error(err));}
-                    saveWebSite(pageDoc);
+                    if (err) { error.log(new Error(err)); nextUrl(); return; }
+                    saveWebSite(pageDoc, function(err) {
+                        if (err) { error.log(err); nextUrl(); return; }
+                        nextUrl();
+                    });
                 });
             }
 
             // otherwise create new webpage
             else {
                 WebPage.create({url: url, socialReferences: 1}, function(err, newPageDoc) {
-                    if (err) {return error.log(new Error(err));}
-                    if (!newPageDoc) {return error.log(new Error('!newPageDoc'));}
-                    saveWebSite(newPageDoc);
+                    if (err) { error.log(new Error(err)); nextUrl(); return; }
+                    if (!newPageDoc) { error.log(new Error('newPageDoc')); nextUrl(); return; }
+                    saveWebSite(newPageDoc, function(err) {
+                        if (err) { error.log(err); nextUrl(); return; }
+                        nextUrl();
+                    });
                 });
             }
         });
     }
 
-    var timeout = 0,
-        timeoutInc = 1000; // 1 sec delay
-
-    // save each url as a webpage
-    urls.forEach(function(cV) {
-        setTimeout(function() {saveWebPage(cV);}, timeout);
-        timeout += timeoutInc;
-    });
+    // start
+    if (urls[urlIndex]) {saveWebPage();}
 }
 
 /**

@@ -31,5 +31,9 @@ module.exports = function(app) {
     // download social media as csv file
     app.route('/data/socialmedia/download')
         .get(socialmedia.download);
+    
+    // update social media documents that don't have social seed
+    app.route('/data/socialmedia/update')
+        .get(socialmedia.update);
 
 };

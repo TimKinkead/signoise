@@ -68,6 +68,7 @@ function getSeeds(clbk) {
                     getSomeSeeds();
                 } else {
                     if (!errs.length) {errs = null;}
+                    seedList = seedList.slice(0, maxSeeds);
                     return clbk(errs, seedList);
                 }
             });
@@ -147,45 +148,30 @@ function constructTwitterUrl(seed, clbk) {
 exports.pullTwitter = function(req, res) {
     logger.filename(__filename);
 
+    // respond to client
+    logger.result('working on pulling tweets');
+    res.status(200).send('working on pulling tweets');
+    
     var twitterWindow = 15, // 15 min window
         requestLimit = 180, // max 180 requests per 15min window
 
         stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+twitterWindow); return d; })(),
         requestCount = 0;
 
-    function errorMessage(code, message) {
-        return res.status(code || 500).send({
-            header: 'Social Media Pull Error!',
-            message: message || 'We had trouble pulling social media from Twitter. Please try again.'
-        });
-    }
-
-    if (req.user && !req.user.twitter) {
-        return errorMessage(403, 'Please go to settings and connect your Twitter account before pulling tweets.');
-    }
-
     // get twitter token and secret
     logger.result('getting token and secret');
     socialmedia.getTwitterTokenAndSecret(req.user, function(err, token, secret) {
-        if (err) { error.log(err); return errorMessage(); }
-        if (!token) { error.log(new Error('!token')); return errorMessage(); }
-        if (!secret) { error.log(new Error('!secret')); return errorMessage(); }
+        if (err) { error.log(err); return; }
+        if (!token) { error.log(new Error('!token')); return; }
+        if (!secret) { error.log(new Error('!secret')); return; }
 
         // get twitter social seeds
         logger.result('getting social seeds');
         getSeeds(function (errs, seeds) {
             if (errs && errs.length) { errs.forEach(function(cV) { error.log(cV); }); }
-            if (!seeds) { error.log(new Error('!seeds')); return errorMessage(); }
-            if (!seeds.length) { 
-                logger.result('no seeds to run right now');
-                return res.status(200).send('no seeds to run right now'); 
-            } else {
-                logger.result('pulling tweets for '+seeds.length+' seeds');
-            }
-
-            // respond to client
-            logger.result('working on pulling tweets');
-            res.status(200).send('working on pulling tweets');
+            if (!seeds) { error.log(new Error('!seeds')); return; }
+            if (!seeds.length) { logger.result('no seeds to run right now'); return;}
+            logger.result('pulling tweets for '+seeds.length+' seeds');
 
             // for each seed, get tweets and save them
             var seedIndex = 0;
