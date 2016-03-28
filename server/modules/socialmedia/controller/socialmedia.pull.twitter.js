@@ -33,71 +33,61 @@ socialmedia = _.extend(socialmedia, require('./twitter/socialmedia.twitter.token
 /**
  * Get a list of twitter social seeds that should be run right now.
  * - Give priority to the social seeds with a lesser frequency.
- * @param clbk - return clbk(err, seeds)
+ * @param clbk - return clbk(errs, seeds)
  */
 function getSeeds(clbk) {
 
-    var seedList = {new: [], weekly: [], daily: [], hourly: []},
+    var maxSeeds = 180, // maximum 180 twitter requests per 15min window
+        seedList = [],
+        errs = [],
+
         oneWeekAgo = (function() {var d = new Date(); d.setDate(d.getDate()-7); return d;})(),
         oneDayAgo = (function() {var d = new Date(); d.setDate(d.getDate()-1); return d;})(),
-        oneHourAgo = (function() {var d = new Date(); d.setHours(d.getHours()-1); return d;})();
+        oneHourAgo = (function() {var d = new Date(); d.setHours(d.getHours()-1); return d;})(),
 
-    // check done
-    var cnt;
-    function checkDone() {
-        cnt -= 1;
-        if (cnt === 0) {
-            var allSeeds = [].concat(seedList.new).concat(seedList.weekly).concat(seedList.daily).concat(seedList.hourly);
-            return clbk(allSeeds);
-        }
-    }
+        queryIndex = 0,
+        queries = [
+            {platform: 'twitter', initialized: {$exists: false}, frequency: {$in: ['weekly', 'daily', 'hourly']}}, // new
+            {platform: 'twitter', frequency: 'weekly', lastPulled: {$lt: oneWeekAgo}}, // weekly
+            {platform: 'twitter', frequency: 'daily', lastPulled: {$lt: oneDayAgo}}, // daily
+            {platform: 'twitter', frequency: 'hourly', lastPulled: {$lt: oneHourAgo}} // hourly
+        ];
 
     // get some seeds
-    function getSomeSeeds(query, frequency) {
-        var sort = (frequency === 'new') ? {} : {lastPulled: 1};
+    function getSomeSeeds() {
+        var query = queries[queryIndex],
+            sort = (query.lastPulled) ? {lastPulled: 1} : {created: 1};
         SocialSeed.find(query)
             .sort(sort)
             .exec(function(err, seedDocs) {
-                if (err || !seedDocs) {error.log(new Error(err || '!seedDocs'));}
-                if (seedDocs.length) {seedList[frequency] = seedDocs;}
-                checkDone();
+                if (err) {errs.push(new Error(err));}
+                if (!seedDocs) {errs.push(new Error('!seedDocs'));}
+                seedList = seedList.concat(seedDocs);
+                queryIndex++;
+                if (queries[queryIndex] && seedList.length < maxSeeds) {
+                    getSomeSeeds();
+                } else {
+                    if (!errs.length) {errs = null;}
+                    return clbk(errs, seedList);
+                }
             });
     }
 
     // start
-    if (process.env.NODE_ENV === 'development') {
-        cnt = 1;
-        getSomeSeeds({platform: 'twitter', frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
-    } else {
-        cnt = 4;
-        getSomeSeeds({platform: 'twitter', initialized: {$exists: false}, frequency: {$in: ['weekly', 'daily', 'hourly']}}, 'new');
-        getSomeSeeds({platform: 'twitter', frequency: 'weekly', lastPulled: {$lt: oneWeekAgo}}, 'weekly');
-        getSomeSeeds({platform: 'twitter', frequency: 'daily', lastPulled: {$lt: oneDayAgo}}, 'daily');
-        getSomeSeeds({platform: 'twitter', frequency: 'hourly', lastPulled: {$lt: oneHourAgo}}, 'hourly');
-    }
+    getSomeSeeds();
 }
 
 /**
- * Get tweets from twitter.
- * - Log errors here because no clbk.
- * @param url - the url to use for getting tweets
- * @param seed - the social seed who's query is used to get the tweets
- * @param token - a user's twitter token
- * @param secret - a user's twitter secret
+ * Construct url for request to twitter api for getting tweets.
+ * @param seed - social seed doc
+ * @param clbk - return clbk(err, url)
  */
-function getTweets(url, seed, token, secret) {
-    if (!url && !seed) {return error.log(new Error('!url && !seed'));}
-    if (!url && !seed.twitter) {return error.log(new Error('!seed.twitter'));}
-    if (!url && !seed.twitter.query && !seed.twitter.latitude && !seed.twitter.longitude && !seed.twitter.radius) {
-        return error.log(new Error('!seed.twitter.query'));
-    }
-    if (!url && !seed.twitter.query && (!seed.twitter.latitude || !seed.twitter.longitude || !seed.twitter.radius)) {
-        return error.log(new Error('!seed.twitter.latitude || !seed.twitter.longitude || !seed.twitter.radius'));
-    }
-    if (!token) {return error.log(new Error('!token'));}
-    if (!secret) {return error.log(new Error('!secret'));}
+function constructTwitterUrl(seed, clbk) {
+    if (!seed) {return clbk(new Error('!seed'));}
+    if (!seed.twitter) { return clbk(new Error('!seed.twitter')); }
 
-    var tweetCount = 100,
+    var url,
+        tweetCount = 100,
         qLengthLimit = 500, // q=encodeURIComponent(commonTerms) must be < 500 characters (science & assessment not included)
         commonTerms = [
             '"common core"', 'school', 'education', 'students', 'schools', 'learning', 'district', 'teachers', 'teacher',
@@ -106,98 +96,43 @@ function getTweets(url, seed, token, secret) {
             'classroom', 'children', 'science', 'assessment'
         ];
 
-    // twitter api request url
-    if (!url) {
-        switch(seed.twitter.type) {
-            case 'screen_name':
-                url = 'https://api.twitter.com/1.1/statuses/user_timeline.json' +
-                    '?screen_name=' + encodeURIComponent(seed.twitter.query) +
-                    '&count=' + tweetCount;
-                break;
-            //case 'query':
-            //case 'hashtag':
-            //case 'geocode':
-            default:
-                url = 'https://api.twitter.com/1.1/search/tweets.json';
-                if (seed.twitter.query && seed.twitter.latitude && seed.twitter.longitude && seed.twitter.radius) {
-                    url += '?q='+encodeURIComponent(seed.twitter.query);
-                    url += '&geocode='+encodeURIComponent(seed.twitter.latitude+','+seed.twitter.longitude+','+Math.ceil(seed.twitter.radius)+'mi');
-                } else if (seed.twitter.query) {
-                    url += '?q='+encodeURIComponent(seed.twitter.query);
-                } else if (seed.twitter.latitude && seed.twitter.longitude && seed.twitter.radius) {
-                    var qStr = commonTerms[0], // limited to 500 characters
-                        i = 1;
-                    while (i<commonTerms.length && encodeURIComponent(qStr+' OR '+commonTerms[i]).length < qLengthLimit) {
-                        qStr += ' OR '+commonTerms[i];
-                        i++;
-                    }
-                    url += '?q='+encodeURIComponent(qStr);
-                    url += '&geocode='+seed.twitter.latitude+','+seed.twitter.longitude+','+Math.ceil(seed.twitter.radius)+'mi';
+    // construct url
+    switch(seed.twitter.type) {
+
+        case 'screen_name':
+            if (!seed.twitter.query) { return clbk(new Error('!seed.twitter.query')); }
+            url = 'https://api.twitter.com/1.1/statuses/user_timeline.json' +
+                '?screen_name=' + encodeURIComponent(seed.twitter.query) +
+                '&count=' + tweetCount;
+            break;
+
+        //case 'query':
+        //case 'hashtag':
+        //case 'geocode':
+        default:
+            url = 'https://api.twitter.com/1.1/search/tweets.json';
+            if (seed.twitter.query && seed.twitter.latitude && seed.twitter.longitude && seed.twitter.radius) {
+                url += '?q='+encodeURIComponent(seed.twitter.query);
+                url += '&geocode='+encodeURIComponent(seed.twitter.latitude+','+seed.twitter.longitude+','+Math.ceil(seed.twitter.radius)+'mi');
+            } else if (seed.twitter.query) {
+                url += '?q='+encodeURIComponent(seed.twitter.query);
+            } else if (seed.twitter.latitude && seed.twitter.longitude && seed.twitter.radius) {
+                var qStr = commonTerms[0], // limited to 500 characters
+                    i = 1;
+                while (i<commonTerms.length && encodeURIComponent(qStr+' OR '+commonTerms[i]).length < qLengthLimit) {
+                    qStr += ' OR '+commonTerms[i];
+                    i++;
                 }
-                url += '&result_type=recent&count='+tweetCount;
-        }
+                url += '?q='+encodeURIComponent(qStr);
+                url += '&geocode='+seed.twitter.latitude+','+seed.twitter.longitude+','+Math.ceil(seed.twitter.radius)+'mi';
+            } else {
+                return clbk(new Error('!seed.twitter.query && (!seed.twitter.latitude || !seed.twitter.longitude || !seed.twitter.radius)'));
+            }
+            url += '&result_type=recent&count='+tweetCount;
     }
 
-    logger.log(url);
-
-    // get tweets from twitter
-    socialmedia.twitterApiGet(url, token, secret, function(err, data) {
-        if (err) {return error.log(err);}
-        if (!data) {return error.log(new Error('!data'));}
-
-        var now = new Date();
-        
-        // tweets
-        var tweets = (seed.twitter.type === 'screen_name') ? data : data.statuses;
-        if (!tweets) {return error.log(new Error('!tweets'));}
-        //if (!tweets.length) {return logger.result('no tweets pulled for url=\n'+url);}
-        logger.result(tweets.length+' tweets');
-        
-        // save tweets
-        socialmedia.saveTweets(tweets, seed, function(errs, newTweets) {
-            if (errs) { errs.forEach(function(cV) { error.log(cV); }); }
-
-            // update social seed
-            if (seed) {
-                seed.initialized = seed.initialized || now;
-                SocialSeed.update(
-                    {_id: seed._id},
-                    {
-                        $set: {
-                            lastPulled: now,
-                            initialized: seed.initialized
-                        },
-                        $inc: {
-                            media: newTweets
-                        },
-                        $push: {history: {
-                            $position: 0,
-                            $each: [{date: now, total: tweets.length, new: newTweets || 0}],
-                            $slice: 100
-                        }}
-                    }, 
-                    function(err) {
-                        if (err) {return error.log(new Error(err));}
-                    }
-                );
-            }
-
-            // go again if initializing new seed
-            var fifteenMinutesAgo = (function(){var d = new Date(); d.setMinutes(d.getMinutes()-15); return d;})();
-            if (seed && seed.initialized > fifteenMinutesAgo) {
-                var nextUrl;
-                if (seed.twitter.type === 'screen_name' && tweets[tweets.length-1] && tweets[tweets.length-1].id) {
-                    nextUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json'+
-                        '?screen_name='+encodeURIComponent(seed.twitter.query)+
-                        '&count='+tweetCount+
-                        '&max_id='+tweets[tweets.length-1].id;
-                } else if (data.search_metadata && data.search_metadata.next_results) {
-                    nextUrl = 'https://api.twitter.com/1.1/search/tweets.json'+data.search_metadata.next_results;
-                }
-                if (nextUrl) {logger.log('nextUrl = '+nextUrl); getTweets(nextUrl, seed, token, secret);}
-            }
-        });
-    });
+    // done
+    return clbk(null, url);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -213,7 +148,10 @@ exports.pullTwitter = function(req, res) {
     logger.filename(__filename);
 
     var twitterWindow = 15, // 15 min window
-        twitterWindowLimit = 150; // max 180 but reserve some for seed initialization requests
+        requestLimit = 180, // max 180 requests per 15min window
+
+        stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+twitterWindow); return d; })(),
+        requestCount = 0;
 
     function errorMessage(code, message) {
         return res.status(code || 500).send({
@@ -227,36 +165,135 @@ exports.pullTwitter = function(req, res) {
     }
 
     // get twitter token and secret
+    logger.result('getting token and secret');
     socialmedia.getTwitterTokenAndSecret(req.user, function(err, token, secret) {
-        if (err) {error.log(err); return errorMessage();}
-        if (!token) {error.log(new Error('!token')); return errorMessage();}
-        if (!secret) {error.log(new Error('!secret')); return errorMessage();}
+        if (err) { error.log(err); return errorMessage(); }
+        if (!token) { error.log(new Error('!token')); return errorMessage(); }
+        if (!secret) { error.log(new Error('!secret')); return errorMessage(); }
 
         // get twitter social seeds
-        getSeeds(function (seeds) {
-            if (!seeds) {error.log(new Error('!seeds')); return errorMessage();}
-            if (!seeds.length) {logger.result('no seeds to run right now'); return res.status(200).send('no seeds to run right now');}
-            if (seeds.length > twitterWindowLimit) {seeds = seeds.slice(0, twitterWindowLimit);}
+        logger.result('getting social seeds');
+        getSeeds(function (errs, seeds) {
+            if (errs && errs.length) { errs.forEach(function(cV) { error.log(cV); }); }
+            if (!seeds) { error.log(new Error('!seeds')); return errorMessage(); }
+            if (!seeds.length) { 
+                logger.result('no seeds to run right now');
+                return res.status(200).send('no seeds to run right now'); 
+            } else {
+                logger.result('pulling tweets for '+seeds.length+' seeds');
+            }
 
-            var timeout = 0,
-                timeoutInc = (process.env.SERVER === 'local') ?
-                    1000 * 5 : // 5 sec delay if running locally
-                    (1000 * 60 * twitterWindow) / seeds.length;
+            // respond to client
+            logger.result('working on pulling tweets');
+            res.status(200).send('working on pulling tweets');
 
-            // get tweets for each seed
-            seeds.forEach(function(seed) {
+            // for each seed, get tweets and save them
+            var seedIndex = 0;
+            function getAndSaveTweetsForSeed() {
+                
+                var seed = seeds[seedIndex],
+                    newSeed = Boolean(!seed.initialized),
+                    now = new Date();
 
-                function getTweetsForThisSeed() {
-                    getTweets(null, seed, token, secret);
+                logger.log('seed '+(seedIndex+1)+' '+seed.title+'\nnewSeed = '+newSeed+'\nrequestCount = '+requestCount);
+                
+                function nextSeed() {
+                    seedIndex++;
+                    if (seeds[seedIndex] && now < stopTime && requestCount < requestLimit) {
+                        getAndSaveTweetsForSeed();
+                    } else {
+                        logger.result('done pulling tweets');
+                    }
                 }
 
-                setTimeout(getTweetsForThisSeed, timeout);
-                timeout += timeoutInc;
-            });
+                function seedError(e) {
+                    e.seed = seed;
+                    error.log(e);
+                }
 
-            // done
-            logger.result('working on pulling tweets');
-            return res.status(200).send('working on pulling tweets');
+                // get and save tweets
+                var tweetCount = 100;
+                function getAndSaveTweets(url) {
+                    logger.result(' getting tweets for url = \n'+url);
+                    
+                    var nextUrl = null;
+                    
+                    // get tweets
+                    socialmedia.twitterApiGet(url, token, secret, function(err, data) {
+                        requestCount++;
+                        if (err) { seedError(err); nextSeed(); return; }
+                        if (!data) { seedError(new Error('!data')); nextSeed(); return; }
+
+                        // tweets
+                        var tweets = (data.statuses) ? data.statuses : data;
+                        if (!tweets) { seedError(new Error('!tweets')); }
+                        if (!tweets.length) { logger.result('no tweets for url=\n'+url); nextSeed(); return; }
+                        logger.result(tweets.length + ' total tweets');
+
+                        // save tweets
+                        socialmedia.saveTweets(tweets, seed, function(errs, newTweets) {
+                            if (errs) { errs.forEach(function(cV) { error.log(cV); }); }
+                            logger.result(newTweets+' new tweets');
+
+                            // update social seed
+                            if (!seed.initialized) { seed.initialized = now; }
+                            SocialSeed.update(
+                                {_id: seed._id},
+                                {
+                                    $set: {
+                                        lastPulled: now,
+                                        initialized: seed.initialized
+                                    },
+                                    $inc: {
+                                        media: newTweets
+                                    },
+                                    $push: {history: {
+                                        $position: 0,
+                                        $each: [{date: now, total: tweets.length, new: newTweets || 0}],
+                                        $slice: 100
+                                    }}
+                                },
+                                function(err) {
+                                    if (err) { error.log(new Error(err)); }
+                                    else { logger.result('seed updated'); }
+                                    
+                                    // construct next url if initializing new seed
+                                    if (newSeed) {
+                                        if (seed.twitter.type === 'screen_name' && tweets[tweets.length-1] && tweets[tweets.length-1].id) {
+                                            nextUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json'+
+                                                '?screen_name='+encodeURIComponent(seed.twitter.query)+
+                                                '&count='+tweetCount+
+                                                '&max_id='+tweets[tweets.length-1].id;
+                                        } else if (data.search_metadata && data.search_metadata.next_results) {
+                                            nextUrl = 'https://api.twitter.com/1.1/search/tweets.json'+data.search_metadata.next_results;
+                                        }
+                                    }
+
+                                    // go again if next url
+                                    if (nextUrl) {
+                                        logger.result('going again\n');
+                                        getAndSaveTweets(nextUrl);
+                                        return;
+                                    }
+
+                                    // otherwise get tweets for next seed
+                                    nextSeed();
+                                }
+                            );
+                        });
+                    });
+                }
+
+                // start by constructing twitter api request url for seed
+                constructTwitterUrl(seed, function(err, url) {
+                    if (err) { seedError(err); nextSeed(); return; }
+                    if (!url) { seedError(new Error('!url')); nextSeed(); return; }
+                    getAndSaveTweets(url);
+                });
+            }
+
+            // start pulling tweets
+            getAndSaveTweetsForSeed();
         });
     });
 };

@@ -1,0 +1,80 @@
+<!-- District Edit Modal -->
+
+<!-- Close Modal Button -->
+<div class="modal-header">
+    <span class="close" ng-click="cancel()">&times;</span>
+    <h3 class="modal-title">Edit District</h3>
+</div>
+
+<!-- District Info & History -->
+<div class="modal-body">
+
+    <!-- District Info Table -->
+    <table class="table table-bordered">
+        <tbody>
+            <tr ng-repeat="field in fields">
+                <td><strong>{{field}}</strong></td>
+                <td>
+                    <span ng-if="['state', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
+                        {{(dates.indexOf(field) > -1) ? (fullDistrict[field]|date:'shortDate') : fullDistrict[field]|capitalize}}
+                    </span>
+                    <span ng-if="field === 'state'">
+                        {{fullDistrict.state|uppercase}}
+                    </span>
+                    <span ng-if="field === 'website' && fullDistrict.website">
+                        <a ng-href="{{fullDistrict.website.url}}"
+                           target="_blank"
+                           data-toggle="tooltip" title="view website">
+                            {{fullDistrict.website.subdomain}}
+                        </a>
+                    </span>
+                    <span ng-if="field === 'facebook' && fullDistrict.facebookSeed">
+                        <a ng-href="https://facebook.com/{{fullDistrict.facebookSeed.facebook.id}}"
+                           target="_blank"
+                           data-toggle="tooltip" title="view on facebook">
+                            {{fullDistrict.facebookSeed.facebook.name}}
+                        </a>
+                    </span>
+                    <span ng-if="field === 'facebook' && !fullDistrict.facebookSeed && fullDistrict.facebookAccount"
+                          style="color: red;">
+                        * please select facebook page *
+                    </span>
+                    <span ng-if="field === 'twitter' && fullDistrict.twitterSeed">
+                        <a ng-href="https://twitter.com/search?f=tweets&q={{getQuery(fullDistrict.twitterSeed.twitter.query)}}"
+                           target="_blank"
+                           data-toggle="tooltip" title="view on twitter">
+                            {{fullDistrict.twitterSeed.twitter.query}}
+                        </a>
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Save & Delete Buttons -->
+<div class="modal-footer">
+    <div class="row" style="margin: 0;">
+        <div class="col-xs-6" style="padding: 0 2px 0 0;">
+            <button class="btn btn-block btn-success"
+                    ng-click="save()">
+                Save
+            </button>
+        </div>
+        <div class="col-xs-6" style="padding: 0 2px 0 0;">
+            <button class="btn btn-block btn-danger"
+                    ng-click="delete()">
+                Delete
+            </button>
+        </div>
+    </div>
+    <div ng-if="confirmDelete"
+         class="alert alert-danger text-center" style="margin-top: 10px;">
+        <p>Are you sure you want to delete this district?</p>
+        <div class="btn-group" style="margin-top:10px;">
+            <button class="btn btn-danger" ng-click="delete(true)">Yes</button>
+            <button class="btn btn-default" ng-click="delete()">No</button>
+        </div>
+    </div>
+</div>

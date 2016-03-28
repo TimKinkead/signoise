@@ -63,3 +63,6 @@ This project uses a MEAN stack. (MongoDB, Express, Angular, Node)
 | **package.json** | The back-end express application configuration file. It defines the required node packages. |
 | **README.md** | The file that you're looking at right now! |
 | **server.js** | This file starts the server. |
+
+### Git
+* [A Successful Git Branching Model](http://nvie.com/posts/a-successful-git-branching-model/)

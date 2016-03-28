@@ -27,7 +27,7 @@ var logger = require('../../../logger');
  * @param clbk - return clbk(err, data)
  */
 exports.twitterApiGet = function(twitterUrl, token, secret, clbk) {
-    logger.filename(__filename);
+    //logger.filename(__filename);
 
     if (!twitterUrl) {return clbk(new Error('!twitterUrl'));}
     if (!token) {return clbk(new Error('!token'));}

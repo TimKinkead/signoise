@@ -1,0 +1,104 @@
+<!-- Districts Table -->
+
+<div class="container">
+
+    <!-- Create Button -->
+    <div class="container">
+        <button ng-click="create()" class="btn btn-success pull-right">Create</button>
+    </div>
+
+    <!-- Title -->
+    <h1 class="text-center">Districts</h1>
+
+    <!-- Filter By State Drop Down -->
+    <div ng-if="!status.processingStates">
+        <label>State: </label>
+        <select ng-model="filterBy.state"
+                class="form-control" style="cursor: pointer; max-width: 300px;">
+            <option value="{{null}}">ALL</option>
+            <option ng-repeat="state in filterByStates"
+                    value="{{state._id}}">
+                {{state._id|uppercase}}&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;{{state.districtCount}} districts
+            </option>
+        </select>
+    </div>
+
+    <!-- Filter By County Drop Down -->
+    <div ng-if="filterBy.state && !status.processingCounties">
+        <label>County: </label>
+        <select ng-model="filterBy.county"
+                class="form-control" style="cursor: pointer; max-width: 300px;">
+            <option value="{{null}}">ALL</option>
+            <option ng-repeat="county in filterByCounties"
+                    value="{{county._id}}">
+                {{county._id|capitalize}}&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;{{county.districtCount}} districts
+            </option>
+        </select>
+    </div>
+
+    <!-- Summary Info -->
+
+
+    <!-- Error Messages -->
+    <div ng-show="status.errorMessages.length" class="container">
+        <div ng-repeat="error in status.errorMessages"
+             class="alert alert-danger" style="margin-bottom: 2px;">
+            <span class="close" ng-click="closeErrorMessage($index)">&times;</span>
+            {{error}}
+        </div>
+    </div>
+
+    <!-- Table (desktop & mobile) -->
+    <table class="table table-bordered table-hover" style="margin-top: 15px;">
+        <thead>
+            <th class="hidden-xs"
+                ng-repeat="field in fields">
+                {{field|capitalize}}
+            </th>
+            <th class="visible-xs">
+                Name <br/>
+                <span class="text-info">County, State</span>
+            </th>
+        </thead>
+        <tbody>
+            <tr ng-repeat="district in districts"
+                ng-class="{'last-row': $last}"
+                ng-click="edit(district)"
+                style="cursor:pointer;">
+                <td ng-repeat="field in fields" class="hidden-xs">
+                    <div ng-if="['state', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
+                        {{(dates.indexOf(field) > -1) ? (district[field]|date:'shortDate') : district[field]|capitalize}}
+                    </div>
+                    <div ng-if="field === 'state'">
+                        {{district.state|uppercase}}
+                    </div>
+                    <div ng-if="field === 'website'">
+                        <i ng-if="district.website" class="glyphicon glyphicon-ok"></i>
+                    </div>
+                    <div ng-if="field === 'facebook'">
+                        <i ng-if="district.facebookSeed" class="glyphicon glyphicon-ok"></i>
+                        <i ng-if="!district.facebookSeed && district.facebookAccount" class="glyphicon glyphicon-asterisk"></i>
+                    </div>
+                    <div ng-if="field === 'twitter'">
+                        <i ng-if="district.twitterSeed" class="glyphicon glyphicon-ok"></i>
+                    </div>
+                </td>
+                <td class="visible-xs">
+                    {{district.name}} <br/>
+                    <span class="text-info">{{district.county|capitalize}} County, {{district.state|uppercase}}</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- no results -->
+    <div ng-if="!status.processingDistricts && !districts.length"
+         class="text-center">
+        - No Districts - <br/>
+        ( state={{filterBy.state}} / county={{filterBy.county}} )
+    </div>
+
+    <!-- spinner -->
+    <div ng-if="status.processingDistricts" class="spinner"></div>
+
+</div>

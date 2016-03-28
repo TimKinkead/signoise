@@ -112,14 +112,19 @@ SocialSeedSchema.pre('validate', function(next) {
     if (!this.title) {
         switch(this.platform) {
             case 'facebook':
-                if (this.facebook && this.facebook.name) {
+                // title
+                if (!this.title && this.facebook && this.facebook.name) {
                     this.title = this.facebook.name;
                 }
                 break;
             case 'twitter':
+                // title
+                if (!this.title && this.twitter && this.twitter.query) {
+                    this.title = this.twitter.query;
+                }
+                // type
                 if (this.twitter) {
                     if (this.twitter.query) {
-                        this.title = this.twitter.query;
                         if (this.twitter.query.indexOf('#') === 0 && this.twitter.query.indexOf(' ') < 0) {
                             this.twitter.type = 'hashtag';
                         } else if (this.twitter.query.indexOf('@') === 0 && this.twitter.query.indexOf(' ') < 0) {

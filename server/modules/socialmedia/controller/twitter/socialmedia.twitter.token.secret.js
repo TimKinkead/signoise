@@ -20,7 +20,7 @@ var logger = require('../../../logger');
  * @param clbk - return clbk(err, token, secret)
  */
 exports.getTwitterTokenAndSecret = function(user, clbk) {
-    logger.filename(__filename);
+    //logger.filename(__filename);
 
     // handle optional user argument
     if (!clbk) { clbk = user; user = null; }

@@ -12,7 +12,8 @@ var mongoose = require('mongoose'),
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-var error = require('../../../error');
+var error = require('../../../error'),
+    logger = require('../../../logger');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
@@ -176,6 +177,8 @@ function checkTweetEntities(entities) {
  * @param clbk - return clbk(err, newTweet)
  */
 exports.saveTweet = function(tweet, seed, clbk) {
+    //logger.filename(__filename);
+    
     if (!tweet) {return clbk(new Error('!tweet'));}
 
     // handle optional seed parameter

@@ -3,12 +3,38 @@
 angular.module('app').filter('capitalize', [
     function() {
         return function(str) {
-            str = str || '';
-            switch(str.length) {
-                case 0: return str;
-                case 1: return str.toUpperCase();
-                default: return str[0].toUpperCase()+str.slice(1);
+            if (!str) { return ''; }
+            if (typeof str !== 'string') { return str; }
+
+            var newStr;
+            
+            switch (str) {
+
+                case 'lepCount':
+                case 'iepCount':
+                case 'frlCount':
+                    newStr = str.slice(0, str.indexOf('Count')).toUpperCase();
+                    break;
+
+                case 'studentCount':
+                    newStr = 'Students';
+                    break;
+
+                case 'fetchCount':
+                    newStr = 'Fetched';
+                    break;
+
+                default:
+                    newStr = '';
+                    var uppercase = true;
+                    for (var i=0, x=str.length; i<x; i++) {
+                        newStr += (uppercase) ? str[i].toUpperCase() : str[i];
+                        uppercase = (str[i] === ' ');
+                    }
+                    return newStr;
             }
+            
+            return newStr;
         };
     }
 ]);

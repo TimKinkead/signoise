@@ -24,6 +24,7 @@ var WebSiteSchema = new Schema({
     domain: {
         type: String,
         required: true
+        // not unique - could have multiple subdomains
     },
 
     // the unique sub-domain of this website (ex: signal-noise.prevagroup.com)
@@ -36,8 +37,7 @@ var WebSiteSchema = new Schema({
     // the url of this website's home page (ex: http://www.prevagroup.com/)
     url: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
 
     // -- CRAWL INFO --
@@ -120,6 +120,24 @@ var WebSiteSchema = new Schema({
 //----------------------------------------------------------------------------------------------------------------------
 // Static Methods
 
+WebSiteSchema.statics.getUrlData = function(url) {
+    var urlData = {};
+    if (url && url.indexOf('://') > -1) {
+        var urlParts = url.split('://'),
+            protocol = urlParts[0],
+            slashIndex = urlParts[1].indexOf('/'),
+            subdomain = (slashIndex > -1) ? urlParts[1].slice(0, slashIndex) : urlParts[1],
+            domain = subdomain;
+        while(domain.indexOf('.') !== domain.lastIndexOf('.')) {
+            domain = domain.slice(domain.indexOf('.')+1);
+        }
+        urlData.domain = domain;
+        urlData.subdomain = subdomain;
+        urlData.url = protocol+'://'+subdomain;
+    }
+    return urlData;
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Pre & Post Methods
 
@@ -127,6 +145,13 @@ var WebSiteSchema = new Schema({
  * Pre-validation hook to clean up url and set domain/subdomain.
  */
 WebSiteSchema.pre('validate', function(next) {
+    if (this.url) {
+        var urlData = WebSiteSchema.statics.getUrlData(this.url);
+        this.domain = urlData.domain;
+        this.subdomain = urlData.subdomain;
+        this.url = urlData.url;
+    }
+    /*
     if (this.url && this.url.indexOf('://') > -1) {
         var urlParts = this.url.split('://'),
             protocol = urlParts[0],
@@ -139,7 +164,7 @@ WebSiteSchema.pre('validate', function(next) {
         this.domain = domain;
         this.subdomain = subdomain;
         this.url = protocol+'://'+subdomain;
-    }
+    }*/
     next();
 });
 

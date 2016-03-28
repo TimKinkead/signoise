@@ -47,6 +47,15 @@ angular.module('app').config([
             data: {memberOnly: true}
         });
 
+        // -- District States --
+        
+        $stateProvider.state('districts', {
+            url: '/districts',
+            templateUrl: 'modules/main/districts/view.html',
+            controller: 'DistrictsController',
+            data: {memberOnly: true}
+        });
+        
         // -- Social Media States --
 
         $stateProvider.state('socialseeds', {

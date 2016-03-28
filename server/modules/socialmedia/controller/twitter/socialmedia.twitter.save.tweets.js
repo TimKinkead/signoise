@@ -7,6 +7,11 @@ var mongoose = require('mongoose'),
     SocialMedia = mongoose.model('SocialMedia');
 
 //----------------------------------------------------------------------------------------------------------------------
+// Controllers
+
+var logger = require('../../../logger');
+
+//----------------------------------------------------------------------------------------------------------------------
 // Methods
 
 var saveTweet = require('./socialmedia.twitter.save.tweet.js').saveTweet;
@@ -23,6 +28,8 @@ var saveTweet = require('./socialmedia.twitter.save.tweet.js').saveTweet;
  * @param clbk - return clbk(errs, newTweets)
  */
 exports.saveTweets = function(tweets, seed, clbk) {
+    //logger.filename(__filename);
+    
     if (!tweets) {return clbk([new Error('!tweets')]);}
     if (!tweets.length) {return clbk(null, 0);}
 
@@ -32,7 +39,7 @@ exports.saveTweets = function(tweets, seed, clbk) {
     var errs = [],
         newTweets = 0,
         timeout = 0,
-        timeoutInc = 1000; // 1 sec delay
+        timeoutInc = 50; // 0.05 sec delay
 
     // check done
     var cnt = tweets.length;
