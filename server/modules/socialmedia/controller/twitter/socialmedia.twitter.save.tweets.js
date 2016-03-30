@@ -36,37 +36,31 @@ exports.saveTweets = function(tweets, seed, clbk) {
     // handle optional seed parameter
     if (!clbk) { clbk = seed; seed = null; }
 
-    var errs = [],
+    var tweetIndex = 0,
         newTweets = 0,
-        timeout = 0,
-        timeoutInc = 50; // 0.05 sec delay
-
-    // check done
-    var cnt = tweets.length;
-    function checkDone() {
-        cnt -= 1;
-        if (cnt === 0) {
-            if (!errs.length) {errs = null;}
-            return clbk(errs, newTweets);
-        }
-    }
+        errs = [];
 
     // save each tweet
-    tweets.forEach(function(cV) {
+    function saveATweet() {
 
-        function saveThisTweet() {
-            saveTweet(cV, seed, function(err, newTweet) {
-                if (err) {errs.push(err);}
-                if (newTweet) {newTweets += 1;}
-                checkDone();
-            });
+        function nextTweet() {
+            tweetIndex++;
+            if (tweets[tweetIndex]) {
+                saveATweet();
+            } else {
+                if (!errs.length) {errs = null;}
+                return clbk(errs, newTweets);
+            }
         }
 
-        // save this tweet
-        setTimeout(saveThisTweet, timeout);
-        timeout += timeoutInc;
-    });
+        var tweet = tweets[tweetIndex];
+        saveTweet(tweet, seed, function(err, newTweet) {
+            if (err) {errs.push(err);}
+            if (newTweet) {newTweets += 1;}
+            nextTweet();
+        });
+    }
 
-
-
+    // start
+    saveATweet();
 };

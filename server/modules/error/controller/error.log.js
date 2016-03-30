@@ -26,8 +26,16 @@ exports.log = function(err) {
         name: err.name,
         message: (err.message) ? JSON.stringify(err.message) : err.message,
         stack: err.stack,
-        info: (err.info) ? err.info : err.message
+        info: {}
     });
+    
+    // other error fields
+    var fields = ['name', 'message', 'stack'];
+    for (var key in err) {
+        if (fields.indexOf(key) < 0 && err.hasOwnProperty(key)) {
+            errObj.info[key] = err[key];
+        }
+    }
 
     // save error doc
     errObj.save(function(err) {

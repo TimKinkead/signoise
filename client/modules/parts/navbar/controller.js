@@ -12,6 +12,7 @@ angular.module('app').controller('NavbarController', [
         };
 
         $scope.tables = [
+            {state: 'districts', name: 'Districts'},
             {state: 'socialseeds', name: 'Social Seeds'},
             {state: 'socialmedia', name: 'Social Media'},
             {state: 'websites', name: 'Web Sites'},

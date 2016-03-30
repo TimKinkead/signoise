@@ -11,7 +11,8 @@ var fs = require('fs'),
 // Models
 
 var mongoose = require('mongoose'),
-    SocialMedia = mongoose.model('SocialMedia');
+    SocialMedia = mongoose.model('SocialMedia'),
+    Districts = mongoose.model('District');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -26,7 +27,7 @@ function csvEscape(str) {
     return '"' + String(str || '').replace(/\"/g, '""') + '"';
 }
 
-function getHeaders() {
+function getHeaders(districtQuery) {
     return [
         
         // general
@@ -38,6 +39,13 @@ function getHeaders() {
         // seed
         'seed._id',
         'seed.title',
+        
+        // district
+        'district._id',
+        'district.name',
+        'district.city',
+        'district.county',
+        'district.state',
 
         // twitter tweet
         'tw.id',
@@ -83,9 +91,10 @@ function getHeaders() {
     ].map(csvEscape).join(',');
 }
 
-function docToCSV(doc) {
+function docToCSV(doc, districtQuery) {
 
-    var seed = (doc.socialseed) ? doc.socialseed : {},
+    var district = (doc.district) ? doc.district : {},
+        seed = (doc.socialseed) ? doc.socialseed : {},
         tweet = (doc.platform === 'twitter' && doc.data) ? doc.data : {},
         twUser = (doc.platform === 'twitter' && doc.data && doc.data.user) ? doc.data.user : {},
         fbPost = (doc.platform === 'facebook' && doc.data) ? doc.data : {},
@@ -101,6 +110,13 @@ function docToCSV(doc) {
         // seed
         seed._id,
         seed.title,
+
+        // district
+        district._id,
+        district.name,
+        district.city,
+        district.county,
+        district.state,
 
         // tweet
         tweet.id,
@@ -146,6 +162,22 @@ function docToCSV(doc) {
     ].map(csvEscape).join(',');
 }
 
+/**
+ * Get districts for a given state.
+ * @param state - state code
+ * @param clbk - return clbk(err, districts)
+ */
+function getDistricts(state, clbk) {
+    if (!state) { return clbk(); }
+    
+    Districts.find({state: state}, function(err, districtDocs) {
+        if (err) { return clbk(new Error(err)); }
+        if (!districtDocs) { return clbk(new Error('!districtDocs')); }
+        
+        return clbk(null, districtDocs);
+    });
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // Main
 
@@ -166,7 +198,8 @@ exports.download = function(req, res) {
     if (!req.user || !req.user._id) {return errorMessage(403, 'Please login or sign up if you want to list social media.');}
 
     // variables
-    var d = new Date(),
+    var districtQuery = (req.query.state),
+        d = new Date(),
         year = d.getFullYear(),
         month = d.getMonth()+1,
         day = d.getDate();
@@ -176,29 +209,76 @@ exports.download = function(req, res) {
     // start stream
     var streamStarted = false;
     function startStream() {
+        logger.result('startStream');
         res.setHeader('Content-disposition', 'attachment; filename=\"socialmedia_'+year+'-'+month+'-'+day+'.csv\"');
         res.contentType('text/csv');
-        res.write(getHeaders() + '\n');
+        res.write(getHeaders(districtQuery) + '\n');
         streamStarted = true;
     }
 
-    // stream social media docs
-    SocialMedia.find()
-        .sort({date: -1})
-        .skip((req.query.skip) ? Number(req.query.skip) : 0)
-        .limit((req.query.limit) ? Number(req.query.limit) : 5000)
-        .populate('socialseed', 'title')
-        .stream()
-        .on('data', function(mediaDoc) {
-            if (!streamStarted) {startStream();}
-            res.write(docToCSV(mediaDoc) + '\n');
-        })
-        .on('close', function() {
-            res.end();
-        })
-        .on('error', function(err) {
-            error.log(new Error(err));
-            return errorMessage();
-        });
+    // get districts
+    logger.result('getDistricts');
+    getDistricts(req.query.state, function(err, districts) {
+        if (err) { error.log(err); return errorMessage(); }
+        if (districtQuery && !districts) { error.log('districtQuery && !districts'); return errorMessage(); }
 
+        function lookupDistrict(seedId) {
+            if (!districts || !seedId) { return null; }
+            for (var i=0, x=districts.length; i<x; i++) {
+                if (districts[i].facebookSeed && districts[i].facebookSeed.toString() === seedId.toString()) { return districts[i]; }
+                if (districts[i].twitterSeed && districts[i].twitterSeed.toString() === seedId.toString()) { return districts[i]; }
+            }
+            return null;
+        }
+        
+        // build query
+        logger.result('buildQuery');
+        var query = {};
+        if (districtQuery) {
+            var districtSeedIds = [];
+            districts.forEach(function(cV) {
+                if (cV.facebookSeed) { districtSeedIds.push(cV.facebookSeed); }
+                if (cV.twitterSeed) { districtSeedIds.push(cV.twitterSeed); }
+            });
+            query.socialseed = {$in: districtSeedIds};
+            logger.log('districtIds.length = '+districtSeedIds.length);
+        }
+        if (req.query.minDate || req.query.maxDate) {
+            query.date = {};
+            if (req.query.minDate) {query.date.$gt = req.query.minDate;}
+            if (req.query.maxDate) {query.date.$lt = req.query.maxDate;}
+        }
+        //logger.log(query);
+
+        // count docs to check
+        SocialMedia.count(query, function(err, qty) {
+            if (err) {console.log(err);}
+            console.log('qty = '+qty);
+        });
+        
+        // stream social media docs
+        logger.result('streaming');
+        SocialMedia.find(query)
+            .sort({date: -1})
+            .skip((req.query.skip) ? Number(req.query.skip) : 0)
+            .limit((req.query.limit) ? Number(req.query.limit) : null)
+            .populate('socialseed', 'title')
+            .stream()
+            .on('data', function(mediaDoc) {
+                if (!streamStarted) {startStream();}
+                if (districtQuery && mediaDoc.socialseed._id) {
+                    mediaDoc.district = lookupDistrict(mediaDoc.socialseed._id);
+                }
+                if (mediaDoc.district) {logger.log('district!!!');}
+                logger.result('data');
+                res.write(docToCSV(mediaDoc, districtQuery) + '\n');
+            })
+            .on('close', function() {
+                res.end();
+            })
+            .on('error', function(err) {
+                error.log(new Error(err));
+                return errorMessage();
+            });
+    });
 };

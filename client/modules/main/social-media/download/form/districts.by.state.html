@@ -1,0 +1,47 @@
+<!-- Download Social Media - State Tab -->
+
+<!-- spinner -->
+<div ng-if="status.processing" class="spinner"></div>
+
+<!-- Error Message -->
+<div ng-show="status.errorMessage"
+     class="alert alert-danger" role="alert">
+    {{status.errorMessage}}
+</div>
+
+<!-- Choose State Drop Down -->
+<div ng-if="!status.processing && !status.errorMessage">
+    <label>State: </label>
+    <select ng-model="params.state"
+            class="form-control" style="cursor: pointer; max-width: 300px;">
+        <option ng-repeat="state in states"
+                value="{{state._id}}">
+            {{state._id|uppercase}}
+        </option>
+    </select>
+</div>
+
+<!-- Min/Max Date Options -->
+<div ng-if="params.state"
+     class="row" style="margin:0;">
+    <div class="col-xs-6">
+        <div class="form-group">
+            <label>Min Date</label>
+            <div class="input-group">
+                <input ng-model="params.minDate"
+                       type="date" required
+                       class="form-control"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-6">
+        <div class="form-group">
+            <label>Max Date</label>
+            <div class="input-group">
+                <input ng-model="params.maxDate"
+                       type="date" required
+                       class="form-control"/>
+            </div>
+        </div>
+    </div>
+</div>

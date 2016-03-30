@@ -70,40 +70,13 @@ function cleanUpDistrict(district) {
     return district;
 }
 
-/**
- * Send POST request to local or production server.
- * - district creation logic handles upsert, & references to website / social accounts
- * @param district - cleaned up district object
- * @param index - the index of the district object in the districts array per districts.json
- * @param total - the totak number of districts per districts.json
- */
-function createDistrict(district, index, total) {
-    if (!district) { return; }
-    
-    // make POST request
-    request.post(
-        {
-            url: url.parse('http://'+host+'/data/district'),
-            json: true,
-            body: district
-        },
-        function(err, response, body) {
-            if (err) {
-                console.log(chalk.red.bold('\n* ERROR '+district.name+' *')); 
-                console.log(chalk.red(err)); 
-                console.log('\n');
-                return;
-            }
-            if (index && total && index >= 100 && index % 100 === 0) {
-                console.log(district.name);
-                console.log(chalk.green('*** '+index+'/'+total+'('+Math.floor(index/total*100)+'%) ***'));
-            }
-        }
-    );
-}
-
 //----------------------------------------------------------------------------------------------------------------------
 // Main
+
+/**
+ * Create a district doc for each district in './districts.json'.
+ * 
+ */
 
 console.log(chalk.green.bold('\nCreating Districts\n'));
 
@@ -120,10 +93,53 @@ else {
     return;
 }
 
-// create districts
-var districts = require('./districts.json');
-districts.forEach(function(district, i) {
-    if (!district) { console.log(chalk.red.bold('Error! district['+i+'] not defined')); }
-    district = cleanUpDistrict(district);
-    createDistrict(district, i, districts.length);
-});
+// districts
+var districts = require('./districts.json'),
+    districtIndex = 0;
+
+// create district
+function createDistrict() {
+    
+    function nextDistrict() {
+        districtIndex++;
+        if (districts[districtIndex]) {
+            createDistrict();
+        } else if (districtIndex > districts.length-1) {
+            console.log(chalk.green.bold('\nDONE!\n'));
+        } else {
+            console.log(chalk.red.bold('Error: nextDistrict'));
+        }
+    }
+    
+    if (!districts[districtIndex]) {
+        console.log(chalk.red.bold('Error: !districts['+districtIndex+']'));
+        return;
+    }
+    
+    var district = cleanUpDistrict(districts[districtIndex]);
+
+    // make POST request
+    // - district creation logic handles upsert, & references to website / social accounts
+    request.post(
+        {
+            url: url.parse('http://'+host+'/data/district'),
+            json: true,
+            body: district
+        },
+        function(err, response, body) {
+            if (err) {
+                console.log(chalk.red.bold('\n* ERROR '+district.name+' *'));
+                console.log(chalk.red(err));
+                console.log('\n');
+            }
+            if (districtIndex && districts.length && districtIndex >= 25 && districtIndex % 25 === 0) {
+                console.log(district.name);
+                console.log(chalk.green('*** '+districtIndex+'/'+districts.length+'('+Math.floor(districtIndex/districts.length*100)+'%) ***'));
+            }
+            nextDistrict();
+        }
+    );
+}
+
+// start
+createDistrict();

@@ -8,7 +8,8 @@ var auth = require('../../../../../auth.js');
 //----------------------------------------------------------------------------------------------------------------------
 // Dependencies
 
-var OAuth = require('oauth');
+var OAuth = require('oauth'),
+    _ = require('lodash');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -50,7 +51,10 @@ exports.twitterApiGet = function(twitterUrl, token, secret, clbk) {
 
     // get tweets from twitter
     oauth.get(twitterUrl, token, secret, function (err, data, response) {
-        if (err) {return clbk(new Error(JSON.stringify(err)));}
+        if (err) {
+            err = _.extend(new Error(), err);
+            return clbk(err);
+        }
         if (!data) {return clbk(new Error('!data'));}
 
         // json parse data

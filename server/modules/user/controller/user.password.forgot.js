@@ -70,6 +70,7 @@ exports.forgotPassword = function(req, res, next) {
 
                 // send email
                 // TODO - finish
+                return res.sendStatus(200);
             });
         });
 };

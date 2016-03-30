@@ -16,6 +16,9 @@ module.exports = function(app) {
     // return 200 for load balancer health check
     app.route('/data/ping').get(core.ping);
 
+    // kill the application
+    app.route('/data/stop').get(core.stop);
+
     // render unsupported.html for old browsers
     app.route('/unsupported').get(core.unsupported);
 

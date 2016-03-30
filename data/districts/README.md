@@ -31,6 +31,6 @@ See `server/models/district.js` for more details.
 ### Usage
 * The raw data is contained in `districts.csv`, which is pulled from the [CA Districts](https://docs.google.com/a/prevagroup.com/spreadsheets/d/1LepgwVzFVxK7JUvBMex_Fu_-u7TFA6bJi2yuqV1-84E/edit?usp=sharing) spreadsheet.
 * The data in `districts.csv` is converted to JSON and saved in `districts.json` by the `districts.convert.js` script.
-  * From the `data/districts` directory, run `node data.convert`.
+  * From the `data/districts` directory, run `node districts.convert`.
 * The districts can be added to your local database or the production database via the `districts.create` script.
-  * From the `data/districts` directory, run `node data.create local` or `node data.create production`.
+  * From the `data/districts` directory, run `node districts.create local` or `node districts.create production`.

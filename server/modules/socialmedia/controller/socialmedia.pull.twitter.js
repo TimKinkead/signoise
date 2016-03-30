@@ -207,7 +207,7 @@ exports.pullTwitter = function(req, res) {
                     // get tweets
                     socialmedia.twitterApiGet(url, token, secret, function(err, data) {
                         requestCount++;
-                        if (err) { seedError(err); nextSeed(); return; }
+                        if (err) { seedError(err); return; }
                         if (!data) { seedError(new Error('!data')); nextSeed(); return; }
 
                         // tweets
@@ -256,7 +256,7 @@ exports.pullTwitter = function(req, res) {
                                     }
 
                                     // go again if next url
-                                    if (nextUrl) {
+                                    if (nextUrl && nextUrl !== url) {
                                         logger.result('going again\n');
                                         getAndSaveTweets(nextUrl);
                                         return;

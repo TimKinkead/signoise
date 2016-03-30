@@ -208,6 +208,13 @@ angular.module('app').controller('DistrictsController', [
             );
         };
         
+        // -- DOWNLOAD --
+
+        // download district data
+        $scope.download = function() {
+            $window.location.href = 'http://'+$window.location.host+'/data/district/download';
+        };
+        
         // -- ERROR MESSAGES --
         
         // close error message

@@ -25,7 +25,10 @@ var ErrorSchema = new Schema({
     //_id: {type: ObjectId} // automatically created for each document
 
     // error name (ex: 'Error')
-    name: {type: String},
+    name: {
+        type: String,
+        default: 'Error'
+    },
 
     // error message (ex: 'the expected thing didn't happen')
     message: {type: String},
@@ -66,7 +69,7 @@ ErrorSchema.pre('validate', function(next) {
         if (this.stack.length) {
             stackString = '';
             for (var i=0,x=this.stack.length; i<x; i++) {
-                stackString += this.stack[i].toString()+'\n';
+                stackString += this.stack[i].toString()+(i<x-1 ? '\n' : '');
             }
         } else {
             stackString = this.stack.toString();
