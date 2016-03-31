@@ -88,6 +88,7 @@ angular.module('app').controller('SocialSeedsCreateController', [
             status.step = 2;
             seed.facebook.id = fbItem.id;
             seed.facebook.name = fbItem.name;
+            seed.facebook.type = activeFacebookResultType.slice(0, -1); // groups/pages -> group/page
             seed.facebook.category = (fbItem.category) ? fbItem.category : 'Group';
         };
         

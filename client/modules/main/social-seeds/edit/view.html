@@ -19,21 +19,22 @@
                         {{(dates.indexOf(field) > -1) ? (seed[field]|date:'shortDate') : seed[field]}}
                     </span>
                     <span ng-if="field === 'title' && seed.facebook">
-                        <a ng-href="https://facebook.com/{{seed.facebook.id}}"
+                        <a ng-if="seed.facebook.id"
+                           ng-href="https://facebook.com/{{seed.facebook.id}}"
                            target="_blank"
                            data-toggle="tooltip" title="view on facebook">
                             {{seed.title}}
                         </a>
+                        <span ng-if="!seed.facebook.id">{{seed.title}}</span>
                     </span>
-                    <span ng-if="field === 'title' && seed.twitter && seed.twitter.type !== 'geocode'">
-                        <a ng-href="https://twitter.com/search?f=tweets&q={{getQuery(seed.query)}}"
+                    <span ng-if="field === 'title' && seed.twitter">
+                        <a ng-if="seed.twitter.query && seed.twitter.type !== 'geocode'"
+                           ng-href="https://twitter.com/search?f=tweets&q={{getQuery(seed.twitter.query)}}"
                            target="_blank"
                            data-toggle="tooltip" title="view on twitter">
                             {{seed.title}}
                         </a>
-                    </span>
-                    <span ng-if="field === 'title' && seed.twitter && seed.twitter.type === 'geocode'">
-                        {{seed.title}}
+                        <span ng-if="!seed.twitter.query || seed.twitter.type === 'geocode'">{{seed.title}}</span>
                     </span>
                     <span ng-if="field === 'type'">
                         {{seed[seed.platform].type}}

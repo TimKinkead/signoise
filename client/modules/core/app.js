@@ -34,5 +34,6 @@ try {
         window.location.assign('/#/' + window.location.search);
     }
 } catch  (e) {
+    console.log(e);
     window.location.assign('/unsupported');
 }

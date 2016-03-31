@@ -3,7 +3,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Dependencies
 
-var _ = require('lodash');
+var _ = require('lodash'),
+    request = require('request');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Variables
@@ -59,16 +60,18 @@ function getSeeds(clbk) {
             sort = (query.lastPulled) ? {lastPulled: 1} : {created: 1};
         SocialSeed.find(query)
             .sort(sort)
+            .limit(maxSeeds)
             .exec(function(err, seedDocs) {
                 if (err) {errs.push(new Error(err));}
                 if (!seedDocs) {errs.push(new Error('!seedDocs'));}
-                seedList = seedList.concat(seedDocs);
+                if (seedDocs && seedDocs.length) { seedList = seedList.concat(seedDocs); }
+                
                 queryIndex++;
                 if (queries[queryIndex] && seedList.length < maxSeeds) {
                     getSomeSeeds();
                 } else {
                     if (!errs.length) {errs = null;}
-                    seedList = seedList.slice(0, maxSeeds);
+                    if (seedList.length > maxSeeds) { seedList = seedList.slice(0, maxSeeds); }
                     return clbk(errs, seedList);
                 }
             });
@@ -142,56 +145,66 @@ function constructTwitterUrl(seed, clbk) {
 /**
  * SOCIALMEDIA.PULL.TWITTER
  * - Pull social media from Twitter.
- * - This is performed every 15 minutes via a cron job.
+ * - This is performed every 15 minutes via a cron job on the 'Node.js Background Process' production server.
  * - Twitter rate limits are based on 15 minute windows (https://dev.twitter.com/rest/public/rate-limiting)
  */
 exports.pullTwitter = function(req, res) {
     logger.filename(__filename);
 
     // respond to client
-    logger.result('working on pulling tweets');
+    logger.bold('working on pulling tweets');
     res.status(200).send('working on pulling tweets');
     
     var twitterWindow = 15, // 15 min window
         requestLimit = 180, // max 180 requests per 15min window
 
+        seedIndex = 0,
         stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+twitterWindow); return d; })(),
+        halfwayTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+twitterWindow/2); return d; })(),
         requestCount = 0;
 
     // get twitter token and secret
-    logger.result('getting token and secret');
+    logger.dash('getting token and secret');
     socialmedia.getTwitterTokenAndSecret(req.user, function(err, token, secret) {
         if (err) { error.log(err); return; }
         if (!token) { error.log(new Error('!token')); return; }
         if (!secret) { error.log(new Error('!secret')); return; }
 
         // get twitter social seeds
-        logger.result('getting social seeds');
+        logger.dash('getting social seeds');
         getSeeds(function (errs, seeds) {
             if (errs && errs.length) { errs.forEach(function(cV) { error.log(cV); }); }
             if (!seeds) { error.log(new Error('!seeds')); return; }
             if (!seeds.length) { logger.result('no seeds to run right now'); return;}
-            logger.result('pulling tweets for '+seeds.length+' seeds');
+            logger.arrow(seeds.length+' social seeds');
 
-            // for each seed, get tweets and save them
-            var seedIndex = 0;
+            /**
+             * For a single seed, get tweets and save them.
+             * - When done, proceed to the next seed.
+             */
             function getAndSaveTweetsForSeed() {
                 
                 var seed = seeds[seedIndex],
                     newSeed = Boolean(!seed.initialized),
                     now = new Date();
 
-                logger.log('seed '+(seedIndex+1)+' '+seed.title+'\nnewSeed = '+newSeed+'\nrequestCount = '+requestCount);
+                logger.bold('seed '+(seedIndex+1)+' - '+seed.title+'\nnewSeed = '+newSeed+'\nrequestCount = '+requestCount);
                 
-                function nextSeed() {
+                // next seed
+                function nextSeed(delayMinutes) {
                     seedIndex++;
                     if (seeds[seedIndex] && now < stopTime && requestCount < requestLimit) {
-                        getAndSaveTweetsForSeed();
+                        if (delayMinutes) {
+                            setTimeout(function() { getAndSaveTweetsForSeed(); }, 1000*60*delayMinutes);
+                        } else {
+                            getAndSaveTweetsForSeed();
+                        }
                     } else {
-                        logger.result('done pulling tweets');
+                        logger.bold('done pulling tweets');
                     }
                 }
 
+                // seed error
                 function seedError(e) {
                     e.seed = seed;
                     error.log(e);
@@ -200,26 +213,26 @@ exports.pullTwitter = function(req, res) {
                 // get and save tweets
                 var tweetCount = 100;
                 function getAndSaveTweets(url) {
-                    logger.result(' getting tweets for url = \n'+url);
-                    
                     var nextUrl = null;
                     
                     // get tweets
+                    logger.dash('getting tweets for url = \n'+url);
+                    requestCount++;
                     socialmedia.twitterApiGet(url, token, secret, function(err, data) {
-                        requestCount++;
-                        if (err) { seedError(err); return; }
-                        if (!data) { seedError(new Error('!data')); nextSeed(); return; }
+                        if (err) { seedError(err); nextSeed(1); return; }
+                        if (!data) { seedError(new Error('!data')); nextSeed(1); return; }
 
                         // tweets
                         var tweets = (data.statuses) ? data.statuses : data;
-                        if (!tweets) { seedError(new Error('!tweets')); }
-                        if (!tweets.length) { logger.result('no tweets for url=\n'+url); nextSeed(); return; }
-                        logger.result(tweets.length + ' total tweets');
+                        if (!tweets) { seedError(new Error('!tweets')); nextSeed(1); return; }
+                        if (!tweets.length) { logger.arrow('no tweets'); nextSeed(); return; }
+                        logger.arrow(tweets.length + ' tweets');
 
                         // save tweets
+                        logger.dash('saving tweets');
                         socialmedia.saveTweets(tweets, seed, function(errs, newTweets) {
                             if (errs) { errs.forEach(function(cV) { error.log(cV); }); }
-                            logger.result(newTweets+' new tweets');
+                            logger.arrow(newTweets+' new tweets');
 
                             // update social seed
                             if (!seed.initialized) { seed.initialized = now; }
@@ -241,11 +254,11 @@ exports.pullTwitter = function(req, res) {
                                 },
                                 function(err) {
                                     if (err) { error.log(new Error(err)); }
-                                    else { logger.result('seed updated'); }
+                                    else { logger.arrow('seed updated'); }
                                     
                                     // construct next url if initializing new seed
                                     if (newSeed) {
-                                        if (seed.twitter.type === 'screen_name' && tweets[tweets.length-1] && tweets[tweets.length-1].id) {
+                                        if (seed.twitter && seed.twitter.query && seed.twitter.type === 'screen_name' && tweets[tweets.length-1] && tweets[tweets.length-1].id) {
                                             nextUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json'+
                                                 '?screen_name='+encodeURIComponent(seed.twitter.query)+
                                                 '&count='+tweetCount+
@@ -257,7 +270,7 @@ exports.pullTwitter = function(req, res) {
 
                                     // go again if next url
                                     if (nextUrl && nextUrl !== url) {
-                                        logger.result('going again\n');
+                                        logger.bold('going again');
                                         getAndSaveTweets(nextUrl);
                                         return;
                                     }

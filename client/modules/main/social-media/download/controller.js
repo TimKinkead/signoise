@@ -71,16 +71,20 @@ angular.module('app').controller('SocialMediaDownloadController', [
                 parameters = [];
             switch (activeTab.name) {
                 case 'districts.by.state':
+                    url += '?type=districts-by-state';
                     parameters = ['state', 'minDate', 'maxDate'];
                     break;
                 case 'skip.limit':
-                    parameters = ['skip', 'limit'];
+                    url += '?type=skip-limit';
+                    parameters = ['minDate', 'maxDate', 'skip', 'limit'];
                     break;
+                default:
+                    console.log('download type not supported');
+                    return;
             }
             parameters.forEach(function(cV) {
                 if (params[cV]) {
-                    url += (url.indexOf('?') < 0) ? '?' : '&';
-                    url += cV+'='+params[cV];
+                    url += '&'+cV+'='+params[cV];
                 } 
             });
             console.log(url);

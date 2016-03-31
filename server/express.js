@@ -27,7 +27,6 @@ var auth = require('../auth.js');
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-// use '_' to avoid scoping issues
 var file = require('./modules/file');
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -69,6 +68,7 @@ module.exports = function(mongoose) {
             app.set('view cache', false);
             break;
         case 'production':
+        default:
             staticDirectory = './public';
             app.set('views', staticDirectory);
             app.locals.cache = 'memory';
@@ -147,7 +147,7 @@ module.exports = function(mongoose) {
     // routing error
     var error = require('./modules/error'); // use '_' to avoid scoping issues
     app.use(function(req, res, next) {
-        if (req.originalUrl.indexOf('accessconditions.com/data/') > 0) {
+        if (req.originalUrl.indexOf('/data/') >= 0) {
             error.log(new Error('routing error: "'+req.originalUrl+'" not found'));
             return res.sendStatus(404);
         }

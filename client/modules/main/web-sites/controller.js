@@ -18,7 +18,7 @@ angular.module('app').controller('WebSitesController', [
 
         // variables
         var skip = 0, limit = 20,
-            sites = $scope.sites = $resource('data/socialsite/list').query({skip: skip, limit: limit, filterBy: $scope.filterBy}),
+            sites = $scope.sites = $resource('data/website/list').query({skip: skip, limit: limit, filterBy: $scope.filterBy}),
             fields = $scope.fields = ['domain', 'url', 'crawl', 'category', 'notes', 'useRobots', 'disallow', 'fetched', 'ignored', 'redirected', 'scheduled', 'references', 'created'],
             dates = $scope.dates = ['created'];
 

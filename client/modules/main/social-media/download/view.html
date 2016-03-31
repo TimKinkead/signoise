@@ -7,21 +7,21 @@
 </div>
 
 <!-- Download Tabs -->
-<div class="modal-body">
+<div class="modal-body" style="background-color: whitesmoke;">
     <uib-tabset active="activeTabIndex">
         <uib-tab ng-repeat="tab in tabs"
                  index="$index" heading="{{(tab.display) ? tab.display : tab.name|capitalize}}">
             <div ng-include="'modules/main/social-media/download/form/'+tab.name+'.html'"
-                 style="border: 1px #ddd solid; padding: 15px 10px; border-top-color: transparent; margin-bottom: 15px;">
+                 style="background-color: white; border: 1px #ddd solid; padding: 15px 10px; border-top-color: transparent; margin-bottom: 15px;">
             </div>
         </uib-tab>
     </uib-tabset>
 </div>
 
 <!-- Download Button -->
-<div ng-hide="status.processing || (activeTab.name === 'districts.by.state' && !params.state)"
-     class="modal-footer">
-    <div class="text-center">
+<div class="modal-footer">
+    <div ng-hide="status.processing || (activeTab.name === 'districts.by.state' && !params.state)"
+         class="text-center">
         <button class="btn btn-success"
                 ng-click="download()">
             Download

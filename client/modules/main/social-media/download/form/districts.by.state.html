@@ -10,38 +10,71 @@
 </div>
 
 <!-- Choose State Drop Down -->
-<div ng-if="!status.processing && !status.errorMessage">
-    <label>State: </label>
-    <select ng-model="params.state"
-            class="form-control" style="cursor: pointer; max-width: 300px;">
-        <option ng-repeat="state in states"
-                value="{{state._id}}">
-            {{state._id|uppercase}}
-        </option>
-    </select>
+<div ng-if="!status.processing && !status.errorMessage"
+     class="container" style="margin-bottom: 10px;">
+
+    <p>
+        Download social media data for all school districts in a specific state.<br/>
+        <small class="text-muted" style="margin-left: 10px;">
+            - This only includes data from the social media accounts tied to each school district.<br/>
+        </small>
+        <small class="text-muted" style="margin-left: 10px;">
+            - See the 'Districts' table for more information on which districts have social media accounts.
+        </small>
+    </p>
+
+    <div class="row">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">State:</label>
+                <select ng-model="params.state"
+                        class="form-control" style="cursor: pointer; width: 180px; margin-left: 5px;">
+                    <option ng-repeat="state in states"
+                            value="{{state._id}}">
+                        {{state._id|uppercase}}
+                    </option>
+                </select>
+            </div>
+        </form>
+    </div>
+
 </div>
+
+<hr ng-if="params.state"/>
 
 <!-- Min/Max Date Options -->
 <div ng-if="params.state"
-     class="row" style="margin:0;">
-    <div class="col-xs-6">
-        <div class="form-group">
-            <label>Min Date</label>
-            <div class="input-group">
+     class="container">
+
+    <p>
+        Which time period do you want to download data for?<br/>
+        <small class="text-muted" style="margin-left: 10px;">
+            - Select a start date and an end date.
+        </small>
+    </p>
+
+    <div class="row" style="margin-bottom: 10px; width: auto;">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">Start:</label>
                 <input ng-model="params.minDate"
                        type="date" required
-                       class="form-control"/>
+                       class="form-control"
+                       style="cursor: pointer; width: 180px; margin-left: 5px;"/>
             </div>
-        </div>
+        </form>
     </div>
-    <div class="col-xs-6">
-        <div class="form-group">
-            <label>Max Date</label>
-            <div class="input-group">
+
+    <div class="row">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">End:</label>
                 <input ng-model="params.maxDate"
                        type="date" required
-                       class="form-control"/>
+                       class="form-control"
+                       style="cursor: pointer; width: 180px; margin-left: 5px;"/>
             </div>
-        </div>
+        </form>
     </div>
+
 </div>

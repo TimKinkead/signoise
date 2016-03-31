@@ -1,34 +1,68 @@
 <!-- Download Social Media - Skip/Limit Tab -->
 
-<!-- Download Options -->
-<div class="row" style="margin:0;">
-    <div class="col-xs-6">
-        <div class="form-group">
-            <label>skip</label>
-            <div class="input-group">
+<!-- Skip/Limit Options -->
+<div class="container">
+    <p>
+        Download recent social media data via skip/limit query.<br/>
+        <small class="text-muted" style="margin-left: 10px;">
+            - <em>skip=0, limit=100</em> = Return the 100 most recent social media documents.<br>
+        </small>
+        <small class="text-muted" style="margin-left: 10px;">
+            - <em>skip=100, limit=100</em> = Skip the 100 most recent documents and return the next 100.
+        </small>
+    </p>
+    <div class="row" style="margin-bottom: 10px; width: auto;">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">Skip:</label>
                 <input type="number" class="form-control" required
+                       style="cursor: pointer; width: 180px; margin-left: 5px;"
                        ng-model="params.skip"/>
             </div>
-        </div>
+        </form>
     </div>
-    <div class="col-xs-6">
-        <div class="form-group">
-            <label>limit</label>
-            <div class="input-group">
+    <div class="row">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">Limit:</label>
                 <input type="number" class="form-control" required
+                       style="cursor: pointer; width: 180px; margin-left: 5px;"
                        ng-model="params.limit"/>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
-<!-- Help Text -->
-<p style="margin-top:10px;"><u>Example Usage:</u></p>
-<ul>
-    <li style="margin-bottom:10px;">
-        <em>skip=0 limit=100</em> | Return the 100 most recent social media documents.
-    </li>
-    <li style="margin-bottom:10px;">
-        <em>skip=100 limit=100</em> | Skip the 100 most recent documents and return the next 100.
-    </li>
-</ul>
+<hr/>
+
+<!-- Min/Max Date Options -->
+<div class="container">
+    <p>
+        Which time period do you want to download data for?<br/>
+        <small class="text-muted" style="margin-left: 10px;">
+            - Select a start date and an end date.
+        </small>
+    </p>
+    <div class="row" style="margin-bottom: 10px; width: auto;">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">Start:</label>
+                <input ng-model="params.minDate"
+                       type="date" required
+                       class="form-control"
+                       style="cursor: pointer; width: 180px; margin-left: 5px;"/>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        <form role="form" class="form-inline">
+            <div class="form-group">
+                <label class="text-right" style="width:40px;">End:</label>
+                <input ng-model="params.maxDate"
+                       type="date" required
+                       class="form-control"
+                       style="cursor: pointer; width: 180px; margin-left: 5px;"/>
+            </div>
+        </form>
+    </div>
+</div>
