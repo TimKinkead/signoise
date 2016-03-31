@@ -58,11 +58,17 @@ function getCsv(downloadType, headerOrData, doc) {
                 {header: 'district.state',  data: district.state}
             ],
             twitterTweet: [
-                {header: 'tw.id',           data: tweet._id},
+                {header: 'tw.id',           data: tweet.id},
                 {header: 'tw.text',         data: tweet.text},
-                {header: 'tw.retweet_cnt',  data: tweet.retweet_cnt},
-                {header: 'tw.favorite_cnt', data: tweet.favorite_cnt},
+                {header: 'tw.retweet_cnt',  data: tweet.retweet_count},
+                {header: 'tw.favorite_cnt', data: tweet.favorite_count},
                 {header: 'tw.created_at',   data: tweet.created_at}
+            ],
+            twitterLocation: [
+                {header: 'tw.place',        data: (tweet.place && tweet.place.full_name) ? tweet.place.full_name : ''},
+                {header: 'tw.country',      data: (tweet.place && tweet.place.country_code) ? tweet.place.country_code : ''},
+                {header: 'tw.latitude',     data: (tweet.coordinates && tweet.coordinates.coordinates && tweet.coordinates.coordinates[1]) ? tweet.coordinates.coordinates[1] : ''},
+                {header: 'tw.longitude',    data: (tweet.coordinates && tweet.coordinates.coordinates && tweet.coordinates.coordinates[0]) ? tweet.coordinates.coordinates[0] : ''}
             ],
             twitterUser: [
                 {header: 'tw.user.id',                  data: twUser.id},
@@ -105,10 +111,10 @@ function getCsv(downloadType, headerOrData, doc) {
     var fieldGroups;
     switch(downloadType) {
         case 'districts-by-state':
-            fieldGroups = ['general', 'seed', 'district', 'twitterTweet', 'twitterUser', 'facebookPost', 'facebookUser', 'processing', 'timestamps'];
+            fieldGroups = ['general', 'seed', 'district', 'twitterTweet', 'twitterLocation', 'twitterUser', 'facebookPost', 'facebookUser', 'processing', 'timestamps'];
             break;
         case 'skip-limit':
-            fieldGroups = ['general', 'seed', 'twitterTweet', 'twitterUser', 'facebookPost', 'facebookUser', 'processing', 'timestamps'];
+            fieldGroups = ['general', 'seed', 'twitterTweet', 'twitterLocation', 'twitterUser', 'facebookPost', 'facebookUser', 'processing', 'timestamps'];
             break;
         default:
             return '';
