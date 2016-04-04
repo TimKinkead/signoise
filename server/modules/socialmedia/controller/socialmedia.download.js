@@ -24,12 +24,14 @@ function csvEscape(str) {
  * Return csv string for headers or data depending on download type and social media doc.
  * @param downloadType - req.query.type
  * @param headerOrData - 'header' or 'data'
+ * @param delimiter - field delimiter character
  * @param doc - social media doc
  * @returns {*} - return csv string
  */
-function getCsv(downloadType, headerOrData, doc) {
+function getCsv(downloadType, headerOrData, delimiter, doc) {
     if (['districts-by-state', 'skip-limit'].indexOf(downloadType) < 0) { return ''; }
     if (['header', 'data'].indexOf(headerOrData) < 0) { return ''; }
+    if (!delimiter) { delimiter = ','; }
     if (!doc) { doc = {}; }
 
     var district = (doc.district) ? doc.district : {},
@@ -131,149 +133,8 @@ function getCsv(downloadType, headerOrData, doc) {
     }
 
     // done
-    return csvArray.map(csvEscape).join(',');
+    return csvArray.map(csvEscape).join(delimiter);
 }
-
-/*
-function getHeaders(districtQuery) {
-
-
-    return [
-        
-        // general
-        '_id',
-        'platform',
-        'date',
-        'text',
-        
-        // seed
-        'seed._id',
-        'seed.title',
-        
-        // district
-        'district._id',
-        'district.name',
-        'district.city',
-        'district.county',
-        'district.state',
-
-        // twitter tweet
-        'tw.id',
-        'tw.text',
-        'tw.retweet_cnt',
-        'tw.favorite_cnt',
-        'tw.created_at',
-
-        // twitter user
-        'tw.user.id',
-        'tw.user.screen_name',
-        'tw.user.name',
-        'tw.user.description',
-        'tw.user.location',
-        'tw.user.url',
-        'tw.user.followers_count',
-        'tw.user.friends_count',
-        'tw.user.statuses_count',
-        'tw.user.profile_image_url',
-        'tw.user.created_at',
-
-        // facebook post
-        'fb.id',
-        'fb.type',
-        'fb.message',
-        //'fb.likes',
-        //'fb.comments',
-        //'fb.attachments',
-        'fb.created_time',
-        
-        // facebook user
-        'fb.from.id',
-        'fb.from.name',
-        'fb.from.picture.data.url',
-        
-        // processing
-        'status',
-        'processed',
-        
-        // timestamps
-        'modified',
-        'created'
-    ].map(csvEscape).join(',');
-}
-*/
-
-/*
-function docToCSV(doc, districtQuery) {
-
-    var district = (doc.district) ? doc.district : {},
-        seed = (doc.socialseed) ? doc.socialseed : {},
-        tweet = (doc.platform === 'twitter' && doc.data) ? doc.data : {},
-        twUser = (doc.platform === 'twitter' && doc.data && doc.data.user) ? doc.data.user : {},
-        fbPost = (doc.platform === 'facebook' && doc.data) ? doc.data : {},
-        fbUser = (doc.platform === 'facebook' && doc.data && doc.data.from) ? doc.data.from : {};
-
-    return [
-        // general
-        doc._id,
-        doc.platform,
-        doc.date,
-        doc.text,
-        
-        // seed
-        seed._id,
-        seed.title,
-
-        // district
-        district._id,
-        district.name,
-        district.city,
-        district.county,
-        district.state,
-
-        // tweet
-        tweet.id,
-        tweet.text,
-        tweet.retweet_count,
-        tweet.favorite_count,
-        tweet.created_at,
-
-        // twitter user
-        twUser.id,
-        twUser.screen_name,
-        twUser.name,
-        twUser.description,
-        twUser.location,
-        twUser.url,
-        twUser.followers_count,
-        twUser.friends_count,
-        twUser.statuses_count,
-        twUser.profile_image_url,
-        twUser.created_at,
-
-        // facebook post
-        fbPost.id,
-        fbPost.type,
-        fbPost.message,
-        //fbPost.likes...
-        //fbPost.comments...
-        //fbPost.attachments...
-        fbPost.created_time,
-
-        // facebook user
-        fbUser.id,
-        fbUser.name,
-        (fbUser.picture && fbUser.picture.data) ? fbUser.picture.data.url : '',
-        
-        // processing
-        doc.status,
-        doc.processed,
-        
-        // timestamps
-        doc.modified,
-        doc.created
-    ].map(csvEscape).join(',');
-}
-*/
 
 /**
  * Get districts for a given state.
@@ -304,14 +165,14 @@ function buildFilename(query) {
     if (query.minDate) {
         var minDate = new Date(query.minDate),
             minYear = minDate.getFullYear(),
-            minMonth = (minDate.getMonth() < 10) ? '0'+minDate.getMonth() : minDate.getMonth(),
+            minMonth = (minDate.getMonth()+1 < 10) ? '0'+minDate.getMonth()+1 : minDate.getMonth()+1,
             minDay = (minDate.getDate() < 10) ? '0'+minDate.getDate() : minDate.getDate();
         filename += 'from-'+minYear+'-'+minMonth+'-'+minDay+'_';
     }
     if (query.maxDate) {
         var maxDate = new Date(query.maxDate),
             maxYear = maxDate.getFullYear(),
-            maxMonth = (maxDate.getMonth() < 10) ? '0'+maxDate.getMonth() : maxDate.getMonth(),
+            maxMonth = (maxDate.getMonth()+1 < 10) ? '0'+maxDate.getMonth()+1 : maxDate.getMonth()+1,
             maxDay = (maxDate.getDate() < 10) ? '0'+maxDate.getDate() : maxDate.getDate();
         filename += 'to-'+maxYear+'-'+maxMonth+'-'+maxDay+'_';
     }
@@ -362,7 +223,7 @@ exports.download = function(req, res) {
     function startStream() {
         res.setHeader('Content-disposition', 'attachment; filename=\"'+buildFilename(req.query)+'.csv\"');
         res.contentType('text/csv');
-        res.write(getCsv(req.query.type, 'header') + '\n');
+        res.write(getCsv(req.query.type, 'header', req.query.delimiter) + '\n');
         streamStarted = true;
     }
 
@@ -413,7 +274,7 @@ exports.download = function(req, res) {
                 function(mediaDoc) {
                     if (!streamStarted) {startStream();}
                     mediaDoc.district = lookupDistrict(mediaDoc.socialseed._id);
-                    res.write(getCsv(req.query.type, 'data', mediaDoc) + '\n');
+                    res.write(getCsv(req.query.type, 'data', req.query.delimiter, mediaDoc) + '\n');
                 }
             );
         });
@@ -432,7 +293,7 @@ exports.download = function(req, res) {
             streamSocialMediaData(
                 function(mediaDoc) {
                     if (!streamStarted) { startStream(); }
-                    res.write(getCsv(req.query.type, 'data', mediaDoc) + '\n');
+                    res.write(getCsv(req.query.type, 'data', req.query.delimiter, mediaDoc) + '\n');
                 }
             );
             break;

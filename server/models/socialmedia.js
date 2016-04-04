@@ -71,6 +71,55 @@ var SocialMediaSchema = new Schema(
             type: Object
         },
 
+        // ngram metadata
+        ngrams: {
+            '1': {
+                gramSize: {type: Number},
+                gramCount: {type: Number},
+                wordCount: {type: Number},
+                sorted: [{
+                    _id: false,
+                    word: {type: String},
+                    count: {type: Number}
+                }]
+            },
+            '2': {
+                gramSize: {type: Number},
+                gramCount: {type: Number},
+                wordCount: {type: Number},
+                sorted: [{
+                    _id: false,
+                    word: {type: String},
+                    count: {type: Number}
+                }]
+            },
+            '3': {
+                gramSize: {type: Number},
+                gramCount: {type: Number},
+                wordCount: {type: Number},
+                sorted: [{
+                    _id: false,
+                    word: {type: String},
+                    count: {type: Number}
+                }]
+            },
+            '4': {
+                gramSize: {type: Number},
+                gramCount: {type: Number},
+                wordCount: {type: Number},
+                sorted: [{
+                    _id: false,
+                    word: {type: String},
+                    count: {type: Number}
+                }]
+            }
+        },
+
+        // timestamp - when the ngram processing was performed
+        ngramsProcessed: {
+            type: Date
+        },
+
         // timestamp - when the analysis was performed
         processed: {
             type: Date

@@ -53,6 +53,7 @@ exports.twitterApiGet = function(twitterUrl, token, secret, clbk) {
     oauth.get(twitterUrl, token, secret, function (err, data, response) {
         if (err) {
             err = _.extend(new Error(), err);
+            err.twitterUrl = twitterUrl;
             return clbk(err);
         }
         if (!data) {return clbk(new Error('!data'));}

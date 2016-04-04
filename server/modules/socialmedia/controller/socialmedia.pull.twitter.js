@@ -15,7 +15,8 @@ var auth = require('../../../../auth.js');
 // Models
 
 var mongoose = require('mongoose'),
-    SocialSeed = mongoose.model('SocialSeed');
+    SocialSeed = mongoose.model('SocialSeed'),
+    Summary = mongoose.model('Summary');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -160,9 +161,16 @@ exports.pullTwitter = function(req, res) {
 
         seedIndex = 0,
         stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+twitterWindow); return d; })(),
-        halfwayTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+twitterWindow/2); return d; })(),
         requestCount = 0;
 
+    Summary.create(
+        {type: 'start pulling tweets'},
+        function(err, newSummaryDoc) {
+            if (err) { error.log(new Error(err)); }
+            if (!newSummaryDoc) { error.log(new Error('!newSummaryDoc')); }
+        }
+    );
+    
     // get twitter token and secret
     logger.dash('getting token and secret');
     socialmedia.getTwitterTokenAndSecret(req.user, function(err, token, secret) {
@@ -201,6 +209,13 @@ exports.pullTwitter = function(req, res) {
                         }
                     } else {
                         logger.bold('done pulling tweets');
+                        Summary.create(
+                            {type: 'done pulling tweets', data: {totalSeeds: seeds.length, seedIndexAtFinish: seedIndex}},
+                            function(err, newSummaryDoc) {
+                                if (err) { error.log(new Error(err)); }
+                                if (!newSummaryDoc) { error.log(new Error('!newSummaryDoc')); }
+                            }
+                        );
                     }
                 }
 

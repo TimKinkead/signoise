@@ -28,10 +28,12 @@ angular.module('app').controller('SocialSeedsCreateController', [
             $http.post('data/socialseed', seed)
                 .success(function(data) {
                     status.processing = false;
+                    status.errorMessage = null;
                     if (clbk) { return clbk(); }
                     $modalInstance.close(data);
                 })
                 .error(function(err) {
+                    status.processing = false;
                     status.errorMessage = 'Error! Please try again.\n'+err;
                 });
         };

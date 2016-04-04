@@ -3,78 +3,210 @@
 <!-- Close Modal Button -->
 <div class="modal-header">
     <span class="close" ng-click="cancel()">&times;</span>
-    <h3 class="modal-title">Edit District</h3>
+    <h3 class="modal-title">{{fullDistrict.name}}</h3>
 </div>
 
 <!-- District Info & History -->
 <div class="modal-body">
 
+    <!-- spinner -->
+    <div ng-if="status.processing" class="spinner"></div>
+
+    <!-- Error Message -->
+    <div ng-show="status.errorMessage"
+         class="alert alert-danger" role="alert">
+        {{status.errorMessage}}
+    </div>
+
+    <!-- Success Message -->
+    <div ng-show="status.successMessage"
+         class="alert alert-success" role="alert">
+        {{status.successMessage}}
+    </div>
+
     <!-- District Info Table -->
-    <table class="table table-bordered">
-        <tbody>
+    <div ng-if="!display.facebookResults">
+        <table class="table table-bordered">
+            <tbody>
             <tr ng-repeat="field in fields">
                 <td><strong>{{field}}</strong></td>
                 <td>
+
+                    <!-- General Fields -->
                     <span ng-if="['state', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
                         {{(dates.indexOf(field) > -1) ? (fullDistrict[field]|date:'shortDate') : fullDistrict[field]|capitalize}}
                     </span>
                     <span ng-if="field === 'state'">
                         {{fullDistrict.state|uppercase}}
                     </span>
-                    <span ng-if="field === 'website' && fullDistrict.website">
-                        <a ng-href="{{fullDistrict.website.url}}"
+
+                    <!-- Website -->
+                    <div ng-if="field === 'website'">
+                        <a ng-if="fullDistrict.website"
+                           ng-href="{{fullDistrict.website.url}}"
                            target="_blank"
                            data-toggle="tooltip" title="view website">
                             {{fullDistrict.website.subdomain}}
                         </a>
-                    </span>
-                    <span ng-if="field === 'facebook' && fullDistrict.facebookSeed">
-                        <a ng-href="https://facebook.com/{{fullDistrict.facebookSeed.facebook.id}}"
-                           target="_blank"
-                           data-toggle="tooltip" title="view on facebook">
-                            {{fullDistrict.facebookSeed.facebook.name}}
-                        </a>
-                    </span>
-                    <span ng-if="field === 'facebook' && !fullDistrict.facebookSeed && fullDistrict.facebookAccount"
-                          style="color: red;">
-                        * please select facebook page *
-                    </span>
-                    <span ng-if="field === 'twitter' && fullDistrict.twitterSeed">
-                        <a ng-href="https://twitter.com/search?f=tweets&q={{getQuery(fullDistrict.twitterSeed.twitter.query)}}"
+                        <button ng-click="editWebsite()"
+                                class="btn btn-default pull-right">
+                            <i class="glyphicon glyphicon-pencil"></i>
+                        </button>
+                    </div>
+
+                    <!-- Facebook -->
+                    <div ng-if="field === 'facebook'">
+                        <div ng-if="!display.editFacebook">
+                            <span ng-if="fullDistrict.facebookSeed">
+                                <a ng-href="https://facebook.com/{{fullDistrict.facebookSeed.facebook.id}}"
+                                   target="_blank"
+                                   data-toggle="tooltip" title="view on facebook">
+                                    {{fullDistrict.facebookSeed.facebook.name}}
+                                </a>
+                            </span>
+                            <span ng-if="!fullDistrict.facebookSeed && fullDistrict.facebookAccount"
+                                  style="color: red;">
+                                * please select facebook page *
+                            </span>
+                            <button ng-click="editFacebook()"
+                                    class="btn btn-default pull-right">
+                                <i class="glyphicon glyphicon-pencil"></i>
+                            </button>
+                        </div>
+                        <div ng-if="display.editFacebook">
+                            <div class="row">
+                                <div class="col-xs-10">
+                                    <div class="input-group">
+                                        <input ng-model="params.facebookQuery"
+                                               type="text" class="form-control"
+                                               placeholder="Search for facebook page or group."
+                                               required>
+                                    <span class="input-group-btn">
+                                        <button ng-click="searchFacebook()"
+                                                class="btn btn-success" type="button">
+                                            <i class="glyphicon glyphicon-search"></i>
+                                        </button>
+                                    </span>
+                                    </div>
+                                </div>
+                                <div class="col-xs-2">
+                                    <button ng-click="cancelEditFacebook()"
+                                            class="btn btn-default pull-right" type="button">
+                                        cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Twitter -->
+                    <div ng-if="field === 'twitter'">
+                        <a ng-if="fullDistrict.twitterSeed"
+                           ng-href="https://twitter.com/search?f=tweets&q={{getQuery(fullDistrict.twitterSeed.twitter.query)}}"
                            target="_blank"
                            data-toggle="tooltip" title="view on twitter">
                             {{fullDistrict.twitterSeed.twitter.query}}
                         </a>
-                    </span>
+                        <button ng-click="editTwitter()"
+                                class="btn btn-default pull-right">
+                            <i class="glyphicon glyphicon-pencil"></i>
+                        </button>
+                    </div>
+
                 </td>
             </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Facebook Search Results -->
+    <div ng-if="display.facebookResults">
+
+        <!-- Back Button -->
+        <div class="row" style="margin: auto;">
+            <button ng-if="!status.processing"
+                    ng-click="cancelEditFacebook()"
+                    class="btn btn-default pull-left" style="margin-bottom: 10px;">
+                <i class="glyphicon glyphicon-arrow-left"></i> back to district info
+            </button>
+        </div>
+
+        <!-- Search Results -->
+        <uib-tabset ng-if="facebookResults && !status.processing"
+                    style="margin: 10px;">
+            <uib-tab data-ng-repeat="resultType in ['pages', 'groups']"
+                     heading="{{resultType|capitalize}}">
+
+                <div data-ng-if="facebookResults[resultType] && !facebookResults[resultType].length"
+                     class="alert alert-warning" style="margin-top:10px;">
+                    Sorry, we did not find any {{resultType}}.
+                </div>
+
+                <p data-ng-if="facebookResults[resultType] && facebookResults[resultType].length"
+                   class="text-center" style="margin: 15px 0;">
+                    Click to select the <em>{{fullDistrict.name}} Facebook {{resultType.slice(0, resultType.length-1)}}</em>.
+                </p>
+
+                <div ng-repeat="result in facebookResults[resultType]">
+                    <a ng-href="https://facebook.com/{{result.id}}"
+                       class="pull-right text-info"
+                       target="_blank">
+                        <small>view on facebook</small> <i class="glyphicon glyphicon-new-window"></i>
+                    </a>
+                    <button ng-click="selectFacebook(result, resultType)"
+                            class="btn btn-block btn-default"
+                            style="margin-bottom: 15px; padding: 4px 8px; overflow: hidden;">
+                        <div class="row text-left" style="margin: auto;">
+                            <h4 style="white-space: normal; margin: 2px 0 5px;">
+                                {{result.name}}
+                                <small class="text-muted">- {{result.privacy ? (result.privacy === 'OPEN' ? 'Public Group' : 'Closed Group') : result.category}}</small>
+                            </h4>
+                            <div class="col-xs-4" style="padding: 0; margin-bottom: 5px; overflow: hidden; max-height: 120px;">
+                                <img data-ng-if="result.cover && result.cover.source" style="width: 100%;"
+                                     data-ng-src="{{result.cover.source}}" />
+                                <div data-ng-if="!result.cover || !result.cover.source"
+                                     style="background-color: #eeeeee; width: 100%; min-height: 80px;">
+                                </div>
+                            </div>
+                            <p class="col-xs-8" style="padding: 0 0 0 10px; white-space: normal; margin-bottom: 0;"
+                               data-ng-if="result.about || result.description">
+                                {{((result.about || result.description)|limitTo:200) + ((result.about || result.description).length > 200 ? '...' : '')}}
+                            </p>
+                        </div>
+                    </button>
+                </div>
+            </uib-tab>
+        </uib-tabset>
+    </div>
 
 </div>
 
-<!-- Save & Delete Buttons -->
+<!-- Modal Footer -->
 <div class="modal-footer">
-    <div class="row" style="margin: 0;">
-        <div class="col-xs-6" style="padding: 0 2px 0 0;">
-            <button class="btn btn-block btn-success"
-                    ng-click="save()">
-                Save
-            </button>
+
+    <!-- Save & Delete Buttons -->
+    <div ng-if="!display.facebookResults">
+        <div class="row" style="margin: 0;">
+            <div class="col-xs-6" style="padding: 0 2px 0 0;">
+                <button class="btn btn-block btn-success"
+                        ng-click="save()">
+                    Save
+                </button>
+            </div>
+            <div class="col-xs-6" style="padding: 0 2px 0 0;">
+                <button class="btn btn-block btn-danger"
+                        ng-click="delete()">
+                    Delete
+                </button>
+            </div>
         </div>
-        <div class="col-xs-6" style="padding: 0 2px 0 0;">
-            <button class="btn btn-block btn-danger"
-                    ng-click="delete()">
-                Delete
-            </button>
-        </div>
-    </div>
-    <div ng-if="confirmDelete"
-         class="alert alert-danger text-center" style="margin-top: 10px;">
-        <p>Are you sure you want to delete this district?</p>
-        <div class="btn-group" style="margin-top:10px;">
-            <button class="btn btn-danger" ng-click="delete(true)">Yes</button>
-            <button class="btn btn-default" ng-click="delete()">No</button>
+        <div ng-if="confirmDelete"
+             class="alert alert-danger text-center" style="margin-top: 10px;">
+            <p>Are you sure you want to delete this district?</p>
+            <div class="btn-group" style="margin-top:10px;">
+                <button class="btn btn-danger" ng-click="delete(true)">Yes</button>
+                <button class="btn btn-default" ng-click="delete()">No</button>
+            </div>
         </div>
     </div>
 </div>

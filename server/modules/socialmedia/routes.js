@@ -35,5 +35,9 @@ module.exports = function(app) {
     // update social media documents that don't have social seed
     app.route('/data/socialmedia/update')
         .get(socialmedia.update);
+    
+    // process ngrams
+    app.route('/data/socialmedia/process/ngrams')
+        .get(socialmedia.processNgrams);
 
 };
