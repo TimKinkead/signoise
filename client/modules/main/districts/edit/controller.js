@@ -54,12 +54,16 @@ angular.module('app').controller('DistrictsEditController', [
             } else if (fullDistrict.facebookAccount) {
                 var fQ = fullDistrict.facebookAccount,
                     regex1 = /\-/, // replace with spaces
-                    regex2 = /[^A-Z\s]{1}[A-Z]{1}[a-z]+/; // add spaces
+                    regex2 = /[^A-Z\s]{1}[A-Z]{1}[a-z]+/, // add spaces
+                    regex3 = /\?[^\s]*$/; // remove
                 while(fQ.search(regex1) > -1) {
                     fQ = fQ.replace(regex1, ' ');
                 }
                 while(fQ.search(regex2) > -1) {
                     fQ = fQ.slice(0, fQ.search(regex2)+1)+' '+fQ.slice(fQ.search(regex2)+1);
+                }
+                while(fQ.search(regex3) > -1) {
+                    fQ = fQ.replace(regex3, '');
                 }
                 params.facebookQuery = fQ;
             }

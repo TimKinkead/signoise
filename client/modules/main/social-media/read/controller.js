@@ -28,7 +28,7 @@ angular.module('app').controller('SocialMediaReadController', [
 
         // get media doc text
         $scope.getMediaText = function() {
-            if (!mediaDoc || !mediaDoc.text) {return '';}
+            if (!mediaDoc || !mediaDoc.text) {return '*** no text ***';}
             if (mediaDoc.text.length > 200) {return mediaDoc.text.slice(0, 200)+'...';}
             return mediaDoc.text;
         };

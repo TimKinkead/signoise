@@ -55,23 +55,7 @@ var SocialMediaSchema = new Schema(
             required: true
         },
 
-        // status of analysis
-        status: {
-            type: String,
-            enum: [
-                'ready',    // ready for analysis
-                'failed',   // analysis failed
-                'complete'  // analysis is complete
-            ],
-            default: 'ready'
-        },
-
-        // metadata from analysis
-        meta: {
-            type: Object
-        },
-
-        // ngram metadata
+        // ngrams - results from ngram processing
         ngrams: {
             '1': {
                 gramSize: {type: Number},
@@ -115,13 +99,23 @@ var SocialMediaSchema = new Schema(
             }
         },
 
+        // sentiment - result from sentiment processing
+        sentiment: {
+            type: String // 'Neutral' or 'Positive' or 'Negative'
+        },
+
+        // probability - result from sentiment processing
+        probability: {
+            type: Number
+        },
+
         // timestamp - when the ngram processing was performed
         ngramsProcessed: {
             type: Date
         },
 
-        // timestamp - when the analysis was performed
-        processed: {
+        // timestamp - when the sentiment processing was performed
+        sentimentProcessed: {
             type: Date
         },
 
@@ -167,6 +161,9 @@ SocialMediaSchema.pre('validate', function(next) {
                 if (this.data.created_at) {this.date = new Date(this.data.created_at);}
                 break;
         }
+    }
+    if (this.text) {
+        this.text = require('../modules/socialmedia/controller/socialmedia.clean.text.js').cleanText(this.text);
     }
     next();
 });

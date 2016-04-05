@@ -37,7 +37,7 @@
                         <a ng-if="mediaDoc.data && mediaDoc.data.user && mediaDoc.data.user.screen_name && mediaDoc.data.id"
                            ng-href="https://twitter.com/{{mediaDoc.data.user.screen_name}}/status/{{mediaDoc.data.id}}"
                            target="_blank"
-                           data-toggle="tooltip" title="view on facebook">
+                           data-toggle="tooltip" title="view on twitter">
                             {{getMediaText(mediaDoc);}}
                         </a>
                         <span ng-if="!mediaDoc.data || !mediaDoc.data.user || !mediaDoc.data.user.screen_name || !mediaDoc.data.id">

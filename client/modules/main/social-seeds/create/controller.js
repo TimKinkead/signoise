@@ -15,7 +15,7 @@ angular.module('app').controller('SocialSeedsCreateController', [
             platforms = $scope.platforms = ['facebook', 'instagram', 'twitter'],
             seed = $scope.seed = {platform: 'facebook', frequency: 'daily'},
 
-            facebookResultTypes = $scope.facebookResultTypes = ['groups', 'pages'];
+            facebookResultTypes = $scope.facebookResultTypes = ['pages', 'groups'];
 
         // cancel & close create modal
         $scope.cancel = function () {

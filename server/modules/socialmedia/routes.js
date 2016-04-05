@@ -40,4 +40,8 @@ module.exports = function(app) {
     app.route('/data/socialmedia/process/ngrams')
         .get(socialmedia.processNgrams);
 
+    // process sentiment
+    app.route('/data/socialmedia/process/sentiment')
+        .get(socialmedia.processSentiment);
+
 };

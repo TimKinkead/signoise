@@ -21,26 +21,7 @@ var error = require('../../error'),
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
 
-/**
- * Clean up text before ngram processing.
- * @param text - string
- */
-function cleanupText(text) {
-    if (!text || typeof text !== 'string') { return ''; }
-
-    // strip retweet off front
-    var regex1 = /(^RT|^\s+|^\@\S+)/;
-    while (text.match(regex1)) {
-        text = text.replace(regex1, ''); 
-    }
-
-    // strip link & hashtags off end
-
-    // strip other
-
-    // TODO: finish ngram processing
-    
-}
+var cleanText = require('./socialmedia.clean.text.js').cleanText;
 
 /**
  * Get 1-, 2-, 3-, and 4-gram data from ngram processing service.
@@ -107,10 +88,10 @@ exports.processNgrams = function(req, res) {
     res.status(200).send('working on ngram processing');
 
     var stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
-        limit = 10;
+        limit = 5000;
 
     // get social media docs
-    SocialMedia.find({'meta.ngramsProcessed': {$exists: false}})
+    SocialMedia.find({ngramsProcessed: {$exists: false}})
         .sort({date: -1})
         .limit(limit)
         .exec(function(err, mediaDocs) {
@@ -125,22 +106,30 @@ exports.processNgrams = function(req, res) {
                 var mediaDoc = mediaDocs[mediaDocIndex],
                     now = new Date();
 
-                function nextMediaDoc() {
+                function nextMediaDoc(delay) {
                     mediaDocIndex++;
                     if (mediaDocs[mediaDocIndex] && now < stopTime) {
-                        processMediaDoc();
+                        if (delay) {
+                            setTimeout(function() {processMediaDoc();}, 1000*60*delay);
+                        } else {
+                            processMediaDoc();
+                        }
                     } else {
                         logger.bold('done - ngrams processed for '+mediaDocIndex+' social media docs');
                     }
                 }
 
+                // clean up text
+                mediaDoc.text = cleanText(mediaDoc.text);
+                
                 // get ngrams for social media text
                 getNgrams(mediaDoc.text, function(errs, ngrams) {
                     if (errs) { errs.forEach(function(err) { error.log(err); }); }
+                    if (!ngrams) { nextMediaDoc(1); return; }
 
                     // save media doc
                     mediaDoc.ngramsProcessed = new Date();
-                    mediaDoc.ngrams = ngrams || {};
+                    mediaDoc.ngrams = ngrams;
                     mediaDoc.save(function(err) {
                         if (err) { error.log(new Error(err)); }
                         nextMediaDoc();
