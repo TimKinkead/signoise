@@ -34,20 +34,25 @@ exports.list = function(req, res) {
     // mongodb query parameters
     var query, sort = {date: -1};
     switch (req.query.filterBy) {
-        case 'ready':
-            query = {status: 'ready'};
+        case 'ngrams':
+            query = {ngrams: {$exists: true}};
             break;
-        case 'failed':
-            query = {status: 'failed'};
+        case 'sentiment':
+            query = {sentiment: {$exists: true}};
             break;
-        case 'complete':
-            query = {status: 'complete'};
+        case 'facebook':
+            query = {platform: 'facebook'};
+            break;
+        case 'instagram':
+            query = {platform: 'instagram'};
+            break;
+        case 'twitter':
+            query = {platform: 'twitter'};
             break;
         //case 'all':
         default:
             query = {};
     }
-    if (req.query.platform) {query.platform = req.query.platform;}
 
     // list social media
     SocialMedia.find(query)

@@ -52,12 +52,11 @@ exports.summary = function(req, res) {
         });
     }
 
-    cnt = 7;
-    countSocialMedia({}, 'all');                            // 1
-    countSocialMedia({status: 'ready'}, 'ready');           // 2
-    countSocialMedia({status: 'failed'}, 'failed');         // 3
-    countSocialMedia({status: 'complete'}, 'complete');     // 4
-    countSocialMedia({platform: 'facebook'}, 'facebook');   // 5
-    countSocialMedia({platform: 'instagram'}, 'instagram'); // 6
-    countSocialMedia({platform: 'twitter'}, 'twitter');     // 7
+    cnt = 6;
+    countSocialMedia({}, 'all');                                    // 1
+    countSocialMedia({ngrams: {$exists: true}}, 'ngrams');          // 2
+    countSocialMedia({sentiment: {$exists: true}}, 'sentiment');    // 3
+    countSocialMedia({platform: 'facebook'}, 'facebook');           // 4
+    countSocialMedia({platform: 'instagram'}, 'instagram');         // 5
+    countSocialMedia({platform: 'twitter'}, 'twitter');             // 6
 };

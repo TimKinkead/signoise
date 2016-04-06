@@ -22,15 +22,15 @@ var SocialMediaSchema = new Schema(
         // post or tweet date
         // - pulled from 'data' via pre-validation hook
         date: {
-            type: Date
-            //required: true
+            type: Date,
+            required: true
         },
         
         // facebook post 'message' or tweet 'text'
         // - pulled from 'data' via pre-validation hook
         text: {
             type: String
-            //required: true
+            // not required b/c not all fb posts have a message
         },
 
         // the social seed used to pull this social media
@@ -39,7 +39,7 @@ var SocialMediaSchema = new Schema(
         socialseed: {
             type: Schema.ObjectId,
             ref: 'SocialSeed'
-            //required: true
+            // not required b/c tweets extracted from webpages don't have seed
         },
 
         // the social media platform

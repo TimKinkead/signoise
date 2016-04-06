@@ -121,6 +121,16 @@ exports.processNgrams = function(req, res) {
 
                 // clean up text
                 mediaDoc.text = cleanText(mediaDoc.text);
+
+                // check text
+                if (!mediaDoc.text) {
+                    mediaDoc.ngramsProcessed = new Date();
+                    mediaDoc.save(function(err) {
+                        if (err) { error.log(new Error(err)); }
+                        nextMediaDoc();
+                    });
+                    return;
+                }
                 
                 // get ngrams for social media text
                 getNgrams(mediaDoc.text, function(errs, ngrams) {

@@ -41,7 +41,7 @@ exports.processSentiment = function(req, res) {
 
     var sentimentService = 'http://52.37.246.19:8080/sentiment',
         stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
-        limit = 10;
+        limit = 5000;
 
     // get social media docs
     SocialMedia.find({sentimentProcessed: {$exists: false}})
@@ -74,6 +74,16 @@ exports.processSentiment = function(req, res) {
 
                 // clean up text
                 mediaDoc.text = cleanText(mediaDoc.text);
+                
+                // check text
+                if (!mediaDoc.text) {
+                    mediaDoc.sentimentProcessed = new Date();
+                    mediaDoc.save(function(err) {
+                        if (err) { error.log(new Error(err)); }
+                        nextMediaDoc();
+                    });
+                    return;
+                }
                 
                 // get sentiment for social media text from sentiment service
                 request.post(
