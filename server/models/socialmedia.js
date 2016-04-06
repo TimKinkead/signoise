@@ -4,12 +4,15 @@
 // Dependencies
 
 var mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
+    Schema = mongoose.Schema,
+    _ = require('lodash');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-var socialmedia = require('../modules/socialmedia');
+var socialmedia = {};
+socialmedia = _.extend(socialmedia, require('../modules/socialmedia/controller/twitter/socialmedia.twitter.clean.text.js'));
+socialmedia = _.extend(socialmedia, require('../modules/socialmedia/controller/facebook/socialmedia.facebook.clean.text.js'));
 
 //----------------------------------------------------------------------------------------------------------------------
 // Schema
