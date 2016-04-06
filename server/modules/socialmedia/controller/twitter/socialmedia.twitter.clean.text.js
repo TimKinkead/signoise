@@ -7,7 +7,7 @@
  * Clean up text before ngram processing.
  * @param text - string
  */
-exports.cleanText = function(text) {
+exports.cleanTwitterText = function(text) {
     if (!text || typeof text !== 'string') { return null; }
 
     var regex;
@@ -27,16 +27,16 @@ exports.cleanText = function(text) {
     while (text.match(regex)) { text = text.replace(regex, ' '); }
     
     // strip retweet off front
-    regex = /(^RT|^\s+|^\@\S+|^\:|^\.)/;
-    while (text.match(regex)) { text = text.replace(regex, ''); }
+    //regex = /(^RT|^\s+|^\@\S+|^\:|^\.)/;
+    //while (text.match(regex)) { text = text.replace(regex, ''); }
 
     // strip hashtags off end
-    regex = /(^#\S+$|\s#\S+$|\s+$)/;
-    while (text.match(regex)) { text = text.replace(regex, ''); }
+    //regex = /(^#\S+$|\s#\S+$|\s+$)/;
+    //while (text.match(regex)) { text = text.replace(regex, ''); }
 
     // strip all weird stuff
-    regex = /[^a-zA-Z0-9\s\.\,\!\?\']/;
-    while (text.match(regex)) { text = text.replace(regex, ' '); }
+    //regex = /[^a-zA-Z0-9\s\.\,\!\?\']/;
+    //while (text.match(regex)) { text = text.replace(regex, ' '); }
 
     // normalize spaces
     text = text.trim();

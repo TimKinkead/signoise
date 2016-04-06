@@ -7,6 +7,11 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 //----------------------------------------------------------------------------------------------------------------------
+// Controllers
+
+var socialmedia = require('../modules/socialmedia');
+
+//----------------------------------------------------------------------------------------------------------------------
 // Schema
 
 /**
@@ -153,17 +158,14 @@ SocialMediaSchema.pre('validate', function(next) {
     if (this.data) {
         switch(this.platform) {
             case 'facebook':
-                if (this.data.message) {this.text = this.data.message;}
+                if (this.data.message) {this.text = socialmedia.cleanFacebookText(this.data.message);}
                 if (this.data.created_time) {this.date = new Date(this.data.created_time);}
                 break;
             case 'twitter':
-                if (this.data.text) {this.text = this.data.text;}
+                if (this.data.text) {this.text = socialmedia.cleanTwitterText(this.data.text);}
                 if (this.data.created_at) {this.date = new Date(this.data.created_at);}
                 break;
         }
-    }
-    if (this.text) {
-        this.text = require('../modules/socialmedia/controller/socialmedia.clean.text.js').cleanText(this.text);
     }
     next();
 });

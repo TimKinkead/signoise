@@ -5,7 +5,8 @@
 // Dependencies
 
 var request = require('request'),
-    url = require('url');
+    url = require('url'),
+    _ = require('lodash');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Models
@@ -22,7 +23,9 @@ var error = require('../../error'),
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
 
-var cleanText = require('./socialmedia.clean.text.js').cleanText;
+var socialmedia = {};
+socialmedia = _.extend(socialmedia, require('./twitter/socialmedia.twitter.clean.text.js'));
+socialmedia = _.extend(socialmedia, require('./facebook/socialmedia.facebook.clean.text.js'));
 
 //----------------------------------------------------------------------------------------------------------------------
 // Main
@@ -73,7 +76,11 @@ exports.processSentiment = function(req, res) {
                 }
 
                 // clean up text
-                mediaDoc.text = cleanText(mediaDoc.text);
+                if (mediaDoc.platform === 'facebook') {
+                    mediaDoc.text = socialmedia.cleanFacebookText(mediaDoc.text);   
+                } else if (mediaDoc.platform === 'twitter') {
+                    mediaDoc.text = socialmedia.cleanTwitterText(mediaDoc.text);
+                }
                 
                 // check text
                 if (!mediaDoc.text) {

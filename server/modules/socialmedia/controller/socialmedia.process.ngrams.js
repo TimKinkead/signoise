@@ -4,7 +4,8 @@
 // Dependencies
 
 var request = require('request'),
-    url = require('url');
+    url = require('url'),
+    _ = require('lodash');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Models
@@ -21,7 +22,9 @@ var error = require('../../error'),
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
 
-var cleanText = require('./socialmedia.clean.text.js').cleanText;
+var socialmedia = {};
+socialmedia = _.extend(socialmedia, require('./twitter/socialmedia.twitter.clean.text.js'));
+socialmedia = _.extend(socialmedia, require('./facebook/socialmedia.facebook.clean.text.js'));
 
 /**
  * Get 1-, 2-, 3-, and 4-gram data from ngram processing service.
@@ -120,7 +123,11 @@ exports.processNgrams = function(req, res) {
                 }
 
                 // clean up text
-                mediaDoc.text = cleanText(mediaDoc.text);
+                if (mediaDoc.platform === 'facebook') {
+                    mediaDoc.text = socialmedia.cleanFacebookText(mediaDoc.text);
+                } else if (mediaDoc.platform === 'twitter') {
+                    mediaDoc.text = socialmedia.cleanTwitterText(mediaDoc.text);
+                }
 
                 // check text
                 if (!mediaDoc.text) {
@@ -134,8 +141,16 @@ exports.processNgrams = function(req, res) {
                 
                 // get ngrams for social media text
                 getNgrams(mediaDoc.text, function(errs, ngrams) {
-                    if (errs) { errs.forEach(function(err) { error.log(err); }); }
-                    if (!ngrams) { nextMediaDoc(1); return; }
+                    if (errs) { 
+                        errs.forEach(function(err) { error.log(err); }); 
+                        nextMediaDoc(1);
+                        return;
+                    }
+                    if (!ngrams) {
+                        error.log(_.extend(new Error('!ngrams'), {mediaDocId: mediaDoc._id}));
+                        nextMediaDoc(1); 
+                        return; 
+                    }
 
                     // save media doc
                     mediaDoc.ngramsProcessed = new Date();
