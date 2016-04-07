@@ -153,8 +153,8 @@ exports.pullTwitter = function(req, res) {
     logger.filename(__filename);
 
     // respond to client
-    logger.bold('working on pulling tweets');
-    res.status(200).send('working on pulling tweets');
+    logger.bold('Working on pulling tweets.');
+    res.status(200).send('Working on pulling tweets.');
     
     var twitterWindow = 15, // 15 min window
         requestLimit = 180, // max 180 requests per 15min window

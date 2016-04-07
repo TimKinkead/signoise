@@ -10,49 +10,60 @@ angular.module('app').controller('SocialMediaReadController', [
     '$http',
     '$resource',
     function ($scope, $modalInstance, info, $http, $resource) {
-        
+
         // append info to scope
         $scope = angular.extend($scope, info);
-
+        
         // variables
-        var mediaDoc = $scope.mediaDoc = $resource('data/socialmedia').get({_id: info.mediaDocId});
-        $scope.fields = ['_id', 'date', 'text', 'seed', 'platform', 'data', 'status', 'processed', 'meta'];
-        $scope.dates = ['date', 'processed', 'modified', 'created'];
+        var status = $scope.status = {processing: true, errorMessage: null};
+
         $scope.showData = false;
-        $scope.showMeta = false;
+        $scope.showNgrams = false;
+        
+        $scope.fields = [
+            '_id', 'date', 'text', 'seed', 'platform', 'data',
+            'ngrams', 'sentiment', 'ngramsProcessed', 'sentimentProcessed',
+            'modified', 'created'];
+        $scope.dates = ['date', 'ngramsProcessed', 'sentimentProcessed', 'modified', 'created'];
+        
+        // get full media doc
+        $scope.mediaDoc = $resource('data/socialmedia').get(
+            {_id: info.mediaDocId},
+            function(data) {
+                status.processing = false;
+                status.errorMessage = null;
+            },
+            function(err) {
+                status.processing = false;
+                status.errorMessage = 'Error! Could not get social media doc. Please try again.\n'+err;
+            }
+        );
 
         // cancel & close read modal
         $scope.cancel = function () {
             $modalInstance.dismiss('cancel');
         };
 
-        // get media doc text
-        $scope.getMediaText = function() {
-            if (!mediaDoc || !mediaDoc.text) {return '*** no text ***';}
-            if (mediaDoc.text.length > 200) {return mediaDoc.text.slice(0, 200)+'...';}
-            return mediaDoc.text;
-        };
-
         // show/hide data
         $scope.toggleData = function() {
             $scope.showData = !$scope.showData;
-            if ($scope.showData) {$scope.showMeta = false;}
+            $scope.showNgrams = false;
         };
 
-        // show/hide meta data
-        $scope.toggleMeta = function() {
-            $scope.showMeta = !$scope.showMeta;
-            if ($scope.showMeta) {$scope.showData = false;}
+        // show/hide ngrams
+        $scope.toggleNgrams = function() {
+            $scope.showNgrams = !$scope.showNgrams;
+            $scope.showData = false;
         };
 
         // get media doc data field as stringified json
         $scope.getDataAsJSON = function() {
-            return JSON.stringify(mediaDoc.data, null, 4);
+            return JSON.stringify($scope.mediaDoc.data, null, 4);
         };
 
-        // get media doc meta field as stringified json
-        $scope.getMetaAsJSON = function() {
-            return JSON.stringify(mediaDoc.meta, null, 4);
+        // get media doc ngrams field as stringified json
+        $scope.getNgramsAsJSON = function() {
+            return JSON.stringify($scope.mediaDoc.ngrams, null, 4);
         };
     }
 ]);

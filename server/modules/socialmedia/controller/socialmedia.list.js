@@ -35,10 +35,10 @@ exports.list = function(req, res) {
     var query, sort = {date: -1};
     switch (req.query.filterBy) {
         case 'ngrams':
-            query = {ngrams: {$exists: true}};
+            query = {ngramsProcessed: {$exists: true}};
             break;
         case 'sentiment':
-            query = {sentiment: {$exists: true}};
+            query = {sentimentProcessed: {$exists: true}};
             break;
         case 'facebook':
             query = {platform: 'facebook'};

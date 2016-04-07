@@ -215,8 +215,8 @@ exports.pullFacebook = function(req, res) {
             });
 
             // done
-            logger.result('working on pulling posts');
-            return res.status(200).send('working on pulling posts');
+            logger.result('Working on pulling Facebook posts.');
+            return res.status(200).send('Working on pulling Facebook posts.');
         });
     });
 };

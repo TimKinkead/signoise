@@ -53,10 +53,10 @@ exports.summary = function(req, res) {
     }
 
     cnt = 6;
-    countSocialMedia({}, 'all');                                    // 1
-    countSocialMedia({ngrams: {$exists: true}}, 'ngrams');          // 2
-    countSocialMedia({sentiment: {$exists: true}}, 'sentiment');    // 3
-    countSocialMedia({platform: 'facebook'}, 'facebook');           // 4
-    countSocialMedia({platform: 'instagram'}, 'instagram');         // 5
-    countSocialMedia({platform: 'twitter'}, 'twitter');             // 6
+    countSocialMedia({}, 'all');                                            // 1
+    countSocialMedia({ngramsProcessed: {$exists: true}}, 'ngrams');         // 2
+    countSocialMedia({sentimentProcessed: {$exists: true}}, 'sentiment');   // 3
+    countSocialMedia({platform: 'facebook'}, 'facebook');                   // 4
+    countSocialMedia({platform: 'instagram'}, 'instagram');                 // 5
+    countSocialMedia({platform: 'twitter'}, 'twitter');                     // 6
 };

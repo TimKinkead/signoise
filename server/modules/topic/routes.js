@@ -3,15 +3,15 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-var county = require('../county');
+var topic = require('../topic');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Routes
 
 module.exports = function(app) {
 
-    // list counties
-    app.route('/data/county/list')
-        .get(county.list);
+    // list topics
+    app.route('/data/topic/list')
+        .get(topic.list);
 
 };

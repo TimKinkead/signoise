@@ -10,7 +10,7 @@ angular.module('app').controller('SocialMediaController', [
         var status = $scope.status = {processing: true, processingSummary: true},
 
             // table display
-            fields = $scope.fields = ['no', 'date', 'text', 'seed', 'platform', 'ngrams', 'sentiment', 'probability'],
+            fields = $scope.fields = ['no', 'date', 'text', 'seed', 'platform', 'ngrams', 'sentiment'],
             dates = $scope.dates = ['date', 'ngramsProcessed', 'sentimentProcessed', 'modified', 'created'],
             
             // list media parameters

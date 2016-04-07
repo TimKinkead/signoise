@@ -87,8 +87,8 @@ exports.processNgrams = function(req, res) {
     logger.filename(__filename);
 
     // respond to client
-    logger.bold('working on ngram processing');
-    res.status(200).send('working on ngram processing');
+    logger.bold('Working on ngram processing.');
+    res.status(200).send('Working on ngram processing.');
 
     var stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
         limit = 5000;
