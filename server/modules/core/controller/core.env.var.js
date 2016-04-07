@@ -4,7 +4,7 @@
  * CORE.ENV.VAR
  * - Return environment variables.
  */
-exports.processEnv = function(req, res) {
+exports.envVar = function(req, res) {
 	return res.status(200).send({
 		NODE_ENV: process.env.NODE_ENV,
 		SERVER: process.env.SERVER,

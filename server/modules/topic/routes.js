@@ -3,15 +3,15 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-var state = require('../state');
+var topic = require('../topic');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Routes
 
 module.exports = function(app) {
 
-    // list states
-    app.route('/data/state/list')
-        .get(state.list);
+    // list topics
+    app.route('/data/topic/list')
+        .get(topic.list);
 
 };

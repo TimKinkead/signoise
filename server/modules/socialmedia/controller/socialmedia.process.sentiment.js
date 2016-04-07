@@ -39,10 +39,10 @@ exports.processSentiment = function(req, res) {
     logger.filename(__filename);
 
     // respond to client
-    logger.bold('working on sentiment processing');
-    res.status(200).send('working on sentiment processing');
+    logger.bold('Working on sentiment processing.');
+    res.status(200).send('Working on sentiment processing.');
 
-    var sentimentService = 'http://52.37.246.19:8080/sentiment',
+    var sentimentService = 'http://52.37.246.19:8080/sentiment/word',
         stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
         limit = 5000;
 
@@ -102,13 +102,14 @@ exports.processSentiment = function(req, res) {
                     function(err, response, body) {
                         if (err) { error.log(new Error(err)); nextMediaDoc(1); return; }
                         if (!body) { error.log(new Error('!body')); nextMediaDoc(1); return; }
-                        if (!body.sentiment) { error.log(new Error('!body.sentiment')); nextMediaDoc(1); return; }
-                        if (!body.probability) { error.log(new Error('!body.probability')); nextMediaDoc(1); return; }
+                        
+                        // new sentiment engine returns {sentiment: null, probability: <-1 to 1 (negative to positive)>}
+                        //if (!body.sentiment) { error.log(new Error('!body.sentiment')); nextMediaDoc(1); return; }
+                        if (!body.hasOwnProperty('probability')) { error.log(new Error('!body.probability')); nextMediaDoc(1); return; }
                         
                         // save media doc
                         mediaDoc.sentimentProcessed = new Date();
-                        mediaDoc.sentiment = body.sentiment;
-                        mediaDoc.probability = body.probability;
+                        mediaDoc.sentiment = body.probability;
                         mediaDoc.save(function(err) {
                             if (err) { error.log(new Error(err)); }
                             nextMediaDoc();

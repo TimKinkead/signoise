@@ -10,7 +10,7 @@ var county = require('../county');
 
 module.exports = function(app) {
 
-    // list countys
+    // list counties
     app.route('/data/county/list')
         .get(county.list);
 

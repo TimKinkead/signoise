@@ -1,37 +1,224 @@
-<div class="text-center" style="margin-bottom: 20px;">
-    <h1>Dashboard</h1>
-</div>
+<!-- Dashboard -->
 
-<div class="alert alert-danger text-center" role="alert"
-    style="max-width:500px; margin:0 auto 20px;"
-    ng-if="!user.twitter">
+<!-- Title -->
+<h1 class="text-center" style="margin-bottom: 20px;">Dashboard</h1>
+
+<!-- Connect Twitter Alert -->
+<div ng-if="user && !user.twitter"
+     class="alert alert-danger text-center" role="alert"
+     style="max-width:500px; margin:0 auto 20px;">
     <p>Please connect your Twitter account.</p>
-    <button class="btn btn-info" style="margin-top:5px;"
-            ng-click="connectTwitter()">
+    <button ng-click="connectTwitter()"
+            class="btn btn-info"
+            style="margin-top:5px;">
         Connect Twitter
     </button>
 </div>
 
-<div class="alert alert-danger text-center" role="alert"
-     style="max-width:500px; margin:0 auto 20px;"
-     ng-if="user.twitter && !user.facebook">
+<!-- Connect Facebook Alert -->
+<div ng-if="user && user.twitter && !user.facebook"
+     class="alert alert-danger text-center" role="alert"
+     style="max-width:500px; margin:0 auto 20px;">
     <p>Please connect your Facebook account.</p>
-    <button class="btn btn-info" style="margin-top:5px;"
-            ng-click="connectFacebook()">
+    <button ng-click="connectFacebook()"
+            class="btn btn-info"
+            style="margin-top:5px;">
         Connect Facebook
     </button>
 </div>
 
-<div class="jumbotron" style="margin-bottom: 0; background-color:lightgoldenrodyellow">
-    <div class="container">
-        <h1>Charts & Graphs</h1>
-        <p>Visual stuff...</p>
+<!-- Development Buttons -->
+<div ng-if="envVar.SERVER === 'local'"
+     class="container text-center"
+     style="margin-bottom: 15px;">
+    <hr style="margin-top: 0;">
+    <div class="btn-group">
+        <button ng-click="pullTwitter()"
+                class="btn btn-default">
+            Pull Twitter
+        </button>
+        <button ng-click="pullFacebook()"
+                class="btn btn-default">
+            Pull Facebook
+        </button>
+    </div>
+    <div class="btn-group">
+        <button ng-click="processNgrams()"
+                class="btn btn-default">
+            Process Ngrams
+        </button>
+        <button ng-click="processSentiment()"
+                class="btn btn-default">
+            Process Sentiment
+        </button>
+    </div>
+    <div class="btn-group">
+        <button ng-click="initDistricts()"
+                class="btn btn-default">
+            Initialize Districts
+        </button>
+    </div>
+    <hr style="margin-bottom: 0;">
+</div>
+
+<!-- Success Messages -->
+<div ng-if="successMessages.length"
+     class="container"
+     style="max-width: 750px;">
+    <div ng-repeat="message in successMessages"
+         class="alert alert-success">
+        <span ng-click="closeSuccessMessage($index)"
+              class="close">
+            &times
+        </span>
+        {{message}}
     </div>
 </div>
 
-<div class="jumbotron" style="margin-bottom: 0; background-color:lightcyan;">
-    <div class="container">
-        <h1>more charts, more graphs</h1>
-        <p>eventually...</p>
+<!-- Error Messages -->
+<div ng-if="errorMessages.length"
+     class="container"
+     style="max-width: 750px;">
+    <div ng-repeat="message in errorMessages"
+         class="alert alert-danger">
+        <span ng-click="closeErrorMessage($index)"
+              class="close">
+            &times
+        </span>
+        {{message}}
     </div>
 </div>
+
+<!-- Choose Topic -->
+<div ng-if="!status.processingTopics"
+     class="container">
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">Topic: </label>
+            <select ng-model="params.topic"
+                    class="form-control"
+                    style="min-width: 250px; cursor: pointer;">
+                <option ng-if="topics.$resolved"
+                        ng-repeat="topic in topics"
+                        value={{topic.name}}>
+                    {{topic.name|capitalize}}
+                </option>
+            </select>
+        </div>
+        <div ng-if="status.processingTopics"
+             class="spinner-sm form-group">
+        </div>
+    </form>
+</div>
+
+<!-- Choose Time Period -->
+<div ng-if="params.topic"
+     class="container">
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">Start Month: </label>
+            <input ng-model="params.minDate"
+                   type="date"
+                   class="form-control"
+                   style="min-width: 250px; cursor: pointer;">
+        </div>
+    </form>
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">End Month: </label>
+            <input ng-model="params.maxDate"
+                   type="date"
+                   class="form-control"
+                   style="min-width: 250px; cursor: pointer;">
+        </div>
+    </form>
+</div>
+
+<!-- Choose State -->
+<div ng-if="params.topic"
+     class="container">
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">State: </label>
+            <select ng-model="params.state"
+                    class="form-control"
+                    style="min-width: 250px; cursor: pointer;">
+                <option ng-repeat="state in states"
+                        value={{state._id}}>
+                    {{state._id|uppercase}}
+                </option>
+            </select>
+        </div>
+        <div ng-if="status.processingStates"
+             class="spinner-sm form-group">
+        </div>
+    </form>
+</div>
+
+<!-- Choose County -->
+<div ng-if="params.topic && params.state && counties.$resolved"
+     class="container">
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">County: </label>
+            <select ng-model="params.county"
+                    class="form-control"
+                    style="min-width: 250px; cursor: pointer;">
+                <option ng-repeat="county in counties"
+                        value={{county._id}}>
+                    {{county._id|capitalize}}
+                </option>
+            </select>
+        </div>
+        <div ng-if="status.processingCounties"
+             class="spinner-sm form-group">
+        </div>
+    </form>
+</div>
+
+<!-- Choose Channel -->
+<div ng-if="params.topic && params.state && params.county"
+     class="container">
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">Channel: </label>
+            <select ng-model="params.channel"
+                    class="form-control"
+                    style="min-width: 250px; cursor: pointer;">
+                <option ng-repeat="channel in channels"
+                        value={{channel}}>
+                    {{channel|capitalize}}
+                </option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Choose Measure -->
+<div ng-if="params.topic && params.state && params.county && params.channel"
+     class="container">
+    <form class="form-inline"
+          style="margin-bottom: 5px;">
+        <div class="form-group">
+            <label class="text-right" style="width: 100px;">Measure: </label>
+            <select ng-model="params.measure"
+                    class="form-control"
+                    style="min-width: 250px; cursor: pointer;">
+                <option ng-repeat="measure in measures"
+                        value={{measure}}>
+                    {{measure|capitalize}}
+                </option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Display Heatmap -->
+
+<!-- Display Metrics -->

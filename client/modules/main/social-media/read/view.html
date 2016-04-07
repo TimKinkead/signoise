@@ -9,43 +9,54 @@
 <!-- Social Media Info -->
 <div class="modal-body">
 
+    <!-- error message -->
+    <div ng-if="status.errorMessage"
+         class="alert alert-danger" role="alert">
+        {{status.errorMessage}}
+    </div>
+
+    <!-- spinner -->
+    <div ng-if="status.processing" class="spinner"></div>
+
     <!-- Social Media Info Table -->
     <table class="table table-bordered">
         <tbody>
             <tr ng-repeat="field in fields">
-                <td><strong>{{field|capitalize}}</strong></td>
+                <td><strong>{{field}}</strong></td>
                 <td>
 
                     <!-- default -->
-                    <span ng-if="['text', 'seed', 'data', 'meta'].indexOf(field) < 0">
-                        {{(dates.indexOf(field) > -1) ? (mediaDoc[field]|date:'shortDate') : mediaDoc[field]}}
+                    <span ng-if="['text', 'seed', 'data', 'ngrams'].indexOf(field) < 0">
+                        {{(dates.indexOf(field) > -1 && mediaDoc[field]) ? ((mediaDoc[field]|date:'shortDate')+' | '+(mediaDoc[field]|date:'shortTime')) : mediaDoc[field]}}
                     </span>
 
                     <!-- text -->
-                    <span ng-if="field === 'text' && mediaDoc.platform === 'facebook'">
-                        <a ng-if="mediaDoc.data && mediaDoc.data.id"
-                           ng-href="https://facebook.com/{{mediaDoc.data.id}}"
-                           target="_blank"
-                           data-toggle="tooltip" title="view on facebook">
-                            {{getMediaText(mediaDoc);}}
-                        </a>
-                        <span ng-if="!mediaDoc.data || !mediaDoc.data.id">
-                            {{getMediaText(mediaDoc);}}
+                    <span ng-if="field === 'text'">
+                        <span ng-if="mediaDoc.platform === 'facebook'">
+                            <a ng-if="mediaDoc.data && mediaDoc.data.id"
+                               ng-href="https://facebook.com/{{mediaDoc.data.id}}"
+                               target="_blank"
+                               data-toggle="tooltip" title="view on facebook">
+                                {{mediaDoc.text}}
+                            </a>
+                            <span ng-if="!mediaDoc.data || !mediaDoc.data.id">
+                                {{mediaDoc.text}}
+                            </span>
                         </span>
-                    </span>
-                    <span ng-if="field === 'text' && mediaDoc.platform === 'twitter'">
-                        <a ng-if="mediaDoc.data && mediaDoc.data.user && mediaDoc.data.user.screen_name && mediaDoc.data.id"
-                           ng-href="https://twitter.com/{{mediaDoc.data.user.screen_name}}/status/{{mediaDoc.data.id}}"
-                           target="_blank"
-                           data-toggle="tooltip" title="view on twitter">
-                            {{getMediaText(mediaDoc);}}
-                        </a>
-                        <span ng-if="!mediaDoc.data || !mediaDoc.data.user || !mediaDoc.data.user.screen_name || !mediaDoc.data.id">
-                            {{getMediaText(mediaDoc);}}
+                        <span ng-if="mediaDoc.platform === 'twitter'">
+                            <a ng-if="mediaDoc.data && mediaDoc.data.user && mediaDoc.data.user.screen_name && mediaDoc.data.id_str"
+                               ng-href="https://twitter.com/{{mediaDoc.data.user.screen_name}}/status/{{mediaDoc.data.id_str}}"
+                               target="_blank"
+                               data-toggle="tooltip" title="view on twitter">
+                                {{mediaDoc.text}}
+                            </a>
+                            <span ng-if="!mediaDoc.data || !mediaDoc.data.user || !mediaDoc.data.user.screen_name || !mediaDoc.data.id">
+                                {{mediaDoc.text}}
+                            </span>
                         </span>
-                    </span>
-                    <span ng-if="field === text && ['facebook', 'twitter'].indexOf(mediaDoc.platform) < 0">
-                        {{getMediaText(mediaDoc);}}
+                        <span ng-if="['facebook', 'twitter'].indexOf(mediaDoc.platform) < 0">
+                            {{mediaDoc.text}}
+                        </span>
                     </span>
 
                     <!-- social seed -->
@@ -53,17 +64,22 @@
                         {{mediaDoc.socialseed.title}}
                     </span>
 
-                    <!-- data & meta -->
-                    <span ng-if="field === 'data' || field === 'meta'">
-                        see below
-                    </span>
+                    <!-- data -->
+                    <small ng-if="field === 'data'">
+                        * see below
+                    </small>
+
+                    <!-- ngrams -->
+                    <small ng-if="field === 'ngrams' && mediaDoc.ngramsProcessed">
+                        * see below
+                    </small>
 
                 </td>
             </tr>
         </tbody>
     </table>
 
-    <!-- Show/Hide Buttos for Data & Meta -->
+    <!-- Show/Hide Buttons for Data & Ngrams -->
     <div class="row" style="margin: 0 0 10px;">
         <div class="col-xs-6" style="padding: 0 2px 0 0;">
             <button class="btn btn-block btn-default"
@@ -71,10 +87,11 @@
                 {{(!showData) ? 'show data' : 'hide data'}} (raw post or tweet)
             </button>
         </div>
-        <div class="col-xs-6" style="padding: 0 2px 0 0;">
+        <div ng-if="mediaDoc.ngrams"
+             class="col-xs-6" style="padding: 0 2px 0 0;">
             <button class="btn btn-block btn-default"
-                    ng-click="toggleMeta()">
-                {{(!showMeta) ? 'show meta data' : 'hide meta data'}} (processing results)
+                    ng-click="toggleNgrams()">
+                {{(!showMeta) ? 'show ngrams' : 'hide ngrams'}}
             </button>
         </div>
     </div>
@@ -88,13 +105,13 @@
         - no data -
     </div>
 
-    <!-- Show Meta -->
-    <pre ng-if="showMeta && mediaDoc.meta">
-        {{getMetaAsJSON()}}
+    <!-- Show Ngrams -->
+    <pre ng-if="showNgrams && mediaDoc.ngramsProcessed">
+        {{getNgramsAsJSON()}}
     </pre>
-    <div ng-if="showMeta && !mediaDoc.meta"
+    <div ng-if="showNgrams && !mediaDoc.ngramsProcessed"
          class="well text-center">
-        - no meta data -
+        - no ngrams -
     </div>
 
 </div>

@@ -152,22 +152,5 @@ angular.module('app').controller('SocialSeedsController', [
             );
         };
         
-        // only show pull buttons if running locally (pull is run by cron job on cloud servers)
-        $scope.showPullBtns = $window.location.hostname === 'localhost';
-        
-        // pull social media from twitter seeds
-        $scope.pullTwitter = function () {
-            $http.get('/data/socialmedia/pull/twitter')
-                .success(function(data) {})
-                .error(function(err) {});
-        };
-
-        // pull social media from facebook seeds
-        $scope.pullFacebook = function () {
-            $http.get('/data/socialmedia/pull/facebook')
-                .success(function(data) {})
-                .error(function(err) {});
-        };
-        
     }
 ]);
