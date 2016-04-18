@@ -95,10 +95,10 @@ function constructTwitterUrl(seed, clbk) {
         tweetCount = 100,
         qLengthLimit = 500, // q=encodeURIComponent(commonTerms) must be < 500 characters (science & assessment not included)
         commonTerms = [
-            '"common core"', 'school', 'education', 'students', 'schools', 'learning', 'district', 'teachers', 'teacher',
-            'student', 'policy', 'public', 'college', 'national', 'standards', 'program', 'teaching', 'research', 'lesson',
-            'leadership', 'support', 'professional', 'charter', 'grade', 'development', 'community', 'board', 'read', 'programs',
-            'classroom', 'children', 'science', 'assessment'
+            '"common core"', '"common core standards"', '"state standards"', '"core standards"', '"content standards"',
+            '"common core english"', '"common core math"', '"common core science"',
+            '"california common core"', '"california standards"', '"california state standards"',
+            'school', 'schools', 'student', 'students', 'teacher', 'teachers', 'teaching', 'education', 'classroom'
         ];
 
     // construct url
@@ -272,7 +272,7 @@ exports.pullTwitter = function(req, res) {
                                     else { logger.arrow('seed updated'); }
                                     
                                     // construct next url if initializing new seed
-                                    if (newSeed) {
+                                    if (newSeed || seed.media < 100) {
                                         if (seed.twitter && seed.twitter.query && seed.twitter.type === 'screen_name' && tweets[tweets.length-1] && tweets[tweets.length-1].id) {
                                             nextUrl = 'https://api.twitter.com/1.1/statuses/user_timeline.json'+
                                                 '?screen_name='+encodeURIComponent(seed.twitter.query)+

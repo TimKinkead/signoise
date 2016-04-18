@@ -12,7 +12,8 @@ module.exports = (function() {
         'lib/angular-bootstrap/ui-bootstrap-tpls.min.js',
         'lib/angular-resource/angular-resource.min.js',
         'lib/angular-ui-router/release/angular-ui-router.min.js',
-        'lib/angular-sanitize/angular-sanitize.min.js'
+        'lib/angular-sanitize/angular-sanitize.min.js',
+        'lib/angularjs-slider/dist/rzslider.min.js'
     ];
 
     var appRoot = 'client/',

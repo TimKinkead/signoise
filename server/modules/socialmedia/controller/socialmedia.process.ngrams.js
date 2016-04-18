@@ -91,11 +91,10 @@ exports.processNgrams = function(req, res) {
     res.status(200).send('Working on ngram processing.');
 
     var stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
-        limit = 5000;
+        limit = 10000;
 
     // get social media docs
     SocialMedia.find({ngramsProcessed: {$exists: false}})
-        .sort({date: -1})
         .limit(limit)
         .exec(function(err, mediaDocs) {
             if (err) { error.log(new Error(err)); return; }

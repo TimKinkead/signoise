@@ -1,0 +1,23 @@
+<!-- Connect Twitter Alert -->
+<div ng-if="user && !user.twitter"
+     class="alert alert-danger text-center" role="alert"
+     style="max-width:500px; margin: 10px auto 0;">
+    <p>Please connect your Twitter account.</p>
+    <button ng-click="connectTwitter()"
+            class="btn btn-info"
+            style="margin-top:5px;">
+        Connect Twitter
+    </button>
+</div>
+
+<!-- Connect Facebook Alert -->
+<div ng-if="user && user.twitter && !user.facebook"
+     class="alert alert-danger text-center" role="alert"
+     style="max-width:500px; margin: 10px auto 0;">
+    <p>Please connect your Facebook account.</p>
+    <button ng-click="connectFacebook()"
+            class="btn btn-info"
+            style="margin-top:5px;">
+        Connect Facebook
+    </button>
+</div>

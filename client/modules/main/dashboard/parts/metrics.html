@@ -1,0 +1,36 @@
+<!-- count -->
+<h3>Summary</h3>
+<span ng-if="status.processingAnalysis" class="spinner-sm"></span>
+<div ng-if="!status.processingAnalysis && analysis.$resolved">
+    <ul>
+        <li>documents analyzed = {{analysis.count}}</li>
+        <li>average sentiment = {{analysis.sentiment.avg|percentage}}</li>
+    </ul>
+</div>
+
+<!-- sentiment -->
+<h3>Sentiment</h3>
+<span ng-if="status.processingAnalysis" class="spinner-sm"></span>
+<div ng-if="!status.processingAnalysis && analysis.$resolved">
+    <div class="btn-group"
+         style="width: 100%;">
+        <button ng-repeat="option in sentimentOptions"
+                class="btn btn-default"
+                ng-style="{'background-color': sentimentConfig[option].color, width: analysis.sentiment[option]/analysis.count*100+'%'}"
+                style="height: 100px; min-width: 5%; max-width: 80%;">
+            {{sentimentConfig[option].title}}<br>{{(analysis.sentiment[option]/analysis.count)|percentage}}
+        </button>
+    </div>
+</div>
+
+<!-- ngrams -->
+<h3>Ngrams</h3>
+<span ng-if="status.processingAnalysis" class="spinner-sm"></span>
+<div ng-if="!status.processingAnalysis && analysis.$resolved">
+    <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
+    <button ng-repeat="ngram in analysis.allNgrams | orderBy: '-frequency'"
+            class="btn btn-default"
+            ng-style="{'background-color': sentimentConfig[ngram.sentimentClass].color}">
+        {{ngram.word}}
+    </button>
+</div>

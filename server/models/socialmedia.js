@@ -109,11 +109,6 @@ var SocialMediaSchema = new Schema(
 
         // sentiment - result from sentiment processing
         sentiment: {
-            type: String // 'Neutral' or 'Positive' or 'Negative'
-        },
-
-        // probability - result from sentiment processing
-        probability: {
             type: Number
         },
 

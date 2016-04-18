@@ -44,11 +44,10 @@ exports.processSentiment = function(req, res) {
 
     var sentimentService = 'http://52.37.246.19:8080/sentiment/word',
         stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
-        limit = 5000;
+        limit = 10000;
 
     // get social media docs
     SocialMedia.find({sentimentProcessed: {$exists: false}})
-        .sort({date: -1})
         .limit(limit)
         .exec(function(err, mediaDocs) {
             if (err) { error.log(new Error(err)); return; }

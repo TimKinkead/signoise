@@ -1,0 +1,573 @@
+[
+    {
+        "$match": {
+            "$text": {
+                "$search": "common core standards state english math science content curriculum ccss california #commoncore #ccss #stopcommoncore"
+            },
+            "date": {
+                "$gte": "2016-02-01T08:00:00.000Z",
+                "$lt": "2016-05-01T07:00:00.000Z"
+            }
+        }
+    },
+    {
+        "$match": {
+            "sentimentProcessed": {
+                "$exists": true
+            },
+            "ngramsProcessed": {
+                "$exists": true
+            },
+            "$or": [
+                {
+                    "ngrams.1.sorted.word": {
+                        "$in": [
+                            "ccss",
+                            "commoncore",
+                            "ccss",
+                            "stopcommoncore"
+                        ]
+                    }
+                },
+                {
+                    "ngrams.2.sorted.word": {
+                        "$in": [
+                            "common core",
+                            "state standards",
+                            "content standards",
+                            "core standards",
+                            "curriculum standards",
+                            "california standards"
+                        ]
+                    }
+                },
+                {
+                    "ngrams.3.sorted.word": {
+                        "$in": [
+                            "common core standards",
+                            "common core english",
+                            "common core math",
+                            "common core science",
+                            "california state standards",
+                            "california common core"
+                        ]
+                    }
+                },
+                {
+                    "ngrams.4.sorted.word": {
+                        "$in": [
+                            "common core state standards"
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$ngrams.1.sorted",
+            "includeArrayIndex": "index",
+            "preserveNullAndEmptyArrays": true
+        }
+    },
+    {
+        "$project": {
+            "data": [
+                {
+                    "sentiment": "$sentiment",
+                    "gramSize": "$ngrams.1.gramSize",
+                    "gramCount": "$ngrams.1.gramCount",
+                    "word": "$ngrams.1.sorted.word",
+                    "wordCount": "$ngrams.1.sorted.count",
+                    "original": {
+                        "$cond": {
+                            "if": {
+                                "$eq": [
+                                    "$index",
+                                    0
+                                ]
+                            },
+                            "then": true,
+                            "else": false
+                        }
+                    }
+                }
+            ],
+            "sentiment": true,
+            "ngrams": {
+                "$cond": {
+                    "if": {
+                        "$eq": [
+                            "$index",
+                            0
+                        ]
+                    },
+                    "then": "$ngrams",
+                    "else": null
+                }
+            }
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$ngrams.2.sorted",
+            "includeArrayIndex": "index",
+            "preserveNullAndEmptyArrays": true
+        }
+    },
+    {
+        "$project": {
+            "data": {
+                "$cond": {
+                    "if": {
+                        "$eq": [
+                            "$index",
+                            0
+                        ]
+                    },
+                    "then": {
+                        "$concatArrays": [
+                            "$data",
+                            [
+                                {
+                                    "sentiment": "$sentiment",
+                                    "gramSize": "$ngrams.2.gramSize",
+                                    "gramCount": "$ngrams.2.gramCount",
+                                    "word": "$ngrams.2.sorted.word",
+                                    "wordCount": "$ngrams.2.sorted.count"
+                                }
+                            ]
+                        ]
+                    },
+                    "else": [
+                        {
+                            "sentiment": "$sentiment",
+                            "gramSize": "$ngrams.2.gramSize",
+                            "gramCount": "$ngrams.2.gramCount",
+                            "word": "$ngrams.2.sorted.word",
+                            "wordCount": "$ngrams.2.sorted.count"
+                        }
+                    ]
+                }
+            },
+            "sentiment": true,
+            "ngrams": {
+                "$cond": {
+                    "if": {
+                        "$eq": [
+                            "$index",
+                            0
+                        ]
+                    },
+                    "then": "$ngrams",
+                    "else": null
+                }
+            }
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$ngrams.3.sorted",
+            "includeArrayIndex": "index",
+            "preserveNullAndEmptyArrays": true
+        }
+    },
+    {
+        "$project": {
+            "data": {
+                "$cond": {
+                    "if": {
+                        "$eq": [
+                            "$index",
+                            0
+                        ]
+                    },
+                    "then": {
+                        "$concatArrays": [
+                            "$data",
+                            [
+                                {
+                                    "sentiment": "$sentiment",
+                                    "gramSize": "$ngrams.3.gramSize",
+                                    "gramCount": "$ngrams.3.gramCount",
+                                    "word": "$ngrams.3.sorted.word",
+                                    "wordCount": "$ngrams.3.sorted.count"
+                                }
+                            ]
+                        ]
+                    },
+                    "else": [
+                        {
+                            "sentiment": "$sentiment",
+                            "gramSize": "$ngrams.3.gramSize",
+                            "gramCount": "$ngrams.3.gramCount",
+                            "word": "$ngrams.3.sorted.word",
+                            "wordCount": "$ngrams.3.sorted.count"
+                        }
+                    ]
+                }
+            },
+            "sentiment": true,
+            "ngrams": {
+                "$cond": {
+                    "if": {
+                        "$eq": [
+                            "$index",
+                            0
+                        ]
+                    },
+                    "then": "$ngrams",
+                    "else": null
+                }
+            }
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$ngrams.4.sorted",
+            "includeArrayIndex": "index",
+            "preserveNullAndEmptyArrays": true
+        }
+    },
+    {
+        "$project": {
+            "data": {
+                "$cond": {
+                    "if": {
+                        "$eq": [
+                            "$index",
+                            0
+                        ]
+                    },
+                    "then": {
+                        "$concatArrays": [
+                            "$data",
+                            [
+                                {
+                                    "sentiment": "$sentiment",
+                                    "gramSize": "$ngrams.4.gramSize",
+                                    "gramCount": "$ngrams.4.gramCount",
+                                    "word": "$ngrams.4.sorted.word",
+                                    "wordCount": "$ngrams.4.sorted.count"
+                                }
+                            ]
+                        ]
+                    },
+                    "else": [
+                        {
+                            "sentiment": "$sentiment",
+                            "gramSize": "$ngrams.4.gramSize",
+                            "gramCount": "$ngrams.4.gramCount",
+                            "word": "$ngrams.4.sorted.word",
+                            "wordCount": "$ngrams.4.sorted.count"
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "$unwind": {
+            "path": "$data"
+        }
+    },
+    {
+        "$group": {
+            "_id": {
+                "gramSize": "$data.gramSize",
+                "word": "$data.word"
+            },
+            "sentiment": {
+                "$avg": "$data.sentiment"
+            },
+            "gramCount": {
+                "$sum": "$data.gramCount"
+            },
+            "wordCount": {
+                "$sum": "$data.wordCount"
+            },
+            "totalCount": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$eq": [
+                                "$data.original",
+                                true
+                            ]
+                        },
+                        "then": 1,
+                        "else": 0
+                    }
+                }
+            },
+            "totalSentiment": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$eq": [
+                                "$data.original",
+                                true
+                            ]
+                        },
+                        "then": "$data.sentiment",
+                        "else": 0
+                    }
+                }
+            },
+            "veryPositiveSentiment": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$and": [
+                                {
+                                    "$eq": [
+                                        "$data.original",
+                                        true
+                                    ]
+                                },
+                                {
+                                    "$gte": [
+                                        "$data.sentiment",
+                                        0.05
+                                    ]
+                                }
+                            ]
+                        },
+                        "then": 1,
+                        "else": 0
+                    }
+                }
+            },
+            "positiveSentiment": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$and": [
+                                {
+                                    "$eq": [
+                                        "$data.original",
+                                        true
+                                    ]
+                                },
+                                {
+                                    "$gte": [
+                                        "$data.sentiment",
+                                        0.01
+                                    ]
+                                },
+                                {
+                                    "$lt": [
+                                        "$data.sentiment",
+                                        0.05
+                                    ]
+                                }
+                            ]
+                        },
+                        "then": 1,
+                        "else": 0
+                    }
+                }
+            },
+            "neutralSentiment": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$and": [
+                                {
+                                    "$eq": [
+                                        "$data.original",
+                                        true
+                                    ]
+                                },
+                                {
+                                    "$gt": [
+                                        "$data.sentiment",
+                                        -0.01
+                                    ]
+                                },
+                                {
+                                    "$lt": [
+                                        "$data.sentiment",
+                                        0.01
+                                    ]
+                                }
+                            ]
+                        },
+                        "then": 1,
+                        "else": 0
+                    }
+                }
+            },
+            "negativeSentiment": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$and": [
+                                {
+                                    "$eq": [
+                                        "$data.original",
+                                        true
+                                    ]
+                                },
+                                {
+                                    "$lte": [
+                                        "$data.sentiment",
+                                        -0.01
+                                    ]
+                                },
+                                {
+                                    "$gt": [
+                                        "$data.sentiment",
+                                        -0.05
+                                    ]
+                                }
+                            ]
+                        },
+                        "then": 1,
+                        "else": 0
+                    }
+                }
+            },
+            "veryNegativeSentiment": {
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$and": [
+                                {
+                                    "$eq": [
+                                        "$data.original",
+                                        true
+                                    ]
+                                },
+                                {
+                                    "$lte": [
+                                        "$data.sentiment",
+                                        -0.05
+                                    ]
+                                }
+                            ]
+                        },
+                        "then": 1,
+                        "else": 0
+                    }
+                }
+            }
+        }
+    },
+    {
+        "$sort": {
+            "wordCount": -1
+        }
+    },
+    {
+        "$group": {
+            "_id": "$_id.gramSize",
+            "totalCount": {
+                "$sum": "$totalCount"
+            },
+            "totalSentiment": {
+                "$sum": "$totalSentiment"
+            },
+            "veryPositiveSentiment": {
+                "$sum": "$veryPositiveSentiment"
+            },
+            "positiveSentiment": {
+                "$sum": "$positiveSentiment"
+            },
+            "neutralSentiment": {
+                "$sum": "$neutralSentiment"
+            },
+            "negativeSentiment": {
+                "$sum": "$negativeSentiment"
+            },
+            "veryNegativeSentiment": {
+                "$sum": "$veryNegativeSentiment"
+            },
+            "totalGramCount": {
+                "$sum": "$gramCount"
+            },
+            "ngrams": {
+                "$push": {
+                    "word": "$_id.word",
+                    "count": "$wordCount",
+                    "sentiment": "$sentiment"
+                }
+            }
+        }
+    },
+    {
+        "$project": {
+            "_id": true,
+            "totalCount": true,
+            "totalSentiment": true,
+            "veryPositiveSentiment": true,
+            "positiveSentiment": true,
+            "neutralSentiment": true,
+            "negativeSentiment": true,
+            "veryNegativeSentiment": true,
+            "totalGramCount": true,
+            "ngrams": {
+                "$slice": [
+                    "$ngrams",
+                    25
+                ]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": null,
+            "totalCount": {
+                "$sum": "$totalCount"
+            },
+            "totalSentiment": {
+                "$sum": "$totalSentiment"
+            },
+            "veryPositiveSentiment": {
+                "$sum": "$veryPositiveSentiment"
+            },
+            "positiveSentiment": {
+                "$sum": "$positiveSentiment"
+            },
+            "neutralSentiment": {
+                "$sum": "$neutralSentiment"
+            },
+            "negativeSentiment": {
+                "$sum": "$negativeSentiment"
+            },
+            "veryNegativeSentiment": {
+                "$sum": "$veryNegativeSentiment"
+            },
+            "ngrams": {
+                "$push": {
+                    "gramSize": "$_id",
+                    "totalGramCount": "$totalGramCount",
+                    "ngrams": "$ngrams"
+                }
+            }
+        }
+    },
+    {
+        "$project": {
+            "count": "$totalCount",
+            "sentiment": {
+                "avg": {
+                    "$divide": [
+                        {
+                            "$sum": "$totalSentiment"
+                        },
+                        {
+                            "$sum": "$totalCount"
+                        }
+                    ]
+                },
+                "veryPositive": "$veryPositiveSentiment",
+                "positive": "$positiveSentiment",
+                "neutral": "$neutralSentiment",
+                "negative": "$negativeSentiment",
+                "veryNegative": "$veryNegativeSentiment"
+            },
+            "ngrams": true
+        }
+    }
+]

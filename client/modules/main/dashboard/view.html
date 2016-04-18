@@ -1,224 +1,54 @@
 <!-- Dashboard -->
 
-<!-- Title -->
-<h1 class="text-center" style="margin-bottom: 20px;">Dashboard</h1>
+<!-- Jumbo 1 -->
+<div class="jumbotron"
+     style="background: #677F71; margin-bottom: 0;">
 
-<!-- Connect Twitter Alert -->
-<div ng-if="user && !user.twitter"
-     class="alert alert-danger text-center" role="alert"
-     style="max-width:500px; margin:0 auto 20px;">
-    <p>Please connect your Twitter account.</p>
-    <button ng-click="connectTwitter()"
-            class="btn btn-info"
-            style="margin-top:5px;">
-        Connect Twitter
-    </button>
-</div>
+    <!-- Title -->
+    <h1 class="text-center"
+        style="color: whitesmoke;">
+        Dashboard
+    </h1>
 
-<!-- Connect Facebook Alert -->
-<div ng-if="user && user.twitter && !user.facebook"
-     class="alert alert-danger text-center" role="alert"
-     style="max-width:500px; margin:0 auto 20px;">
-    <p>Please connect your Facebook account.</p>
-    <button ng-click="connectFacebook()"
-            class="btn btn-info"
-            style="margin-top:5px;">
-        Connect Facebook
-    </button>
-</div>
-
-<!-- Development Buttons -->
-<div ng-if="envVar.SERVER === 'local'"
-     class="container text-center"
-     style="margin-bottom: 15px;">
-    <hr style="margin-top: 0;">
-    <div class="btn-group">
-        <button ng-click="pullTwitter()"
-                class="btn btn-default">
-            Pull Twitter
-        </button>
-        <button ng-click="pullFacebook()"
-                class="btn btn-default">
-            Pull Facebook
-        </button>
+    <!-- User Account Alerts -->
+    <div ng-include="'modules/main/dashboard/parts/user-alerts.html'"
+         class="container"
+         style="margin-bottom: 0;">
     </div>
-    <div class="btn-group">
-        <button ng-click="processNgrams()"
-                class="btn btn-default">
-            Process Ngrams
-        </button>
-        <button ng-click="processSentiment()"
-                class="btn btn-default">
-            Process Sentiment
-        </button>
+
+</div>
+
+<!-- Jumbo 2 -->
+<div class="jumbotron"
+     style="background: #334039; margin-bottom: 0;">
+
+    <!-- Development Buttons -->
+    <div ng-if="envVar.SERVER === 'local' || envVar.PORT === '3000'"
+         ng-include="'modules/main/dashboard/parts/dev-buttons.html'"
+         class="text-center"
+         style="background: #334039;">
     </div>
-    <div class="btn-group">
-        <button ng-click="initDistricts()"
-                class="btn btn-default">
-            Initialize Districts
-        </button>
+
+    <!-- Success / Error Messages -->
+    <div ng-include="'modules/main/dashboard/parts/messages.html'"
+         class="container">
     </div>
-    <hr style="margin-bottom: 0;">
+
 </div>
 
-<!-- Success Messages -->
-<div ng-if="successMessages.length"
-     class="container"
-     style="max-width: 750px;">
-    <div ng-repeat="message in successMessages"
-         class="alert alert-success">
-        <span ng-click="closeSuccessMessage($index)"
-              class="close">
-            &times
-        </span>
-        {{message}}
-    </div>
+<!-- Form -->
+<div ng-include="'modules/main/dashboard/parts/form.html'"
+     class="jumbotron text-center"
+     style="background: #9ABFAA;">
 </div>
 
-<!-- Error Messages -->
-<div ng-if="errorMessages.length"
-     class="container"
-     style="max-width: 750px;">
-    <div ng-repeat="message in errorMessages"
-         class="alert alert-danger">
-        <span ng-click="closeErrorMessage($index)"
-              class="close">
-            &times
-        </span>
-        {{message}}
-    </div>
-</div>
-
-<!-- Choose Topic -->
-<div ng-if="!status.processingTopics"
+<!-- Metrics -->
+<div ng-if="analysis"
+     ng-include="'modules/main/dashboard/parts/metrics.html'"
      class="container">
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">Topic: </label>
-            <select ng-model="params.topic"
-                    class="form-control"
-                    style="min-width: 250px; cursor: pointer;">
-                <option ng-if="topics.$resolved"
-                        ng-repeat="topic in topics"
-                        value={{topic.name}}>
-                    {{topic.name|capitalize}}
-                </option>
-            </select>
-        </div>
-        <div ng-if="status.processingTopics"
-             class="spinner-sm form-group">
-        </div>
-    </form>
 </div>
 
-<!-- Choose Time Period -->
-<div ng-if="params.topic"
+<!-- Heatmap -->
+<div ng-include="'modules/main/dashboard/parts/map.html'"
      class="container">
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">Start Month: </label>
-            <input ng-model="params.minDate"
-                   type="date"
-                   class="form-control"
-                   style="min-width: 250px; cursor: pointer;">
-        </div>
-    </form>
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">End Month: </label>
-            <input ng-model="params.maxDate"
-                   type="date"
-                   class="form-control"
-                   style="min-width: 250px; cursor: pointer;">
-        </div>
-    </form>
 </div>
-
-<!-- Choose State -->
-<div ng-if="params.topic"
-     class="container">
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">State: </label>
-            <select ng-model="params.state"
-                    class="form-control"
-                    style="min-width: 250px; cursor: pointer;">
-                <option ng-repeat="state in states"
-                        value={{state._id}}>
-                    {{state._id|uppercase}}
-                </option>
-            </select>
-        </div>
-        <div ng-if="status.processingStates"
-             class="spinner-sm form-group">
-        </div>
-    </form>
-</div>
-
-<!-- Choose County -->
-<div ng-if="params.topic && params.state && counties.$resolved"
-     class="container">
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">County: </label>
-            <select ng-model="params.county"
-                    class="form-control"
-                    style="min-width: 250px; cursor: pointer;">
-                <option ng-repeat="county in counties"
-                        value={{county._id}}>
-                    {{county._id|capitalize}}
-                </option>
-            </select>
-        </div>
-        <div ng-if="status.processingCounties"
-             class="spinner-sm form-group">
-        </div>
-    </form>
-</div>
-
-<!-- Choose Channel -->
-<div ng-if="params.topic && params.state && params.county"
-     class="container">
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">Channel: </label>
-            <select ng-model="params.channel"
-                    class="form-control"
-                    style="min-width: 250px; cursor: pointer;">
-                <option ng-repeat="channel in channels"
-                        value={{channel}}>
-                    {{channel|capitalize}}
-                </option>
-            </select>
-        </div>
-    </form>
-</div>
-
-<!-- Choose Measure -->
-<div ng-if="params.topic && params.state && params.county && params.channel"
-     class="container">
-    <form class="form-inline"
-          style="margin-bottom: 5px;">
-        <div class="form-group">
-            <label class="text-right" style="width: 100px;">Measure: </label>
-            <select ng-model="params.measure"
-                    class="form-control"
-                    style="min-width: 250px; cursor: pointer;">
-                <option ng-repeat="measure in measures"
-                        value={{measure}}>
-                    {{measure|capitalize}}
-                </option>
-            </select>
-        </div>
-    </form>
-</div>
-
-<!-- Display Heatmap -->
-
-<!-- Display Metrics -->

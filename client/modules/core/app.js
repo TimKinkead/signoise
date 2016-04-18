@@ -7,7 +7,8 @@ try {
         'ui.router',
         'ui.bootstrap',
         'ngResource',
-        'ngSanitize'
+        'ngSanitize',
+        'rzModule'
     ]);
 
     // ---------
