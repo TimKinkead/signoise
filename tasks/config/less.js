@@ -10,10 +10,10 @@ module.exports = {
     },
     build: {
         dest: 'public/styles.css',
-            src: less_src,
-            options: {
+        src: less_src,
+        options: {
             cleancss: true,
-                compress: true
+            compress: true
         }
     }
 };
