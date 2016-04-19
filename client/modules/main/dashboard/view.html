@@ -1,6 +1,6 @@
 <!-- Dashboard -->
 
-<!-- Jumbo 1 -->
+<!-- Jumbo 1 (title & alerts) -->
 <div class="jumbotron"
      style="background: #677F71; margin-bottom: 0;">
 
@@ -18,15 +18,14 @@
 
 </div>
 
-<!-- Jumbo 2 -->
-<div class="jumbotron"
+<!-- Jumbo 2 (dev btns & messages) -->
+<div ng-if="envVar.SERVER === 'local' || envVar.PORT === '3000' || successMessages.length || errorMessages.length"
+     class="jumbotron"
      style="background: #334039; margin-bottom: 0;">
 
     <!-- Development Buttons -->
-    <div ng-if="envVar.SERVER === 'local' || envVar.PORT === '3000'"
-         ng-include="'modules/main/dashboard/parts/dev-buttons.html'"
-         class="text-center"
-         style="background: #334039;">
+    <div ng-include="'modules/main/dashboard/parts/dev-buttons.html'"
+         class="text-center">
     </div>
 
     <!-- Success / Error Messages -->
@@ -36,19 +35,22 @@
 
 </div>
 
-<!-- Form -->
+<!-- Jumbo 3 (form) -->
 <div ng-include="'modules/main/dashboard/parts/form.html'"
      class="jumbotron text-center"
-     style="background: #9ABFAA;">
+     style="background: #9ABFAA; margin-bottom: 0;">
 </div>
 
-<!-- Metrics -->
-<div ng-if="analysis"
-     ng-include="'modules/main/dashboard/parts/metrics.html'"
-     class="container">
+<!-- Jumbo 4 (analysis) -->
+<div class="jumbotron"
+     style="background: white; margin-bottom: 0;">
+    <div ng-include="'modules/main/dashboard/parts/metrics.html'"
+         class="container">
+    </div>
 </div>
 
-<!-- Heatmap -->
+<!-- Jumbo 5 (heatmap) -->
 <div ng-include="'modules/main/dashboard/parts/map.html'"
-     class="container">
+     class="jumbotron"
+     style="background: #B9E5CC; margin-bottom: 0;">
 </div>

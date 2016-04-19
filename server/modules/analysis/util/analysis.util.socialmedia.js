@@ -182,12 +182,12 @@ exports.analyzeSocialMedia = function(query, clbk) {
                 totalGramCount: {$sum: '$gramCount'},
                 ngrams: {$push: {word: '$_id.word', count: '$wordCount', sentiment: '$sentiment'}}
             }},
-            // calc only keep top 25 ngrams
+            // calc only keep top 50 ngrams
             {$project: {
                 _id: true, 
                 totalCount: true, 
                 totalSentiment: true, veryPositiveSentiment: true, positiveSentiment: true, neutralSentiment: true, negativeSentiment: true, veryNegativeSentiment: true, 
-                totalGramCount: true, ngrams: {$slice: ['$ngrams', 25]}
+                totalGramCount: true, ngrams: {$slice: ['$ngrams', 50]}
             }},
             // group all
             {$group: {

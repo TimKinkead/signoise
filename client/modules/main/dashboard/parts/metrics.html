@@ -3,15 +3,15 @@
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
 <div ng-if="!status.processingAnalysis && analysis.$resolved">
     <ul>
-        <li>documents analyzed = {{analysis.count}}</li>
-        <li>average sentiment = {{analysis.sentiment.avg|percentage}}</li>
+        <li>documents analyzed = {{(analysis) ? analysis.count : 0}}</li>
+        <li>average sentiment = {{(analysis) ? (analysis.sentiment.avg|percentage) : 'n/a'}}</li>
     </ul>
 </div>
 
 <!-- sentiment -->
 <h3>Sentiment</h3>
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
-<div ng-if="!status.processingAnalysis && analysis.$resolved">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis">
     <div class="btn-group"
          style="width: 100%;">
         <button ng-repeat="option in sentimentOptions"
@@ -22,15 +22,22 @@
         </button>
     </div>
 </div>
+<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis">
+    No Sentiment Results
+</div>
 
 <!-- ngrams -->
 <h3>Ngrams</h3>
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
-<div ng-if="!status.processingAnalysis && analysis.$resolved">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis">
     <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
-    <button ng-repeat="ngram in analysis.allNgrams | orderBy: '-frequency'"
+    <button ng-repeat="ngram in analysis.allNgrams | orderBy: '-frequency' | limitTo: 100"
             class="btn btn-default"
-            ng-style="{'background-color': sentimentConfig[ngram.sentimentClass].color}">
+            ng-style="{'background-color': sentimentConfig[ngram.sentimentClass].color}"
+            style="margin: 1px;">
         {{ngram.word}}
     </button>
+</div>
+<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis">
+    No Ngram Results
 </div>

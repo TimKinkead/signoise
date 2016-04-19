@@ -94,7 +94,7 @@ angular.module('app').controller('DashboardController', [
             },
             function(err) {
                 status.processingTopics = false;
-                errorMessages.push('Error! Could not get topics. Please try refreshing the page.<br><small>'+err+'</small>');
+                errorMessages.push('Error! Could not get topics. Please try refreshing the page.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
             }
         );
 
@@ -107,7 +107,7 @@ angular.module('app').controller('DashboardController', [
             }, 
             function(err) {
                 status.processingStates = false;
-                errorMessages.push('Error! Could not get states. Please try refreshing the page.<br><small>'+err+'</small>');
+                errorMessages.push('Error! Could not get states. Please try refreshing the page.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
             }
         );
 
@@ -122,7 +122,7 @@ angular.module('app').controller('DashboardController', [
                 },
                 function(err) {
                     status.processingCounties = false;
-                    errorMessages.push('Error! Could not get counties. Please try refreshing the page.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not get counties. Please try refreshing the page.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 }
             );
         }
@@ -139,11 +139,15 @@ angular.module('app').controller('DashboardController', [
                     params,
                     function(data) {
                         status.processingAnalysis = false;
+                        if (!data) {
+                            errorMessages.push('No analysis results!<br><small>Please try a different topic/date/channel/state/county combination.</small>');
+                            return;
+                        }
                         analysis.allNgrams = [].concat(data.ngrams['1']).concat(data.ngrams['2']).concat(data.ngrams['3']).concat(data.ngrams['4']);
                     },
                     function(err) {
                         status.processingAnalysis = false;
-                        errorMessages.push('Error! Could not get analysis. Please try a different topic/date/channel/state/county combination.<br><small>'+err+'</small>');
+                        errorMessages.push('Error! Could not get analysis. Please try a different topic/date/channel/state/county combination.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                     }
                 );   
             }
@@ -203,7 +207,7 @@ angular.module('app').controller('DashboardController', [
                     successMessages.push(data);
                 })
                 .error(function(err) {
-                    errorMessages.push('Error! Could not pull from Twitter.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not pull from Twitter.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
 
@@ -214,7 +218,7 @@ angular.module('app').controller('DashboardController', [
                     successMessages.push(data);
                 })
                 .error(function(err) {
-                    errorMessages.push('Error! Could not pull from Facebook.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not pull from Facebook.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
 
@@ -225,7 +229,7 @@ angular.module('app').controller('DashboardController', [
                     successMessages.push(data);
                 })
                 .error(function(err) {
-                    errorMessages.push('Error! Could not process ngrams.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not process ngrams.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
 
@@ -236,7 +240,7 @@ angular.module('app').controller('DashboardController', [
                     successMessages.push(data);
                 })
                 .error(function(err) {
-                    errorMessages.push('Error! Could not process sentiment.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not process sentiment.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
 
@@ -247,7 +251,7 @@ angular.module('app').controller('DashboardController', [
                     successMessages.push(data);
                 })
                 .error(function(err) {
-                    errorMessages.push('Error! Could not initialize districts.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not initialize districts.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
         
@@ -258,7 +262,7 @@ angular.module('app').controller('DashboardController', [
                     successMessages.push(data);
                 })
                 .error(function(err) {
-                    errorMessages.push('Error! Could not initialize topics.<br><small>'+err+'</small>');
+                    errorMessages.push('Error! Could not initialize topics.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
     }
