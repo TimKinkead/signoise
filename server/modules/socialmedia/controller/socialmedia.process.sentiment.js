@@ -33,7 +33,7 @@ socialmedia = _.extend(socialmedia, require('./facebook/socialmedia.facebook.cle
 /**
  * SOCIALMEDIA.PROCESS.SENTIMENT
  * - Perform sentiment processing on social media.
- * - Run every hour via a cron job.
+ * - Run every 15 minutes via a cron job.
  */
 exports.processSentiment = function(req, res) {
     logger.filename(__filename);
@@ -43,8 +43,8 @@ exports.processSentiment = function(req, res) {
     res.status(200).send('Working on sentiment processing.');
 
     var sentimentService = 'http://52.37.246.19:8080/sentiment/word',
-        stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
-        limit = 10000;
+        stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+15); return d; })(),
+        limit = 1000;
 
     // get social media docs
     SocialMedia.find({sentimentProcessed: {$exists: false}})

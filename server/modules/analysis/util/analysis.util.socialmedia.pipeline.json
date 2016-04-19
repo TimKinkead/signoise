@@ -509,7 +509,7 @@
             "ngrams": {
                 "$slice": [
                     "$ngrams",
-                    25
+                    50
                 ]
             }
         }

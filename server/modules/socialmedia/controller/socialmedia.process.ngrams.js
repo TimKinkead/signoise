@@ -81,7 +81,7 @@ function getNgrams(text, clbk) {
 /**
  * SOCIALMEDIA.PROCESS.NGRAM
  * - Perform ngram processing on social media.
- * - Run every hour via a cron job.
+ * - Run every 15mins via a cron job.
  */
 exports.processNgrams = function(req, res) {
     logger.filename(__filename);
@@ -90,8 +90,8 @@ exports.processNgrams = function(req, res) {
     logger.bold('Working on ngram processing.');
     res.status(200).send('Working on ngram processing.');
 
-    var stopTime = (function() { var d = new Date(); d.setHours(d.getHours()+1); return d; })(),
-        limit = 10000;
+    var stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+15); return d; })(),
+        limit = 1000;
 
     // get social media docs
     SocialMedia.find({ngramsProcessed: {$exists: false}})
