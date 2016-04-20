@@ -70,6 +70,7 @@ exports.go = function(req, res) {
 
     // save analysis & return
     function done() {
+        if (!analysis.ngrams || !analysis.sentiment) { return res.status(200).send(null); }
         Analysis.create(analysis, function(err, newAnalysisDoc) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); return errorMessage(); }
@@ -78,8 +79,7 @@ exports.go = function(req, res) {
     }
     
     // look for recent analysis
-    //var oneDayAgo = (function() { var d = new Date(); d.setDate(d.getDate()-1); return d; })();
-    var oneDayAgo = new Date();
+    var oneDayAgo = (function() { var d = new Date(); d.setDate(d.getDate()-1); return d; })();
     analysis.created = {$gt: oneDayAgo};
     Analysis.findOne(analysis, function(err, analysisDoc) {
         if (err) { error.log(new Error(err)); return errorMessage(); }
@@ -93,6 +93,7 @@ exports.go = function(req, res) {
 
             case 'all social media':
             case 'district social media':
+            case 'district related social media':
                 util.analyzeSocialMedia(req.query, function(err, results) {
                     if (err) { error.log(err); errorMessage(); return; }
                     if (!results) { return res.status(200).send(null); }

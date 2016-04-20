@@ -38,7 +38,8 @@
 </form>
 
 <!-- State -->
-<form class="form-inline"
+<form ng-if="['district social media', 'district related social media'].indexOf(params.channel) > -1"
+      class="form-inline"
       style="margin-bottom: 5px;">
     <div class="form-group">
         <label class="text-right" style="width: 70px;">State: </label>
@@ -57,7 +58,8 @@
 </form>
 
 <!-- County -->
-<form class="form-inline"
+<form ng-if="params.state && ['district social media', 'district related social media'].indexOf(params.channel) > -1"
+      class="form-inline"
       style="margin-bottom: 5px;">
     <div class="form-group">
         <label class="text-right" style="width: 70px;">County: </label>

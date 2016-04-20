@@ -234,8 +234,21 @@ exports.pullTwitter = function(req, res) {
                     logger.dash('getting tweets for url = \n'+url);
                     requestCount++;
                     socialmedia.twitterApiGet(url, token, secret, function(err, data) {
-                        if (err) { seedError(err); nextSeed(1); return; }
-                        if (!data) { seedError(new Error('!data')); nextSeed(1); return; }
+                        if (err || !data) { 
+                            seedError(err || new Error('!data'));
+                            // set seed.initialized to avoid grabbing this seed again
+                            if (!seed.initialized) {
+                                SocialSeed.update(
+                                    {_id: seed._id}, 
+                                    {$set: {initialized: now}}, 
+                                    function(err) {
+                                        if (err) { seedError(new Error(err)); } 
+                                    }
+                                ); 
+                            }
+                            nextSeed(1); 
+                            return; 
+                        }
 
                         // tweets
                         var tweets = (data.statuses) ? data.statuses : data;

@@ -30,7 +30,19 @@ angular.module('app').controller('DashboardController', [
                 'neutral',
                 'positive',
                 'veryPositive'
-            ];
+            ],
+
+            analysis;
+
+        // get width for sentiment class button
+        $scope.getSentimentWidth = function(sentimentOption) {
+            if (!analysis || !analysis.sentiment || !analysis.sentiment[sentimentOption]) { return '5%'; }
+            var total = 100;
+            sentimentOptions.forEach(function(option) {
+                if (!analysis.sentiment[option]) { total -= 5; }
+            });
+            return Math.floor(analysis.sentiment[sentimentOption] / analysis.count * total) + '%';
+        };
 
         // get user
         $scope.user = CurrentUser.data;
@@ -128,22 +140,28 @@ angular.module('app').controller('DashboardController', [
         }
 
         // channels
-        $scope.channels = ['all social media', 'district social media', 'district content', 'geography only', 'related social media', 'related organizations & news'];
+        $scope.channels = ['all social media', 'district social media', 'district related social media', 'district content', 'geography only', 'related social media', 'related organizations & news'];
         params.channel = 'all social media'; // default
 
         // get analysis
         function getAnalysis() {
             if (params.topic && params.minDate && params.maxDate && params.channel) {
                 status.processingAnalysis = true;
-                var analysis = $scope.analysis = $resource('data/analysis').get(
+                analysis = $scope.analysis = $resource('data/analysis').get(
                     params,
                     function(data) {
                         status.processingAnalysis = false;
-                        if (!data) {
+                        if (!data || !data.ngrams || !data.sentiment) {
                             errorMessages.push('No analysis results!<br><small>Please try a different topic/date/channel/state/county combination.</small>');
                             return;
                         }
-                        analysis.allNgrams = [].concat(data.ngrams['1']).concat(data.ngrams['2']).concat(data.ngrams['3']).concat(data.ngrams['4']);
+                        analysis.allNgrams = [];
+                        if (data.ngrams) {
+                            if (data.ngrams['1']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['1']); }
+                            if (data.ngrams['2']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['2']); }
+                            if (data.ngrams['3']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['3']); }
+                            if (data.ngrams['4']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['4']); }
+                        }
                     },
                     function(err) {
                         status.processingAnalysis = false;
@@ -263,6 +281,17 @@ angular.module('app').controller('DashboardController', [
                 })
                 .error(function(err) {
                     errorMessages.push('Error! Could not initialize topics.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
+                });
+        };
+
+        // update district related social media
+        $scope.updateDistrictRelatedSocialMedia = function() {
+            $http.get('/data/socialmedia/district/related')
+                .success(function(data) {
+                    successMessages.push(data);
+                })
+                .error(function(err) {
+                    errorMessages.push('Error! Could not update district related social media.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                 });
         };
     }
