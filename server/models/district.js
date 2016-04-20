@@ -61,6 +61,12 @@ var DistrictSchema = new Schema(
             ref: 'SocialSeed'
         },
 
+        // related twitter accounts (just accounts, not hashtags)
+        relatedTwitterSeeds: [{
+            type: Schema.ObjectId,
+            ref: 'SocialSeed'
+        }],
+        
         // location
         street: {
             type: String

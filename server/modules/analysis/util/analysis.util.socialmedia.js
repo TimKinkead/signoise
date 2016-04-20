@@ -44,8 +44,12 @@ function getSeedIds(query, clbk) {
 
             // grab seed ids
             districtDocs.forEach(function(cV) {
-                if (cV.facebookSeed) { seedIds.push(cV.facebookSeed); }
-                if (cV.twitterSeed) { seedIds.push(cV.twitterSeed); }
+                if (query.channel === 'district social media') {
+                    if (cV.facebookSeed) { seedIds.push(cV.facebookSeed); }
+                    if (cV.twitterSeed) { seedIds.push(cV.twitterSeed); }
+                } else if (query.channel === 'district related social media') {
+                    if (cV.relatedTwitterSeeds) { seedIds = seedIds.concat(cV.relatedTwitterSeeds); }
+                }
             });
 
             // done
@@ -269,6 +273,7 @@ exports.analyzeSocialMedia = function(query, clbk) {
                     performAnalysis();
                     break;
                 case 'district social media':
+                case 'district related social media':
                     getSeedIds(query, function(err, seedIds) {
                         if (err) { return clbk(err); }
                         if (!seedIds) { return clbk(new Error('!seedIds')); }

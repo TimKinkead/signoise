@@ -3,33 +3,33 @@
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
 <div ng-if="!status.processingAnalysis && analysis.$resolved">
     <ul>
-        <li>documents analyzed = {{(analysis) ? analysis.count : 0}}</li>
-        <li>average sentiment = {{(analysis) ? (analysis.sentiment.avg|percentage) : 'n/a'}}</li>
+        <li>documents analyzed = {{(analysis.count) ? analysis.count : 0}}</li>
+        <li>average sentiment = {{(analysis.sentiment) ? (analysis.sentiment.avg|percentage) : 'n/a'}}</li>
     </ul>
 </div>
 
 <!-- sentiment -->
 <h3>Sentiment</h3>
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
-<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis.sentiment">
     <div class="btn-group"
          style="width: 100%;">
         <button ng-repeat="option in sentimentOptions"
                 class="btn btn-default"
-                ng-style="{'background-color': sentimentConfig[option].color, width: analysis.sentiment[option]/analysis.count*100+'%'}"
+                ng-style="{'background-color': sentimentConfig[option].color, width: getSentimentWidth(option)}"
                 style="height: 100px; min-width: 5%; max-width: 80%;">
             {{sentimentConfig[option].title}}<br>{{(analysis.sentiment[option]/analysis.count)|percentage}}
         </button>
     </div>
 </div>
-<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis.sentiment">
     No Sentiment Results
 </div>
 
 <!-- ngrams -->
 <h3>Ngrams</h3>
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
-<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis.allNgrams">
     <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
     <button ng-repeat="ngram in analysis.allNgrams | orderBy: '-frequency' | limitTo: 100"
             class="btn btn-default"
@@ -38,6 +38,6 @@
         {{ngram.word}}
     </button>
 </div>
-<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis.allNgrams">
     No Ngram Results
 </div>

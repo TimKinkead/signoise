@@ -71,7 +71,10 @@ exports.create = function(req, res) {
             if (err) {error.log(new Error(err)); return errorMessage();}
 
             // update seed if it exists
-            if (seedDoc) { seedDoc.frequency = req.body.frequency; }
+            if (seedDoc) { 
+                seedDoc.frequency = req.body.frequency; 
+                if (req.body.relatedTwitterSeeds) { seedDoc.relatedTwitterSeeds = req.body.relatedTwitterSeeds; }
+            }
 
             // otherwise create new seed
             else {
@@ -81,6 +84,7 @@ exports.create = function(req, res) {
                 });
                 if (req.body.facebook) { seedDoc.facebook = req.body.facebook; }
                 if (req.body.twitter) { seedDoc.twitter = req.body.twitter; }
+                if (req.body.relatedTwitterSeeds) { seedDoc.relatedTwitterSeeds = req.body.relatedTwitterSeeds; }
             }
 
             // save new or updated seed doc

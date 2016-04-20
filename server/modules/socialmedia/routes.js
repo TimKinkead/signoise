@@ -44,4 +44,8 @@ module.exports = function(app) {
     app.route('/data/socialmedia/process/sentiment')
         .get(socialmedia.processSentiment);
 
+    // update district related social media 
+    app.route('/data/socialmedia/district/related')
+        .get(socialmedia.updateDistrictRelated);
+    
 };
