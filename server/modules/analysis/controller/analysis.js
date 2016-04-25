@@ -79,8 +79,9 @@ exports.go = function(req, res) {
     }
     
     // look for recent analysis
-    var oneDayAgo = (function() { var d = new Date(); d.setDate(d.getDate()-1); return d; })();
-    analysis.created = {$gt: oneDayAgo};
+    var recentAnalysisDate = (process.env.SERVER === 'local' || req.query.new) ? new Date() : 
+        (function() { var d = new Date(); d.setDate(d.getDate()-7); return d; })();
+    analysis.created = {$gt: recentAnalysisDate};
     Analysis.findOne(analysis, function(err, analysisDoc) {
         if (err) { error.log(new Error(err)); return errorMessage(); }
         if (analysisDoc) { return res.status(200).send(analysisDoc); }

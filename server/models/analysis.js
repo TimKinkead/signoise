@@ -19,6 +19,11 @@ var AnalysisSchema = new Schema(
 
         //_id: {type: ObjectId} // automatically created for each document
 
+        // optional type
+        type: {
+            type: String
+        },
+        
         // analysis name
         topic: {
             type: Schema.ObjectId,
@@ -41,7 +46,6 @@ var AnalysisSchema = new Schema(
         // channel
         channel: {
             type: String,
-            enum: [],
             required: true
         },
 
@@ -71,6 +75,9 @@ var AnalysisSchema = new Schema(
         },
 
         // timestamp
+        modified: {
+            type: Date
+        },
         created: {
             type: Date,
             default: Date.now

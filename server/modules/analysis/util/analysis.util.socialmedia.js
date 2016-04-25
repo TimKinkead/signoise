@@ -76,16 +76,12 @@ exports.analyzeSocialMedia = function(query, clbk) {
     if (!query.maxDate) { return clbk(new Error('!query.maxDate')); }
 
     var sentimentConfig = {
-        veryPositive: 0.05,
-        positive: 0.01,
-        negative: -0.01,
-        veryNegative: -0.05
+        positive: 0.03,
+        negative: -0.03
     };
     
     function getSentimentClass(no) {
-        if (no >= sentimentConfig.veryPositive) {return 'veryPositive';}
         if (no >= sentimentConfig.positive) {return 'positive';}
-        if (no <= sentimentConfig.veryNegative) {return 'veryNegative';}
         if (no <= sentimentConfig.negative) {return 'negative';}
         return 'neutral';
     }
@@ -99,16 +95,16 @@ exports.analyzeSocialMedia = function(query, clbk) {
         if (!topicDoc.simpleKeywords) { return clbk(new Error('!topicDoc.simpleKeywords')); }
         if (!topicDoc.simpleKeywords.length) { return clbk(new Error('!topicDoc.simpleKeywords.length')); }
 
-        function dataProjection(no) {
-            var dataProj = {
+        function dataProjection(no, bool) {
+            return {
                 sentiment: '$sentiment',
                 gramSize: '$ngrams.'+no+'.gramSize',
                 gramCount: '$ngrams.'+no+'.gramCount',
                 word: '$ngrams.'+no+'.sorted.word',
-                wordCount: '$ngrams.'+no+'.sorted.count'
+                wordCount: '$ngrams.'+no+'.sorted.count',
+                useForGrandTotals: (no === 1) ? {$cond: {if: {$eq: ['$index1', 0]}, then: true, else: false}} : {$literal: false},
+                useForNgramTotals: (no === 1) ? {$cond: {if: {$eq: ['$index1', 0]}, then: true, else: false}} : {$literal: bool}
             };
-            if (no === 1) { dataProj.original = {$cond: {if: {$eq: ['$index', 0]}, then: true, else: false}}; }
-            return dataProj;
         }
         
         // aggregation pipeline setup
@@ -130,91 +126,103 @@ exports.analyzeSocialMedia = function(query, clbk) {
                 ]
             }},
             // unwind ngrams.1
-            {$unwind: {path: '$ngrams.1.sorted', includeArrayIndex: 'index', preserveNullAndEmptyArrays: true}},
+            {$unwind: {path: '$ngrams.1.sorted', includeArrayIndex: 'index1', preserveNullAndEmptyArrays: true}},
             {$project: {
                 data: [dataProjection(1)],
                 sentiment: true,
-                ngrams: {$cond: {if: {$eq: ['$index', 0]}, then: '$ngrams', else: null}}
+                ngrams: {$cond: {if: {$eq: ['$index1', 0]}, then: '$ngrams', else: {$literal: {'2': {sorted: [{word: null, count: 0}]}}}}}
             }},
             // unwind ngrams.2
-            {$unwind: {path: '$ngrams.2.sorted', includeArrayIndex: 'index', preserveNullAndEmptyArrays: true}},
+            {$unwind: {path: '$ngrams.2.sorted', includeArrayIndex: 'index2', preserveNullAndEmptyArrays: true}},
             {$project: {
-                data: {$cond: {if: {$eq: ['$index', 0]}, then: {$concatArrays: ['$data', [dataProjection(2)]]}, else: [dataProjection(2)]}},
+                data: {$cond: {if: {$or: [{$eq: ['$index2', 0]}, {$eq: ['$index2', null]}]}, then: {$concatArrays: ['$data', [dataProjection(2, true)]]}, else: [dataProjection(2, false)]}},
                 sentiment: true,
-                ngrams: {$cond: {if: {$eq: ['$index', 0]}, then: '$ngrams', else: null}}
+                ngrams: {$cond: {if: {$eq: ['$index2', 0]}, then: '$ngrams', else: {$literal: {'3': {sorted: [{word: null, count: 0}]}}}}}
             }},
             // unwind ngrams.3
-            {$unwind: {path: '$ngrams.3.sorted', includeArrayIndex: 'index', preserveNullAndEmptyArrays: true}},
+            {$unwind: {path: '$ngrams.3.sorted', includeArrayIndex: 'index3', preserveNullAndEmptyArrays: true}},
             {$project: {
-                data: {$cond: {if: {$eq: ['$index', 0]}, then: {$concatArrays: ['$data', [dataProjection(3)]]}, else: [dataProjection(3)]}},
+                data: {$cond: {if: {$or: [{$eq: ['$index3', 0]}, {$eq: ['$index3', null]}]}, then: {$concatArrays: ['$data', [dataProjection(3, true)]]}, else: [dataProjection(3, false)]}},
                 sentiment: true,
-                ngrams: {$cond: {if: {$eq: ['$index', 0]}, then: '$ngrams', else: null}}
+                ngrams: {$cond: {if: {$eq: ['$index3', 0]}, then: '$ngrams', else: {$literal: {'4': {sorted: [{word: null, count: 0}]}}}}}
             }},
             // unwind ngrams.4
-            {$unwind: {path: '$ngrams.4.sorted', includeArrayIndex: 'index', preserveNullAndEmptyArrays: true}},
+            {$unwind: {path: '$ngrams.4.sorted', includeArrayIndex: 'index4', preserveNullAndEmptyArrays: true}},
             {$project: {
-                data: {$cond: {if: {$eq: ['$index', 0]}, then: {$concatArrays: ['$data', [dataProjection(4)]]}, else: [dataProjection(4)]}}
+                data: {$cond: {if: {$or: [{$eq: ['$index4', 0]}, {$eq: ['$index4', null]}]}, then: {$concatArrays: ['$data', [dataProjection(4, true)]]}, else: [dataProjection(4, false)]}}
             }},
             // unwind data field
             {$unwind: {path: '$data'}},
-            // group by ngram word
+            // tag with sentiment class
+            {$project: {
+                data: true,
+                sentimentClass: {$cond: {if: {$gte: ['$data.sentiment', sentimentConfig.positive]}, then: 'positive', else: {
+                    $cond: {if: {$lte: ['$data.sentiment', sentimentConfig.negative]}, then: 'negative', else: 'neutral'}}
+                }}}
+            },
+            // group by sentiment class / gram size / ngram word
             {$group: {
-                _id: {gramSize: '$data.gramSize', word: '$data.word'},
-                sentiment: {$avg: '$data.sentiment'},
-                gramCount: {$sum: '$data.gramCount'},
+                _id: {sentimentClass: '$sentimentClass', gramSize: '$data.gramSize', word: '$data.word'},
+                gramCount: {$sum: {$cond: {if: {$eq: ['$data.useForNgramTotals', true]}, then: '$data.gramCount', else: 0}}},
                 wordCount: {$sum: '$data.wordCount'},
-                totalCount: {$sum: {$cond: {if: {$eq: ['$data.original', true]}, then: 1, else: 0}}},
-                totalSentiment: {$sum: {$cond: {if: {$eq: ['$data.original', true]}, then: '$data.sentiment', else: 0}}},
-                veryPositiveSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.original', true]}, {$gte: ['$data.sentiment', sentimentConfig.veryPositive]}]}, then: 1, else: 0}}},
-                positiveSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.original', true]}, {$gte: ['$data.sentiment', sentimentConfig.positive]}, {$lt: ['$data.sentiment', sentimentConfig.veryPositive]}]}, then: 1, else: 0}}},
-                neutralSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.original', true]}, {$gt: ['$data.sentiment', sentimentConfig.negative]}, {$lt: ['$data.sentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
-                negativeSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.original', true]}, {$lte: ['$data.sentiment', sentimentConfig.negative]}, {$gt: ['$data.sentiment', sentimentConfig.veryNegative]}]}, then: 1, else: 0}}},
-                veryNegativeSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.original', true]}, {$lte: ['$data.sentiment', sentimentConfig.veryNegative]}]}, then: 1, else: 0}}}
+                totalCount: {$sum: {$cond: {if: {$eq: ['$data.useForGrandTotals', true]}, then: 1, else: 0}}},
+                totalSentiment: {$sum: {$cond: {if: {$eq: ['$data.useForGrandTotals', true]}, then: '$data.sentiment', else: 0}}},
+                positiveSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.useForGrandTotals', true]}, {$gte: ['$data.sentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
+                neutralSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.useForGrandTotals', true]}, {$gt: ['$data.sentiment', sentimentConfig.negative]}, {$lt: ['$data.sentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
+                negativeSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.useForGrandTotals', true]}, {$lte: ['$data.sentiment', sentimentConfig.negative]}]}, then: 1, else: 0}}}
             }},
             // sort by word count
             {$sort: {wordCount: -1}},
-            // group by gram count
+            // group by sentiment class / gram size
             {$group: {
-                _id: '$_id.gramSize',
+                _id: {sentimentClass: '$_id.sentimentClass', gramSize: '$_id.gramSize'},
                 totalCount: {$sum: '$totalCount'},
                 totalSentiment: {$sum: '$totalSentiment'},
-                veryPositiveSentiment: {$sum: '$veryPositiveSentiment'},
                 positiveSentiment: {$sum: '$positiveSentiment'},
                 neutralSentiment: {$sum: '$neutralSentiment'},
                 negativeSentiment: {$sum: '$negativeSentiment'},
-                veryNegativeSentiment: {$sum: '$veryNegativeSentiment'},
                 totalGramCount: {$sum: '$gramCount'},
-                ngrams: {$push: {word: '$_id.word', count: '$wordCount', sentiment: '$sentiment'}}
+                ngrams: {$push: {word: '$_id.word', count: '$wordCount'}}
             }},
-            // calc only keep top 50 ngrams
+            // only keep top 100 ngrams
             {$project: {
-                _id: true, 
-                totalCount: true, 
-                totalSentiment: true, veryPositiveSentiment: true, positiveSentiment: true, neutralSentiment: true, negativeSentiment: true, veryNegativeSentiment: true, 
-                totalGramCount: true, ngrams: {$slice: ['$ngrams', 50]}
+                _id: true,
+                totalCount: true,
+                totalSentiment: true,
+                positiveSentiment: true,
+                neutralSentiment: true,
+                negativeSentiment: true,
+                totalGramCount: true,
+                ngrams: {$slice: ['$ngrams', 100]}
+            }},
+            // group by sentiment class
+            {$group: {
+                _id: '$_id.sentimentClass',
+                totalCount: {$sum: '$totalCount'},
+                totalSentiment: {$sum: '$totalSentiment'},
+                positiveSentiment: {$sum: '$positiveSentiment'},
+                neutralSentiment: {$sum: '$neutralSentiment'},
+                negativeSentiment: {$sum: '$negativeSentiment'},
+                data: {$push: {gramSize: '$_id.gramSize', totalGramCount: '$totalGramCount', ngrams: '$ngrams'}}
             }},
             // group all
             {$group: {
                 _id: null,
                 totalCount: {$sum: '$totalCount'},
                 totalSentiment: {$sum: '$totalSentiment'},
-                veryPositiveSentiment: {$sum: '$veryPositiveSentiment'},
                 positiveSentiment: {$sum: '$positiveSentiment'},
                 neutralSentiment: {$sum: '$neutralSentiment'},
                 negativeSentiment: {$sum: '$negativeSentiment'},
-                veryNegativeSentiment: {$sum: '$veryNegativeSentiment'},
-                ngrams: {$push: {gramSize: '$_id', totalGramCount: '$totalGramCount', ngrams: '$ngrams'}}
+                ngrams: {$push: {sentimentClass: '$_id', data: '$data'}}
             }},
             // final output
             {$project: {
                 count: '$totalCount', 
                 sentiment: {
-                    avg: {$divide: [{$sum: '$totalSentiment'}, {$sum: '$totalCount'}]},
-                    veryPositive: '$veryPositiveSentiment',
+                    average: {$cond: {if: {$gt: ['$totalCount', 0]}, then: {$divide: ['$totalSentiment', '$totalCount']}, else: null}},
                     positive: '$positiveSentiment',
                     neutral: '$neutralSentiment',
-                    negative: '$negativeSentiment',
-                    veryNegative: '$veryNegativeSentiment'
+                    negative: '$negativeSentiment'
                 }, 
                 ngrams: true
             }}
@@ -232,9 +240,9 @@ exports.analyzeSocialMedia = function(query, clbk) {
             }
             
             // aggregation analysis
-            SocialMedia.aggregate(
-                pipeline,
-                function(err, resultDocs) {
+            SocialMedia.aggregate(pipeline)
+                .allowDiskUse(true)
+                .exec(function(err, resultDocs) {
                     if (err) { return clbk(new Error(err)); }
                     if (!resultDocs) { return clbk(new Error('!resultDocs')); }
                     if (!resultDocs.length) { return clbk(); }
@@ -243,27 +251,45 @@ exports.analyzeSocialMedia = function(query, clbk) {
                         err.resultDocs = resultDocs;
                         return clbk(err); 
                     }
-
+                    
                     // clean up results
                     var results = resultDocs[0];
                     if (results.ngrams && results.ngrams.constructor === Array) {
                         var newNgramResults = {};
                         results.ngrams.forEach(function(ngramObj) {
-                            if (ngramObj.gramSize) {
-                                newNgramResults[ngramObj.gramSize.toString()] = ngramObj.ngrams.map(function(ngram) {
-                                    if (ngram.count && ngramObj.totalGramCount) { ngram.frequency = ngram.count / ngramObj.totalGramCount; }
-                                    ngram.sentimentClass = getSentimentClass(ngram.sentiment);
-                                    return ngram;
-                                });
+                            if (ngramObj.sentimentClass) {
+                                if (!newNgramResults[ngramObj.sentimentClass]) {
+                                    newNgramResults[ngramObj.sentimentClass] = {all: []};
+                                    if (ngramObj.data && ngramObj.data.constructor === Array) {
+                                        ngramObj.data.forEach(function(ngramSubObj) {
+                                            if (ngramSubObj.gramSize) {
+                                                if (!newNgramResults[ngramObj.sentimentClass][ngramSubObj.gramSize.toString()]) {
+                                                    newNgramResults[ngramObj.sentimentClass][ngramSubObj.gramSize.toString()] = {
+                                                        totalGramCount: ngramSubObj.totalGramCount,
+                                                        ngrams: ngramSubObj.ngrams.map(function(ngram) {
+                                                            ngram.frequency = ngram.count / ngramSubObj.totalGramCount;
+                                                            return ngram;
+                                                        })
+                                                    };
+                                                    newNgramResults[ngramObj.sentimentClass].all =
+                                                        newNgramResults[ngramObj.sentimentClass].all.concat(
+                                                            newNgramResults[ngramObj.sentimentClass][ngramSubObj.gramSize.toString()].ngrams
+                                                        );
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
                             }
                         });
                         results.ngrams = newNgramResults;
+                    } else {
+                        results.ngrams = null;
                     }
                     
                     // done
                     return clbk(null, results);
-                }
-            );
+                });
         }
         
         // check channel
@@ -277,7 +303,7 @@ exports.analyzeSocialMedia = function(query, clbk) {
                     getSeedIds(query, function(err, seedIds) {
                         if (err) { return clbk(err); }
                         if (!seedIds) { return clbk(new Error('!seedIds')); }
-                        if (!seedIds.length) { return clbk(new Error('!seedIds.length')); }
+                        if (!seedIds.length) { return clbk(null, {count: 0}); }
                         pipeline[0].$match.socialseed = {$in: seedIds};
                         performAnalysis();
                     });
