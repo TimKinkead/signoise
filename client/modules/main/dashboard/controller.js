@@ -18,18 +18,32 @@ angular.module('app').controller('DashboardController', [
             successMessages = $scope.successMessages = [],
             
             sentimentConfig = $scope.sentimentConfig = {
-                veryNegative: {title: 'very negative', color: '#FF412F'},
-                negative: {title: 'negative', color: '#FFA351'},
-                neutral: {title: 'neutral', color: '#E4F0FF'},
-                positive: {title: 'positive', color: '#70E891'},
-                veryPositive: {title: 'very positive', color: '#31E839'}
+                negative: {
+                    title: 'negative',
+                    color: '#FF4C43',
+                    filter: function(percentage) {
+                        return (percentage < 0.25) ? 'saturate(25%)' : 'saturate('+percentage*100+'%)';
+                    }
+                },
+                neutral: {
+                    title: 'neutral', 
+                    color: '#8FBAFF', //'#E4F0FF',
+                    filter: function(percentage) {
+                        return (percentage < 0.25) ? 'saturate(25%)' : 'saturate('+percentage*100+'%)';
+                    }
+                },
+                positive: {
+                    title: 'positive',
+                    color: '#31E839',
+                    filter: function(percentage) {
+                        return (percentage < 0.25) ? 'saturate(25%)' : 'saturate('+percentage*100+'%)';
+                    }
+                }
             },
             sentimentOptions = $scope.sentimentOptions = [
-                'veryNegative',
                 'negative',
                 'neutral',
-                'positive',
-                'veryPositive'
+                'positive'
             ],
 
             analysis;
@@ -155,13 +169,19 @@ angular.module('app').controller('DashboardController', [
                             errorMessages.push('No analysis results!<br><small>Please try a different topic/date/channel/state/county combination.</small>');
                             return;
                         }
-                        analysis.allNgrams = [];
-                        if (data.ngrams) {
-                            if (data.ngrams['1']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['1']); }
-                            if (data.ngrams['2']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['2']); }
-                            if (data.ngrams['3']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['3']); }
-                            if (data.ngrams['4']) { analysis.allNgrams = analysis.allNgrams.concat(data.ngrams['4']); }
-                        }
+                        sentimentOptions.forEach(function(option) {
+                            if (data.ngrams[option] && data.ngrams[option].all) {
+                                data.ngrams[option].all.forEach(function(ngram) {
+                                    if (ngram.frequency) {
+                                        if (!analysis.ngrams[option].minFreq) { analysis.ngrams[option].minFreq = ngram.frequency; }
+                                        if (!analysis.ngrams[option].maxFreq) { analysis.ngrams[option].maxFreq = ngram.frequency; }
+                                        if (ngram.frequency < analysis.ngrams[option].minFreq) { analysis.ngrams[option].minFreq = ngram.frequency; }
+                                        if (ngram.frequency > analysis.ngrams[option].maxFreq) { analysis.ngrams[option].maxFreq = ngram.frequency; }
+                                    }
+                                });
+                            } 
+                        });
+                        console.log(analysis);
                     },
                     function(err) {
                         status.processingAnalysis = false;

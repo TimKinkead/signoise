@@ -25,7 +25,7 @@ exports.list = function(req, res) {
     function errorMessage(code, message) {
         return res.status(code || 500).send({
             header: 'List Countys Error!',
-            message: message || 'We had trouble listing the countys. Please try again.'
+            message: message || 'We had trouble listing the counties. Please try again.'
         });
     }
 

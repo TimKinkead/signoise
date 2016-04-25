@@ -2,48 +2,11 @@
     {
         "$match": {
             "$text": {
-                "$search": "common core standards state english math science content curriculum ccss california #commoncore #ccss #stopcommoncore"
+                "$search": "common core standards state english math science content curriculum ccss california #commoncore #ccss #stopcommoncore education teacher teachers student students school schools district districts classroom"
             },
             "date": {
                 "$gte": "2016-02-01T08:00:00.000Z",
                 "$lt": "2016-05-01T07:00:00.000Z"
-            },
-            "socialseed": {
-                "$in": [
-                    "57168b832ca32428155764fb",
-                    "57168b832ca3242815576509",
-                    "57168b832ca324281557650b",
-                    "57168b832ca324281557650a",
-                    "57168b832ca32428155764f2",
-                    "57168b832ca32428155764f3",
-                    "57168b832ca32428155764f4",
-                    "57168b832ca32428155764f5",
-                    "57168b832ca32428155764f8",
-                    "57168b832ca32428155764f6",
-                    "57168b832ca32428155764f7",
-                    "57168b832ca32428155764f9",
-                    "57168b832ca32428155764fa",
-                    "57168b832ca32428155764fc",
-                    "57168b832ca32428155764fb",
-                    "57168b832ca3242815576505",
-                    "57168b832ca3242815576506",
-                    "57168b832ca324281557650c",
-                    "57168b832ca32428155764ec",
-                    "57168b832ca32428155764f1",
-                    "57168b832ca32428155764ed",
-                    "57168b832ca32428155764ee",
-                    "57168b832ca32428155764ef",
-                    "57168b832ca32428155764f0",
-                    "57168b832ca3242815576500",
-                    "57168b832ca3242815576501",
-                    "57168b832ca32428155764fd",
-                    "57168b832ca32428155764fe",
-                    "57168b832ca32428155764ff",
-                    "57168b832ca3242815576502",
-                    "57168b832ca3242815576504",
-                    "57168b832ca3242815576503",
-                    "57168b832ca3242815576507"
-                ]
             }
         }
     },
@@ -62,7 +25,16 @@
                             "ccss",
                             "commoncore",
                             "ccss",
-                            "stopcommoncore"
+                            "stopcommoncore",
+                            "education",
+                            "teacher",
+                            "teachers",
+                            "student",
+                            "students",
+                            "school",
+                            "schools",
+                            "classroom",
+                            "classroom"
                         ]
                     }
                 },
@@ -74,7 +46,9 @@
                             "content standards",
                             "core standards",
                             "curriculum standards",
-                            "california standards"
+                            "california standards",
+                            "school district",
+                            "school districts"
                         ]
                     }
                 },
@@ -103,7 +77,7 @@
     {
         "$unwind": {
             "path": "$ngrams.1.sorted",
-            "includeArrayIndex": "index",
+            "includeArrayIndex": "index1",
             "preserveNullAndEmptyArrays": true
         }
     },
@@ -116,11 +90,23 @@
                     "gramCount": "$ngrams.1.gramCount",
                     "word": "$ngrams.1.sorted.word",
                     "wordCount": "$ngrams.1.sorted.count",
-                    "original": {
+                    "useForGrandTotals": {
                         "$cond": {
                             "if": {
                                 "$eq": [
-                                    "$index",
+                                    "$index1",
+                                    0
+                                ]
+                            },
+                            "then": true,
+                            "else": false
+                        }
+                    },
+                    "useForNgramTotals": {
+                        "$cond": {
+                            "if": {
+                                "$eq": [
+                                    "$index1",
                                     0
                                 ]
                             },
@@ -135,12 +121,23 @@
                 "$cond": {
                     "if": {
                         "$eq": [
-                            "$index",
+                            "$index1",
                             0
                         ]
                     },
                     "then": "$ngrams",
-                    "else": null
+                    "else": {
+                        "$literal": {
+                            "2": {
+                                "sorted": [
+                                    {
+                                        "word": null,
+                                        "count": 0
+                                    }
+                                ]
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -148,7 +145,7 @@
     {
         "$unwind": {
             "path": "$ngrams.2.sorted",
-            "includeArrayIndex": "index",
+            "includeArrayIndex": "index2",
             "preserveNullAndEmptyArrays": true
         }
     },
@@ -157,9 +154,19 @@
             "data": {
                 "$cond": {
                     "if": {
-                        "$eq": [
-                            "$index",
-                            0
+                        "$or": [
+                            {
+                                "$eq": [
+                                    "$index2",
+                                    0
+                                ]
+                            },
+                            {
+                                "$eq": [
+                                    "$index2",
+                                    null
+                                ]
+                            }
                         ]
                     },
                     "then": {
@@ -171,7 +178,13 @@
                                     "gramSize": "$ngrams.2.gramSize",
                                     "gramCount": "$ngrams.2.gramCount",
                                     "word": "$ngrams.2.sorted.word",
-                                    "wordCount": "$ngrams.2.sorted.count"
+                                    "wordCount": "$ngrams.2.sorted.count",
+                                    "useForGrandTotals": {
+                                        "$literal": false
+                                    },
+                                    "useForNgramTotals": {
+                                        "$literal": true
+                                    }
                                 }
                             ]
                         ]
@@ -182,7 +195,13 @@
                             "gramSize": "$ngrams.2.gramSize",
                             "gramCount": "$ngrams.2.gramCount",
                             "word": "$ngrams.2.sorted.word",
-                            "wordCount": "$ngrams.2.sorted.count"
+                            "wordCount": "$ngrams.2.sorted.count",
+                            "useForGrandTotals": {
+                                "$literal": false
+                            },
+                            "useForNgramTotals": {
+                                "$literal": false
+                            }
                         }
                     ]
                 }
@@ -192,12 +211,23 @@
                 "$cond": {
                     "if": {
                         "$eq": [
-                            "$index",
+                            "$index2",
                             0
                         ]
                     },
                     "then": "$ngrams",
-                    "else": null
+                    "else": {
+                        "$literal": {
+                            "3": {
+                                "sorted": [
+                                    {
+                                        "word": null,
+                                        "count": 0
+                                    }
+                                ]
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -205,7 +235,7 @@
     {
         "$unwind": {
             "path": "$ngrams.3.sorted",
-            "includeArrayIndex": "index",
+            "includeArrayIndex": "index3",
             "preserveNullAndEmptyArrays": true
         }
     },
@@ -214,9 +244,19 @@
             "data": {
                 "$cond": {
                     "if": {
-                        "$eq": [
-                            "$index",
-                            0
+                        "$or": [
+                            {
+                                "$eq": [
+                                    "$index3",
+                                    0
+                                ]
+                            },
+                            {
+                                "$eq": [
+                                    "$index3",
+                                    null
+                                ]
+                            }
                         ]
                     },
                     "then": {
@@ -228,7 +268,13 @@
                                     "gramSize": "$ngrams.3.gramSize",
                                     "gramCount": "$ngrams.3.gramCount",
                                     "word": "$ngrams.3.sorted.word",
-                                    "wordCount": "$ngrams.3.sorted.count"
+                                    "wordCount": "$ngrams.3.sorted.count",
+                                    "useForGrandTotals": {
+                                        "$literal": false
+                                    },
+                                    "useForNgramTotals": {
+                                        "$literal": true
+                                    }
                                 }
                             ]
                         ]
@@ -239,7 +285,13 @@
                             "gramSize": "$ngrams.3.gramSize",
                             "gramCount": "$ngrams.3.gramCount",
                             "word": "$ngrams.3.sorted.word",
-                            "wordCount": "$ngrams.3.sorted.count"
+                            "wordCount": "$ngrams.3.sorted.count",
+                            "useForGrandTotals": {
+                                "$literal": false
+                            },
+                            "useForNgramTotals": {
+                                "$literal": false
+                            }
                         }
                     ]
                 }
@@ -249,12 +301,23 @@
                 "$cond": {
                     "if": {
                         "$eq": [
-                            "$index",
+                            "$index3",
                             0
                         ]
                     },
                     "then": "$ngrams",
-                    "else": null
+                    "else": {
+                        "$literal": {
+                            "4": {
+                                "sorted": [
+                                    {
+                                        "word": null,
+                                        "count": 0
+                                    }
+                                ]
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -262,7 +325,7 @@
     {
         "$unwind": {
             "path": "$ngrams.4.sorted",
-            "includeArrayIndex": "index",
+            "includeArrayIndex": "index4",
             "preserveNullAndEmptyArrays": true
         }
     },
@@ -271,9 +334,19 @@
             "data": {
                 "$cond": {
                     "if": {
-                        "$eq": [
-                            "$index",
-                            0
+                        "$or": [
+                            {
+                                "$eq": [
+                                    "$index4",
+                                    0
+                                ]
+                            },
+                            {
+                                "$eq": [
+                                    "$index4",
+                                    null
+                                ]
+                            }
                         ]
                     },
                     "then": {
@@ -285,7 +358,13 @@
                                     "gramSize": "$ngrams.4.gramSize",
                                     "gramCount": "$ngrams.4.gramCount",
                                     "word": "$ngrams.4.sorted.word",
-                                    "wordCount": "$ngrams.4.sorted.count"
+                                    "wordCount": "$ngrams.4.sorted.count",
+                                    "useForGrandTotals": {
+                                        "$literal": false
+                                    },
+                                    "useForNgramTotals": {
+                                        "$literal": true
+                                    }
                                 }
                             ]
                         ]
@@ -296,7 +375,13 @@
                             "gramSize": "$ngrams.4.gramSize",
                             "gramCount": "$ngrams.4.gramCount",
                             "word": "$ngrams.4.sorted.word",
-                            "wordCount": "$ngrams.4.sorted.count"
+                            "wordCount": "$ngrams.4.sorted.count",
+                            "useForGrandTotals": {
+                                "$literal": false
+                            },
+                            "useForNgramTotals": {
+                                "$literal": false
+                            }
                         }
                     ]
                 }
@@ -309,16 +394,53 @@
         }
     },
     {
+        "$project": {
+            "data": true,
+            "sentimentClass": {
+                "$cond": {
+                    "if": {
+                        "$gte": [
+                            "$data.sentiment",
+                            0.03
+                        ]
+                    },
+                    "then": "positive",
+                    "else": {
+                        "$cond": {
+                            "if": {
+                                "$lte": [
+                                    "$data.sentiment",
+                                    -0.03
+                                ]
+                            },
+                            "then": "negative",
+                            "else": "neutral"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
         "$group": {
             "_id": {
+                "sentimentClass": "$sentimentClass",
                 "gramSize": "$data.gramSize",
                 "word": "$data.word"
             },
-            "sentiment": {
-                "$avg": "$data.sentiment"
-            },
             "gramCount": {
-                "$sum": "$data.gramCount"
+                "$sum": {
+                    "$cond": {
+                        "if": {
+                            "$eq": [
+                                "$data.useForNgramTotals",
+                                true
+                            ]
+                        },
+                        "then": "$data.gramCount",
+                        "else": 0
+                    }
+                }
             },
             "wordCount": {
                 "$sum": "$data.wordCount"
@@ -328,7 +450,7 @@
                     "$cond": {
                         "if": {
                             "$eq": [
-                                "$data.original",
+                                "$data.useForGrandTotals",
                                 true
                             ]
                         },
@@ -342,35 +464,11 @@
                     "$cond": {
                         "if": {
                             "$eq": [
-                                "$data.original",
+                                "$data.useForGrandTotals",
                                 true
                             ]
                         },
                         "then": "$data.sentiment",
-                        "else": 0
-                    }
-                }
-            },
-            "veryPositiveSentiment": {
-                "$sum": {
-                    "$cond": {
-                        "if": {
-                            "$and": [
-                                {
-                                    "$eq": [
-                                        "$data.original",
-                                        true
-                                    ]
-                                },
-                                {
-                                    "$gte": [
-                                        "$data.sentiment",
-                                        0.05
-                                    ]
-                                }
-                            ]
-                        },
-                        "then": 1,
                         "else": 0
                     }
                 }
@@ -382,20 +480,14 @@
                             "$and": [
                                 {
                                     "$eq": [
-                                        "$data.original",
+                                        "$data.useForGrandTotals",
                                         true
                                     ]
                                 },
                                 {
                                     "$gte": [
                                         "$data.sentiment",
-                                        0.01
-                                    ]
-                                },
-                                {
-                                    "$lt": [
-                                        "$data.sentiment",
-                                        0.05
+                                        0.03
                                     ]
                                 }
                             ]
@@ -412,20 +504,20 @@
                             "$and": [
                                 {
                                     "$eq": [
-                                        "$data.original",
+                                        "$data.useForGrandTotals",
                                         true
                                     ]
                                 },
                                 {
                                     "$gt": [
                                         "$data.sentiment",
-                                        -0.01
+                                        -0.03
                                     ]
                                 },
                                 {
                                     "$lt": [
                                         "$data.sentiment",
-                                        0.01
+                                        0.03
                                     ]
                                 }
                             ]
@@ -442,44 +534,14 @@
                             "$and": [
                                 {
                                     "$eq": [
-                                        "$data.original",
+                                        "$data.useForGrandTotals",
                                         true
                                     ]
                                 },
                                 {
                                     "$lte": [
                                         "$data.sentiment",
-                                        -0.01
-                                    ]
-                                },
-                                {
-                                    "$gt": [
-                                        "$data.sentiment",
-                                        -0.05
-                                    ]
-                                }
-                            ]
-                        },
-                        "then": 1,
-                        "else": 0
-                    }
-                }
-            },
-            "veryNegativeSentiment": {
-                "$sum": {
-                    "$cond": {
-                        "if": {
-                            "$and": [
-                                {
-                                    "$eq": [
-                                        "$data.original",
-                                        true
-                                    ]
-                                },
-                                {
-                                    "$lte": [
-                                        "$data.sentiment",
-                                        -0.05
+                                        -0.03
                                     ]
                                 }
                             ]
@@ -498,15 +560,15 @@
     },
     {
         "$group": {
-            "_id": "$_id.gramSize",
+            "_id": {
+                "sentimentClass": "$_id.sentimentClass",
+                "gramSize": "$_id.gramSize"
+            },
             "totalCount": {
                 "$sum": "$totalCount"
             },
             "totalSentiment": {
                 "$sum": "$totalSentiment"
-            },
-            "veryPositiveSentiment": {
-                "$sum": "$veryPositiveSentiment"
             },
             "positiveSentiment": {
                 "$sum": "$positiveSentiment"
@@ -517,17 +579,13 @@
             "negativeSentiment": {
                 "$sum": "$negativeSentiment"
             },
-            "veryNegativeSentiment": {
-                "$sum": "$veryNegativeSentiment"
-            },
             "totalGramCount": {
                 "$sum": "$gramCount"
             },
             "ngrams": {
                 "$push": {
                     "word": "$_id.word",
-                    "count": "$wordCount",
-                    "sentiment": "$sentiment"
+                    "count": "$wordCount"
                 }
             }
         }
@@ -537,17 +595,42 @@
             "_id": true,
             "totalCount": true,
             "totalSentiment": true,
-            "veryPositiveSentiment": true,
             "positiveSentiment": true,
             "neutralSentiment": true,
             "negativeSentiment": true,
-            "veryNegativeSentiment": true,
             "totalGramCount": true,
             "ngrams": {
                 "$slice": [
                     "$ngrams",
-                    50
+                    100
                 ]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": "$_id.sentimentClass",
+            "totalCount": {
+                "$sum": "$totalCount"
+            },
+            "totalSentiment": {
+                "$sum": "$totalSentiment"
+            },
+            "positiveSentiment": {
+                "$sum": "$positiveSentiment"
+            },
+            "neutralSentiment": {
+                "$sum": "$neutralSentiment"
+            },
+            "negativeSentiment": {
+                "$sum": "$negativeSentiment"
+            },
+            "data": {
+                "$push": {
+                    "gramSize": "$_id.gramSize",
+                    "totalGramCount": "$totalGramCount",
+                    "ngrams": "$ngrams"
+                }
             }
         }
     },
@@ -560,9 +643,6 @@
             "totalSentiment": {
                 "$sum": "$totalSentiment"
             },
-            "veryPositiveSentiment": {
-                "$sum": "$veryPositiveSentiment"
-            },
             "positiveSentiment": {
                 "$sum": "$positiveSentiment"
             },
@@ -572,14 +652,10 @@
             "negativeSentiment": {
                 "$sum": "$negativeSentiment"
             },
-            "veryNegativeSentiment": {
-                "$sum": "$veryNegativeSentiment"
-            },
             "ngrams": {
                 "$push": {
-                    "gramSize": "$_id",
-                    "totalGramCount": "$totalGramCount",
-                    "ngrams": "$ngrams"
+                    "sentimentClass": "$_id",
+                    "data": "$data"
                 }
             }
         }
@@ -588,21 +664,26 @@
         "$project": {
             "count": "$totalCount",
             "sentiment": {
-                "avg": {
-                    "$divide": [
-                        {
-                            "$sum": "$totalSentiment"
+                "average": {
+                    "$cond": {
+                        "if": {
+                            "$gt": [
+                                "$totalCount",
+                                0
+                            ]
                         },
-                        {
-                            "$sum": "$totalCount"
-                        }
-                    ]
+                        "then": {
+                            "$divide": [
+                                "$totalSentiment",
+                                "$totalCount"
+                            ]
+                        },
+                        "else": null
+                    }
                 },
-                "veryPositive": "$veryPositiveSentiment",
                 "positive": "$positiveSentiment",
                 "neutral": "$neutralSentiment",
-                "negative": "$negativeSentiment",
-                "veryNegative": "$veryNegativeSentiment"
+                "negative": "$negativeSentiment"
             },
             "ngrams": true
         }

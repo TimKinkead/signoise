@@ -3,20 +3,15 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-var analysis = require('../analysis');
+var channel = require('../channel');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Routes
 
 module.exports = function(app) {
 
-    // get/perform analysis
-    app.route('/data/analysis')
-        .get(analysis.go);
+    // list channels
+    app.route('/data/channel/list')
+        .get(channel.list);
 
-    // perform analysis for all counties for past year
-    // - run via cron job
-    app.route('/data/analysis/all-counties-annual')
-        .get(analysis.allCountiesAnnual);
-    
 };
