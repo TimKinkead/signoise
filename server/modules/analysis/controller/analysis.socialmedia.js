@@ -110,18 +110,21 @@ function getGeoJson(query, clbk) {
  * @param clbk - return clbk(err, results)
  */
 exports.analyzeSocialMedia = function(query, clbk) {
-    logger.filename(__filename);
+    //logger.filename(__filename);
     
     if (!query) { return clbk(new Error('!query')); }
     if (!query.topic) { return clbk(new Error('!query.topic')); }
+    if (!query.channel) { return clbk(new Error('!query.channel')); }
     if (!query.minDate) { return clbk(new Error('!query.minDate')); }
     if (!query.maxDate) { return clbk(new Error('!query.maxDate')); }
 
+    // sentiment config
     var sentimentConfig = {
         positive: 0.03,
         negative: -0.03
     };
     
+    // get sentiment class
     function getSentimentClass(no) {
         if (no >= sentimentConfig.positive) {return 'positive';}
         if (no <= sentimentConfig.negative) {return 'negative';}
@@ -334,37 +337,32 @@ exports.analyzeSocialMedia = function(query, clbk) {
                 });
         }
         
-        // check channel
-        function checkChannel() {
-            switch (query.channel) {
-                case 'all social media':
-                    if (query.state || query.county) {
-                        getGeoJson(query, function(err, geoJsonGeom) {
-                            if (err) { return clbk(err); }
-                            if (!geoJsonGeom) { return clbk(new Error('!geoJsonGeom')); }
-                            pipeline[0].$match.location = {$geoWithin: {$geometry: geoJsonGeom}};
-                            performAnalysis();
-                        });
-                    } else {
-                        performAnalysis();   
-                    }
-                    break;
-                case 'district social media':
-                case 'district related social media':
-                    getSeedIds(query, function(err, seedIds) {
+        // start by checking channel
+        switch (query.channel) {
+            case 'all social media':
+                if (query.state || query.county) {
+                    getGeoJson(query, function(err, geoJsonGeom) {
                         if (err) { return clbk(err); }
-                        if (!seedIds) { return clbk(new Error('!seedIds')); }
-                        if (!seedIds.length) { return clbk(null, {count: 0}); }
-                        pipeline[0].$match.socialseed = {$in: seedIds};
+                        if (!geoJsonGeom) { return clbk(new Error('!geoJsonGeom')); }
+                        pipeline[0].$match.location = {$geoWithin: {$geometry: geoJsonGeom}};
                         performAnalysis();
                     });
-                    break;
-                default:
-                    return clbk(new Error('channel "'+query.channel+'" is not supported'));
-            }
+                } else {
+                    performAnalysis();   
+                }
+                break;
+            case 'district social media':
+            case 'district related social media':
+                getSeedIds(query, function(err, seedIds) {
+                    if (err) { return clbk(err); }
+                    if (!seedIds) { return clbk(new Error('!seedIds')); }
+                    if (!seedIds.length) { return clbk(null, {count: 0}); }
+                    pipeline[0].$match.socialseed = {$in: seedIds};
+                    performAnalysis();
+                });
+                break;
+            default:
+                return clbk(new Error('channel "'+query.channel+'" is not supported'));
         }
-
-        // start
-        checkChannel();
     });
 };

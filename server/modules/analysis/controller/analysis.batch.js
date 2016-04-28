@@ -46,13 +46,11 @@ exports.batch = function(req, res) {
         month = d.getMonth(),
         year = d.getFullYear(),
         minDate = new Date(year-1, month, 1),
-        maxDate = new Date(year, month, 1),
-
-        socialmediaChannels = ['all social media', 'district social media', 'district related social media'];
+        maxDate = new Date(year, month, 1);
     
     // get topics
     Topic.find(
-        (req.query.topic) ? {_id: req.query.topic} : {},
+        (req.query.topic) ? {$or: [/*{_id: req.query.topic},*/ {name: req.query.topic}]} : {},
         function(err, topicDocs) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!topicDocs) { error.log(new Error('!topicDocs')); return errorMessage(); }
@@ -63,14 +61,14 @@ exports.batch = function(req, res) {
 
             // get all states
             State.find(
-                (req.query.state) ? {_id: req.query.state} : {name: 'california'},
+                (req.query.state) ? {$or: [/*{_id: req.query.state},*/ {name: req.query.state}, {abbv: req.query.state}]} : {name: 'california'},
                 function(err, stateDocs) {
                     if (err) { error.log(new Error(err)); return errorMessage(); }
                     if (!stateDocs) { error.log(new Error('!stateDocs')); return errorMessage(); }
 
                     // get all counties
                     County.find(
-                        (req.query.county) ? {_id: req.query.county} : {},
+                        (req.query.county) ? {$or: [/*{_id: req.query.county},*/ {name: req.query.county}]} : {},
                         function(err, countyDocs) {
                             if (err) { error.log(new Error(err)); return errorMessage(); }
                             if (!countyDocs) { error.log(new Error('!countyDocs')); return errorMessage(); }
@@ -112,7 +110,8 @@ exports.batch = function(req, res) {
                             if (!queue.length) { error.log(new Error('!queue.length')); return errorMessage(); }
 
                             // respond to client
-                            res.status(200).send('Working on batch analysis for '+queue.length+' items in queue.');
+                            res.status(200).send(queue);
+                            //res.status(200).send('Working on batch analysis for '+queue.length+' items in queue.');
 
                             // perform analysis for each item in queue
                             var i = 0;
@@ -127,53 +126,60 @@ exports.batch = function(req, res) {
                                     performAnalysis();
                                 }
 
-                                var qType = queue[i].type;
-                                delete queue[i].type;
+                                var query = {
+                                    topic: queue[i].topic,
+                                    channel: queue[i].channel,
+                                    minDate: queue[i].minDate,
+                                    maxDate: queue[i].maxDate,
+                                    state: (queue[i].state) ? queue[i].state : {$exists: false},
+                                    county: (queue[i].county) ? queue[i].county : {$exists: false}
+                                };
 
-                                // save analysis
+                                // save analysis (upsert)
                                 function saveAnalysis(results) {
                                     Analysis.update(
-                                        queue[i],
+                                        query,
                                         {
                                             $set: {
-                                                type: qType,
+                                                type: queue[i].type,
                                                 count: results.count,
                                                 sentiment: results.sentiment,
                                                 ngrams: results.ngrams,
-                                                modified: new Date()
-                                            },
-                                            $setOnInsert: {created: new Date()}
+                                                created: new Date()
+                                            }
                                         },
                                         {upsert: true},
                                         function(err) {
                                             if (err) { error.log(new Error(err)); }
+                                            else { console.log('analysis updated'); }
                                             nextAnalysis();
                                         }
                                     );
                                 }
 
                                 // check if analysis already exists
-                                Analysis.findOne(queue[i], function(err, analysisDoc) {
+                                Analysis.findOne(query, function(err, analysisDoc) {
                                     if (err) { error.log(new Error(err)); nextAnalysis(1); return; }
-                                    if (analysisDoc) { saveAnalysis(analysisDoc); nextAnalysis(); return; }
+                                    if (analysisDoc && !req.query.new) { nextAnalysis(); return; }
 
-                                    // perform social media analysis
-                                    if (socialmediaChannels.indexOf(queue[i].channel) > -1) {
-                                        analyzeSocialMedia(queue[i], function (err, results) {
-                                            if (err) {
-                                                err.params = queue[i];
-                                                error.log(err);
-                                                nextAnalysis(1);
-                                                return;
-                                            }
-                                            if (!results) { nextAnalysis(); return; }
-                                            saveAnalysis(results);
-                                        });
-                                    }
-
-                                    // perform other analysis
-                                    else {
-                                        nextAnalysis();
+                                    // perform analysis
+                                    switch(queue[i].channel) {
+                                        case 'all social media':
+                                        case 'district social media':
+                                        case 'district related social media':
+                                            analyzeSocialMedia(queue[i], function(err, results) {
+                                                if (err) {
+                                                    err.params = queue[i];
+                                                    error.log(err);
+                                                    nextAnalysis(1);
+                                                    return;
+                                                }
+                                                if (!results) { nextAnalysis(); return; }
+                                                saveAnalysis(results);
+                                            });
+                                            break;
+                                        default:
+                                            nextAnalysis();
                                     }
                                 });
                             }
