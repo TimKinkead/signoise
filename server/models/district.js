@@ -26,6 +26,25 @@ var DistrictSchema = new Schema(
             // not unique - some districts have same name
         },
 
+        // state
+        state: {
+            type: Schema.ObjectId,
+            ref: 'State',
+            required: true
+        },
+
+        // county
+        county: {
+            type: Schema.ObjectId,
+            ref: 'County',
+            required: true
+        },
+
+        // location [longitude, latitude]
+        location: [{
+            type: Number
+        }],
+
         // CDS Code (Common Data Set Initiative) http://www.commondataset.org/
         cdsId: {
             type: Number,
@@ -67,7 +86,7 @@ var DistrictSchema = new Schema(
             ref: 'SocialSeed'
         }],
         
-        // location
+        // address
         street: {
             type: String
         },
@@ -75,22 +94,8 @@ var DistrictSchema = new Schema(
             type: String,
             lowercase: true
         },
-        state: {
-            type: String,
-            lowercase: true
-        },
         zip: {
             type: String
-        },
-        county: {
-            type: String,
-            lowercase: true
-        },
-        latitude: {
-            type: Number
-        },
-        longitude: {
-            type: Number
         },
 
         // counters

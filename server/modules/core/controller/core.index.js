@@ -1,5 +1,7 @@
 'use strict';
 
+var auth = require('../../../../auth.js');
+
 /**
  * CORE.INDEX
  * - Render index.html (the angular application skeleton).
@@ -22,7 +24,8 @@ exports.index = function(req, res) {
                 twitter: req.user.twitter,
                 admin: req.user.admin
             } :
-            null
+            null,
+        googleBrowserKey: (process.env.NODE_ENV === 'production' && process.env.SERVER === 'cloud') ? '&key=' + auth.googleBrowserKey : ''
     };
 
     // render index.html

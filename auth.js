@@ -9,7 +9,7 @@ module.exports = {
 	// google (for google apis)
 	googleServerKeyDev: '',
 	googleServerKey: '',
-	googleBrowserKey: '',
+	googleBrowserKey: 'AIzaSyC07E5jf1GQZhBnosMHz2tlyb4lcmT01Qw',
 	googleVerificationKey: '',
 
     // facebook

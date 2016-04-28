@@ -28,6 +28,7 @@ var SummarySchema = new Schema(
         }
     },
     {
+        // explicitly name mongodb collection to avoid 'summarys'
         collection: 'summary'
     }
 );

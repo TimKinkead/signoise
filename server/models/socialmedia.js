@@ -40,7 +40,13 @@ var SocialMediaSchema = new Schema(
             type: String
             // not required b/c not all fb posts have a message
         },
-
+        
+        // longitude, latitude for geoWithin queries
+        // - pulled from 'data' via pre-validation hook
+        location: [{
+            type: Number
+        }],
+        
         // the social seed used to pull this social media
         // - necessary for connecting fb posts to fb groups/pages
         // - not very important for twitter
@@ -134,8 +140,7 @@ var SocialMediaSchema = new Schema(
         }
     },
     {
-        // mongodb collection name
-        // - explicitly define here to avoid mongoose default to 'socialmedias'
+        // explicitly name mongodb collection to avoid 'socialmedias'
         collection: 'socialmedia'
     }
 );
@@ -160,8 +165,9 @@ SocialMediaSchema.pre('validate', function(next) {
                 if (this.data.created_time) {this.date = new Date(this.data.created_time);}
                 break;
             case 'twitter':
-                if (this.data.text) {this.text = socialmedia.cleanTwitterText(this.data.text);}
                 if (this.data.created_at) {this.date = new Date(this.data.created_at);}
+                if (this.data.text) {this.text = socialmedia.cleanTwitterText(this.data.text);}
+                if (this.data.coordinates && this.data.coordinates.coordinates) {this.location = this.data.coordinates.coordinates;}
                 break;
         }
     }

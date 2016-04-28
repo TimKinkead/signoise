@@ -24,3 +24,10 @@ client/lib
 # grunt temporary
 #public/
 #styles.css
+
+# Large Data Files
+server/modules/init/data/counties.json
+server/modules/init/data/states.json
+
+# Temp Directory
+temp

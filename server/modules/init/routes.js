@@ -17,5 +17,12 @@ module.exports = function(app) {
     // initialize districts
     app.route('/data/init/districts')
         .get(init.districts);
-    
+
+    // initialize states
+    app.route('/data/init/states')
+        .get(init.states);
+
+    // initialize counties
+    app.route('/data/init/counties')
+        .get(init.counties);
 };
