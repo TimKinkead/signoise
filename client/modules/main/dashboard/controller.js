@@ -73,7 +73,6 @@ angular.module('app').controller('DashboardController', [
             function() {
                 status.processingChannels = false;
                 params.channel = $scope.channels[0]; // default
-                params.channel = 'geographic social media'; // TODO - remove
             },
             function(err) {
                 status.processingChannels = false;
@@ -231,7 +230,7 @@ angular.module('app').controller('DashboardController', [
             sentimentOptions.forEach(function(option) {
                 if (!analysis.sentiment[option]) { total -= 5; }
             });
-            return Math.floor(analysis.sentiment[sentimentOption] / analysis.count * total) + '%';
+            return Math.floor((analysis.sentiment[sentimentOption] / analysis.count) * total) + '%';
         };
 
         // -------------------------------------------------------------------------------------------------------------

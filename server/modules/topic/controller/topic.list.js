@@ -30,10 +30,12 @@ exports.list = function(req, res) {
     }
 
     // get topics
-    Topic.find({}, function(err, topicDocs) {
-        if (err) { error.log(new Error(err)); return errorMessage(); }
-        if (!topicDocs) { error.log(new Error('!topicDocs')); return errorMessage(); }
-
-        return res.status(200).send(topicDocs);
-    });
+    Topic.find()
+        .sort({name: 1})
+        .exec(function(err, topicDocs) {
+            if (err) { error.log(new Error(err)); return errorMessage(); }
+            if (!topicDocs) { error.log(new Error('!topicDocs')); return errorMessage(); }
+    
+            return res.status(200).send(topicDocs);
+        });
 };

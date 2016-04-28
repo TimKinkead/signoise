@@ -14,9 +14,9 @@ module.exports = function(app) {
     app.route('/data/analysis')
         .get(analysis.go);
 
-    // perform analysis for all counties for past year
+    // perform batch analysis
     // - run via cron job
-    app.route('/data/analysis/all-counties-annual')
-        .get(analysis.allCountiesAnnual);
+    app.route('/data/analysis/batch')
+        .get(analysis.batch);
     
 };

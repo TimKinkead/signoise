@@ -20,8 +20,7 @@ var error = require('../../error'),
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
 
-var util = {};
-util = _.extend(util, require('../util/analysis.util.socialmedia')); // analyzeSocialMedia
+var analyzeSocialMedia = require('./analysis.socialmedia').analyzeSocialMedia;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Main
@@ -95,8 +94,7 @@ exports.go = function(req, res) {
             case 'all social media':
             case 'district social media':
             case 'district related social media':
-            case 'geographic social media':
-                util.analyzeSocialMedia(req.query, function(err, results) {
+                analyzeSocialMedia(req.query, function(err, results) {
                     if (err) { error.log(err); errorMessage(); return; }
                     if (!results) { return res.status(200).send(null); }
                     analysis = _.extend(analysis, results);

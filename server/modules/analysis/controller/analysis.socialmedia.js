@@ -18,8 +18,8 @@ var mongoose = require('mongoose'),
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
 
-var error = require('../../error'),
-    logger = require('../../logger');
+var error = require('../../error/index'),
+    logger = require('../../logger/index');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
@@ -104,7 +104,7 @@ function getGeoJson(query, clbk) {
 // Main
 
 /**
- * ANALYSIS.UTIL.SOCIALMEDIA
+ * ANALYSIS.SOCIALMEDIA
  * - Perform social media analysis and return results. (sentiment or ngrams)
  * @param query - req.query
  * @param clbk - return clbk(err, results)
@@ -338,7 +338,16 @@ exports.analyzeSocialMedia = function(query, clbk) {
         function checkChannel() {
             switch (query.channel) {
                 case 'all social media':
-                    performAnalysis();
+                    if (query.state || query.county) {
+                        getGeoJson(query, function(err, geoJsonGeom) {
+                            if (err) { return clbk(err); }
+                            if (!geoJsonGeom) { return clbk(new Error('!geoJsonGeom')); }
+                            pipeline[0].$match.location = {$geoWithin: {$geometry: geoJsonGeom}};
+                            performAnalysis();
+                        });
+                    } else {
+                        performAnalysis();   
+                    }
                     break;
                 case 'district social media':
                 case 'district related social media':
@@ -347,18 +356,6 @@ exports.analyzeSocialMedia = function(query, clbk) {
                         if (!seedIds) { return clbk(new Error('!seedIds')); }
                         if (!seedIds.length) { return clbk(null, {count: 0}); }
                         pipeline[0].$match.socialseed = {$in: seedIds};
-                        performAnalysis();
-                    });
-                    break;
-                case 'geographic social media':
-                    getGeoJson(query, function(err, geoJsonGeom) {
-                        if (err) { return clbk(err); }
-                        if (geoJsonGeom) { 
-                            pipeline[0].$match.location = {$geoWithin: {$geometry: geoJsonGeom}}; 
-                        } else {
-                            pipeline[0].$match['location.0'] = {$exists: true};
-                            pipeline[0].$match['location.1'] = {$exists: true};
-                        }
                         performAnalysis();
                     });
                     break;
