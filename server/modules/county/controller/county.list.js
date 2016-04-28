@@ -4,7 +4,7 @@
 // Models
 
 var mongoose = require('mongoose'),
-    District = mongoose.model('District');
+    County = mongoose.model('County');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -24,28 +24,24 @@ exports.list = function(req, res) {
 
     function errorMessage(code, message) {
         return res.status(code || 500).send({
-            header: 'List Countys Error!',
+            header: 'List Counties Error!',
             message: message || 'We had trouble listing the counties. Please try again.'
         });
     }
 
     if (!req.user || !req.user._id) { return errorMessage(403, 'Please login or sign up if you want to list the counties.'); }
     if (!req.query.state) { return errorMessage(400, 'Please provide a state if you want to list the counties.'); }
-    
-    // aggregate districts by county
-    District.aggregate(
-        [
-            {$match: {state: req.query.state}},
-            {$group: {_id: '$county', districtCount: {$sum: 1}}},
-            {$sort: {_id: 1}}
-        ],
-        function(err, countyDocs) {
+
+    // get counties
+    County.find({state: req.query.state})
+        .select('name bounds')
+        .sort({name: 1})
+        .exec(function(err, countyDocs) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!countyDocs) { error.log(new Error('!countyDocs')); return errorMessage(); }
 
             // done
             logger.result('counties listed');
             return res.status(200).send(countyDocs);
-        }
-    );
+        });
 };

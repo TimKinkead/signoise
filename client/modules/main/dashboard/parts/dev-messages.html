@@ -1,0 +1,29 @@
+<!-- Success Messages -->
+<div ng-if="devSuccessMessages.length"
+     class="container"
+     style="max-width: 750px;">
+    <div ng-repeat="message in devSuccessMessages"
+         class="alert alert-success"
+         style="margin: 10px 0 0;">
+        <span ng-click="closeDevSuccessMessage($index)"
+              class="close">
+            &times
+        </span>
+        {{message}}
+    </div>
+</div>
+
+<!-- Error Messages -->
+<div ng-if="devErrorMessages.length"
+     class="container"
+     style="max-width: 750px;">
+    <div ng-repeat="message in devErrorMessages"
+         class="alert alert-danger"
+         style="margin: 10px 0 0;">
+        <span ng-click="closeDevErrorMessage($index)"
+              class="close">
+            &times
+        </span>
+        <span ng-bind-html="message"></span>
+    </div>
+</div>

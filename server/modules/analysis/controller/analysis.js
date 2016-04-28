@@ -95,6 +95,7 @@ exports.go = function(req, res) {
             case 'all social media':
             case 'district social media':
             case 'district related social media':
+            case 'geographic social media':
                 util.analyzeSocialMedia(req.query, function(err, results) {
                     if (err) { error.log(err); errorMessage(); return; }
                     if (!results) { return res.status(200).send(null); }

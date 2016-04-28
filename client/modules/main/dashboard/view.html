@@ -29,19 +29,46 @@
     </div>
 
     <!-- Success / Error Messages -->
-    <div ng-include="'modules/main/dashboard/parts/messages.html'"
+    <div ng-include="'modules/main/dashboard/parts/dev-messages.html'"
          class="container">
     </div>
 
 </div>
 
-<!-- Jumbo 3 (form) -->
-<div ng-include="'modules/main/dashboard/parts/form.html'"
-     class="jumbotron text-center"
-     style="background: #9ABFAA; margin-bottom: 0;">
+<!-- Jumbo 4 (form & map) -->
+<div class="jumbotron"
+     style="background: #9ABFAA;">
+    <div ng-include="'modules/main/dashboard/parts/date-slider.html'"
+         class="container text-center"
+         style="margin-bottom: 30px;">
+    </div>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-3">
+            <div ng-include="'modules/main/dashboard/parts/form.html'"
+                 class="container text-center">
+            </div>
+            <div ng-include="'modules/main/dashboard/parts/messages.html'"
+                 class="container">
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div ng-include="'modules/main/dashboard/parts/map.html'"
+                 style="height: 500px;">
+            </div>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
 </div>
 
-<!-- Jumbo 4 (analysis) -->
+<!-- Jumbo 4 (heatmap)
+<div ng-if="geoChannels.indexOf(params.channel) > -1"
+     ng-include="'modules/main/dashboard/parts/map.html'"
+     class="jumbotron"
+     style="background: #B9E5CC; margin-bottom: 0;">
+</div>-->
+
+<!-- Jumbo 5 (analysis) -->
 <div class="jumbotron"
      style="background: white; margin-bottom: 0;">
     <div ng-include="'modules/main/dashboard/parts/metrics.html'"
@@ -49,8 +76,3 @@
     </div>
 </div>
 
-<!-- Jumbo 5 (heatmap) -->
-<div ng-include="'modules/main/dashboard/parts/map.html'"
-     class="jumbotron"
-     style="background: #B9E5CC; margin-bottom: 0;">
-</div>

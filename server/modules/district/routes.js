@@ -21,6 +21,10 @@ module.exports = function(app) {
     app.route('/data/district/list')
         .get(district.list);
 
+    // get geojson for districts
+    app.route('/data/district/list/geojson')
+        .get(district.geojson);
+
     // get district summary
     app.route('/data/district/summary')
         .get(district.summary);

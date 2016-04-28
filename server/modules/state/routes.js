@@ -14,4 +14,8 @@ module.exports = function(app) {
     app.route('/data/state/list')
         .get(state.list);
 
+    // get geojson for states
+    app.route('/data/state/list/geojson')
+        .get(state.geojson);
+
 };

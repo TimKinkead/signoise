@@ -6,7 +6,18 @@
 var Converter = require('csvtojson').Converter,
     fs = require('fs'),
     request = require('request'),
-    url = require('url');
+    url = require('url'),
+    _ = require('lodash');
+
+//----------------------------------------------------------------------------------------------------------------------
+// Models
+
+var mongoose = require('mongoose'),
+    District = mongoose.model('District'),
+    State = mongoose.model('State'),
+    County = mongoose.model('County'),
+    SocialSeed = mongoose.model('SocialSeed'),
+    WebSite = mongoose.model('WebSite');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -67,10 +78,16 @@ function cleanUpDistrict(district) {
     for (var key in district) {
         if (district.hasOwnProperty(key)) {
             if (fields.indexOf(key) < 0) {
-                //console.log('delete '+key);
                 delete district[key];
             }
         }
+    }
+
+    // location
+    if (district.longitude && district.latitude) {
+        district.location = [district.longitude, district.latitude];
+        delete district.longitude;
+        delete district.latitude;
     }
     
     // done
@@ -78,47 +95,134 @@ function cleanUpDistrict(district) {
 }
 
 /**
- * Upsert districts from 'districts.json'.
- * @param host - req.get('host')
+ * Find or create twitter social seed for a specific screen name.
+ * @param screenName - twitter account screen_name
+ * @param clbk - return clbk(err, socialseed)
  */
-function upsertDistricts(host) {
+function getTwitterSeed(screenName, clbk) {
+    if (!screenName) { return clbk(); }
+
+    // check if seed already exists
+    SocialSeed.findOne({platform: 'twitter', 'twitter.query': screenName})
+        .exec(function(err, seedDoc) {
+            if (err) { return clbk(new Error(err)); }
+
+            // return seed if it exists
+            if (seedDoc) { return clbk(null, seedDoc); }
+
+            // otherwise create new seed
+            SocialSeed.create(
+                {platform: 'twitter', twitter: {query: screenName}, frequency: 'daily'},
+                function(err, newSeedDoc) {
+                    if (err) { return clbk(new Error(err)); }
+                    if (!newSeedDoc) { return clbk(new Error('!newSeedDoc')); }
+                    return clbk(null, newSeedDoc);
+                }
+            );
+        });
+}
+
+/**
+ * Find or create website doc for a url.
+ * @param webUrl - the url of a website
+ * @param clbk - return clbk(err, websiteDoc)
+ */
+function getWebSite(webUrl, clbk) {
+    if (!webUrl || webUrl.indexOf('http') !== 0) { return clbk(); }
+
+    // grab subdomain
+    var subdomain = WebSite.getUrlData(webUrl).subdomain;
+    if (!subdomain) { return clbk(new Error('!subdomain for url='+webUrl)); }
+
+    // check if website already exists in mongodb
+    WebSite.findOne({subdomain: subdomain}, function(err, siteDoc) {
+        if (err) { return clbk(new Error(err)); }
+
+        // return website if it exists
+        if (siteDoc) { return clbk(null, siteDoc); }
+
+        // otherwise create new website (domain & subdomain set via pre-validation hook)
+        WebSite.create({url: webUrl}, function(err, newSiteDoc) {
+            if (err) { return clbk(new Error(err)); }
+            if (!newSiteDoc) { return clbk(new Error('!newSiteDoc')); }
+            return clbk(null, newSiteDoc);
+        });
+    });
+}
+
+/**
+ * Upsert districts from 'districts.json'.
+ */
+function upsertDistricts() {
     
     var districts = require('../data/districts.json'),
         districtIndex = 0;
 
-    // create district
+    // create districts
     function createDistrict() {
-
-        var district = cleanUpDistrict(districts[districtIndex]);
         
         function nextDistrict() {
+            if ((districtIndex+1) >= districts.length) {
+                logger.bold('Done creating ' + districts.length + ' districts.');
+                return;
+            }
             districtIndex++;
-            if (districts[districtIndex]) {
-                createDistrict();
-            } else {
-                logger.bold('done upserting districts');
-            }
+            createDistrict();
         }
-        
-        // make POST request
-        // - district creation logic handles upsert, & references to website / social accounts
-        request.post(
-            {
-                url: url.parse('http://'+host+'/data/district'),
-                json: true,
-                body: district
-            },
-            function(err, response, body) {
-                if (err) {
-                    logger.error(err);
-                }
-                if (districtIndex && districts.length && districtIndex >= 25 && districtIndex % 25 === 0) {
-                    logger.dash(district.name);
-                    logger.arrow('*** '+districtIndex+'/'+districts.length+'('+Math.floor(districtIndex/districts.length*100)+'%) ***');
-                }
-                nextDistrict();
-            }
-        );
+
+        // init district
+        var district = cleanUpDistrict(districts[districtIndex]);
+        if (!district) { error.log(new Error('!district')); nextDistrict(); return; }
+
+        // get state
+        State.findOne({abbv: district.state}, function(err, stateDoc) {
+            if (err) { error.log(new Error(err)); nextDistrict(); return; }
+            if (!stateDoc) { error.log(new Error('!stateDoc')); nextDistrict(); return; }
+            district.state = stateDoc._id;
+            
+            // get county
+            if (!district.county) { error.log(new Error('!district.county')); nextDistrict(); return; }
+            County.findOne({name: district.county.toLowerCase()}, function(err, countyDoc) {
+                if (err) { error.log(new Error(err)); nextDistrict(); return; }
+                if (!countyDoc) { error.log(new Error('!countyDoc')); nextDistrict(); return; }
+                district.county = countyDoc._id;
+
+                // get twitter account social seed
+                getTwitterSeed(district.twitterAccount, function(err, twitterSeed) {
+                    if (err) { error.log(err); }
+                    if (twitterSeed) { district.twitterSeed = twitterSeed._id; }
+                    if (district.twitterAccount) { delete district.twitterAccount; }
+
+                    // get website
+                    getWebSite(district.website, function(err, websiteDoc) {
+                        if (err) { error.log(err); }
+                        if (websiteDoc) { district.website = websiteDoc._id; }
+                        else { delete district.website; }
+
+                        // check if district already exists
+                        District.findOne({cdsId: district.cdsId, ncesId: district.ncesId})
+                            .exec(function(err, districtDoc) {
+                                if (err) { error.log(new Error(err)); nextDistrict(); return; }
+
+                                // update district if it exists
+                                if (districtDoc) { districtDoc = _.extend(districtDoc, district); }
+
+                                // otherwise create new district
+                                else { districtDoc = new District(district); }
+
+                                // save new or updated district doc
+                                districtDoc.save(function(err) {
+                                    if (err) { error.log(new Error(err)); nextDistrict(); return; }
+
+                                    // done
+                                    logger.result(district.name + ' district created');
+                                    nextDistrict();
+                                });
+                            });
+                    });
+                });  
+            });
+        });
     }
 
     // start
@@ -175,7 +279,7 @@ exports.districts = function(req, res) {
             return res.status(500).send(err);
         })
         .on('close', function() {
-            upsertDistricts(req.get('host'));
+            upsertDistricts();
             return res.status(200).send('Working on initializing districts.');
         });
 };

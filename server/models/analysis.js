@@ -84,6 +84,7 @@ var AnalysisSchema = new Schema(
         }
     },
     {
+        // explicitly name mongodb collection to avoid 'analysiss'
         collection: 'analysis'
     }
 );

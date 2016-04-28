@@ -44,7 +44,7 @@ exports.processSentiment = function(req, res) {
 
     var sentimentService = 'http://52.37.246.19:8080/sentiment/word',
         stopTime = (function() { var d = new Date(); d.setMinutes(d.getMinutes()+15); return d; })(),
-        limit = 1000;
+        limit = (process.env.SERVER === 'local') ? 100000 : 1000;
 
     // get social media docs
     SocialMedia.find({sentimentProcessed: {$exists: false}})
@@ -63,15 +63,12 @@ exports.processSentiment = function(req, res) {
 
                 function nextMediaDoc(delay) {
                     mediaDocIndex++;
-                    if (mediaDocs[mediaDocIndex] && now < stopTime) {
-                        if (delay) {
-                            setTimeout(function() {processMediaDoc();}, 1000*60*delay);
-                        } else {
-                            processMediaDoc();   
-                        }
-                    } else {
-                        logger.bold('done - sentiment processed for '+mediaDocIndex+' social media docs');
-                    }
+                    if (mediaDocIndex % 25 === 0) { logger.log(mediaDocIndex+'/'+mediaDocs.length+' ('+Math.round((mediaDocIndex/mediaDocs.length)*100)+'%)'); }
+                    if (mediaDocIndex+1 >= mediaDocs.length) { logger.bold('Done! Sentiment processed for '+mediaDocs.length+' social media docs.'); return; }
+                    if (now > stopTime) { logger.bold('Stopping because now > stopTime.'); return; }
+                    if (!mediaDocs[mediaDocIndex]) { nextMediaDoc(); }
+                    if (delay) { setTimeout(function() {processMediaDoc();}, 1000*60*delay); return;}
+                    processMediaDoc();
                 }
 
                 // clean up text

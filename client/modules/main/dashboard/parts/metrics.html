@@ -1,11 +1,14 @@
 <!-- count -->
 <h3>Summary</h3>
 <span ng-if="status.processingAnalysis" class="spinner-sm"></span>
-<div ng-if="!status.processingAnalysis && analysis.$resolved">
+<div ng-if="!status.processingAnalysis && analysis.$resolved && analysis.count">
     <ul>
-        <li>documents analyzed = {{(analysis.count) ? analysis.count : 0}}</li>
-        <li>average sentiment = {{(analysis.sentiment) ? (analysis.sentiment.average|percentage) : 'n/a'}}</li>
+        <li>documents analyzed = {{analysis.count}}</li>
+        <li>average sentiment = {{analysis.sentiment.average|percentage}}</li>
     </ul>
+</div>
+<div ng-if="!status.processingAnalysis && analysis.$resolved && !analysis.count">
+    No Documents Analyzed
 </div>
 
 <!-- sentiment -->

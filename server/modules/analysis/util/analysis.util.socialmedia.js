@@ -11,7 +11,9 @@ var fs = require('fs');
 var mongoose = require('mongoose'),
     SocialMedia = mongoose.model('SocialMedia'),
     District = mongoose.model('District'),
-    Topic = mongoose.model('Topic');
+    Topic = mongoose.model('Topic'),
+    State = mongoose.model('State'),
+    County = mongoose.model('County');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -56,6 +58,46 @@ function getSeedIds(query, clbk) {
             return clbk(null, seedIds);
         }
     );
+}
+
+/**
+ * Get geo json for state or county.
+ * @param query - req.query
+ * @param clbk - return clbk(err, geoJsonGeom)
+ */
+function getGeoJson(query, clbk) {
+    if (!query) { return clbk(new Error('!query')); }
+    
+    // get geo json for county
+    if (query.county) {
+        County.findById(query.county)
+            .select('geometry')
+            .exec(function(err, countyDoc) {
+                if (err || !countyDoc) {
+                    err = new Error(err || '!countyDoc');
+                    err.county = query.county;
+                    return clbk(err);
+                }
+                return clbk(null, countyDoc.geometry);
+            });
+    } 
+    
+    // get geo json for state
+    else if (query.state) {
+        State.findById(query.state)
+            .select('geometry')
+            .exec(function(err, stateDoc) {
+                if (err || !stateDoc) {
+                    err = new Error(err || '!stateDoc');
+                    err.state = query.state;
+                    return clbk(err);
+                }
+                return clbk(null, stateDoc.geometry);
+            });
+    }
+        
+    // all location-based media
+    else { return clbk(); }
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -234,7 +276,7 @@ exports.analyzeSocialMedia = function(query, clbk) {
             // pipeline print out
             if (process.env.SERVER === 'local') {
                 fs.writeFile(
-                    'server/modules/analysis/util/analysis.util.socialmedia.pipeline.json',
+                    'temp/analysis.pipeline.json',
                     JSON.stringify(pipeline, null, 4)
                 );
             }
@@ -305,6 +347,18 @@ exports.analyzeSocialMedia = function(query, clbk) {
                         if (!seedIds) { return clbk(new Error('!seedIds')); }
                         if (!seedIds.length) { return clbk(null, {count: 0}); }
                         pipeline[0].$match.socialseed = {$in: seedIds};
+                        performAnalysis();
+                    });
+                    break;
+                case 'geographic social media':
+                    getGeoJson(query, function(err, geoJsonGeom) {
+                        if (err) { return clbk(err); }
+                        if (geoJsonGeom) { 
+                            pipeline[0].$match.location = {$geoWithin: {$geometry: geoJsonGeom}}; 
+                        } else {
+                            pipeline[0].$match['location.0'] = {$exists: true};
+                            pipeline[0].$match['location.1'] = {$exists: true};
+                        }
                         performAnalysis();
                     });
                     break;
