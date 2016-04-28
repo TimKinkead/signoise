@@ -41,9 +41,9 @@ exports.go = function(req, res) {
     }
 
     if (!req.query.topic) { return errorMessage(400, 'Please select a topic for analysis.'); }
+    if (!req.query.channel) { return errorMessage(400, 'Please select a channel for analysis.'); }
     if (!req.query.minDate) { return errorMessage(400, 'Please select a start date for analysis.'); }
     if (!req.query.maxDate) { return errorMessage(400, 'Please select an end date for analysis.'); }
-    if (!req.query.channel) { return errorMessage(400, 'Please select a channel for analysis.'); }
     
     // clean up min/max dates
     var minDate = new Date(req.query.minDate),
@@ -57,19 +57,20 @@ exports.go = function(req, res) {
     req.query.minDate = new Date(minYear, minMonth, minDay);
     req.query.maxDate = new Date(maxYear, maxMonth, maxDay);
     if (req.query.minDate >= req.query.maxDate) { return errorMessage(400, 'Please select an end date that is after your start date.'); }
-    
+
+    // initialize analysis
     var analysis = {
         topic: req.query.topic,
-        minDate: req.query.minDate,
-        maxDate: req.query.maxDate,
         channel: req.query.channel,
-        state: req.query.state,
-        county: req.query.county
+        minDate: req.query.minDate,
+        maxDate: req.query.maxDate
     };
+    if (req.query.state) { analysis.state = req.query.state; }
+    if (req.query.county) { analysis.county = req.query.county; }
 
     // save analysis & return
     function done() {
-        if (!analysis.ngrams || !analysis.sentiment) { return res.status(200).send(null); }
+        if (!analysis.count || !analysis.sentiment || !analysis.ngrams) { return res.status(200).send(null); }
         Analysis.create(analysis, function(err, newAnalysisDoc) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); return errorMessage(); }
@@ -78,35 +79,44 @@ exports.go = function(req, res) {
     }
     
     // look for recent analysis
-    var recentAnalysisDate = (process.env.SERVER === 'local' || req.query.new) ? new Date() : 
-        (function() { var d = new Date(); d.setDate(d.getDate()-7); return d; })();
-    analysis.created = {$gt: recentAnalysisDate};
-    Analysis.findOne(analysis, function(err, analysisDoc) {
-        if (err) { error.log(new Error(err)); return errorMessage(); }
-        if (analysisDoc) { return res.status(200).send(analysisDoc); }
-        delete analysis.created;
-        
-        // perform channel specific analysis
-        switch (req.query.channel) {
+    Analysis.findOne({
+            topic: analysis.topic,
+            channel: analysis.channel,
+            minDate: analysis.minDate,
+            maxDate: analysis.maxDate,
+            state: (analysis.state) ? analysis.state : {$exists: false},
+            county: (analysis.county) ? analysis.county : {$exists: false},
+            created: {
+                $gt: (process.env.SERVER === 'local' || req.query.new) ? new Date() :
+                    (function() { var d = new Date(); d.setDate(d.getDate()-7); return d; })()
+            }
+        })
+        .exec(function(err, analysisDoc) {
+            if (err) { error.log(new Error(err)); return errorMessage(); }
+            if (analysisDoc) { return res.status(200).send(analysisDoc); }
+            delete analysis.created;
 
-            // -- SOCIAL MEDIA --
+            // perform channel specific analysis
+            switch (req.query.channel) {
 
-            case 'all social media':
-            case 'district social media':
-            case 'district related social media':
-                analyzeSocialMedia(req.query, function(err, results) {
-                    if (err) { error.log(err); errorMessage(); return; }
-                    if (!results) { return res.status(200).send(null); }
-                    analysis = _.extend(analysis, results);
-                    done();
-                });
-                break;
+                // -- SOCIAL MEDIA --
 
-            // -- ERROR --
+                case 'all social media':
+                case 'district social media':
+                case 'district related social media':
+                    analyzeSocialMedia(req.query, function(err, results) {
+                        if (err) { error.log(err); errorMessage(); return; }
+                        if (!results) { return res.status(200).send(null); }
+                        analysis = _.extend(analysis, results);
+                        done();
+                    });
+                    break;
 
-            default:
-                error.log(new Error('channel "'+req.query.channel+'" not supported'));
-                return errorMessage(400, 'Please select a valid channel for sentiment analysis.');
-        }
-    });
+                // -- ERROR --
+
+                default:
+                    error.log(new Error('channel "'+req.query.channel+'" not supported'));
+                    return errorMessage(400, 'Please select a valid channel for sentiment analysis.');
+            }
+        });
 };
