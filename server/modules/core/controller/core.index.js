@@ -25,7 +25,7 @@ exports.index = function(req, res) {
                 admin: req.user.admin
             } :
             null,
-        googleBrowserKey: (process.env.NODE_ENV === 'production' && process.env.SERVER === 'cloud') ? '&key=' + auth.googleBrowserKey : ''
+        googleBrowserKey: (process.env.NODE_ENV === 'production') ? '?key=' + auth.googleBrowserKey : ''
     };
 
     // render index.html
