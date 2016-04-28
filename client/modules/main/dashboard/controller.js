@@ -155,8 +155,8 @@ angular.module('app').controller('DashboardController', [
         
         // get analysis
         function getAnalysis() {
-            console.log('getAnalysis()');
-            console.log(params);
+            //console.log('getAnalysis()');
+            //console.log(params);
             if (params.topic && params.minDate && params.maxDate && params.channel) {
                 status.processingAnalysis = true;
                 errorMessages.splice(0, errorMessages.length);
@@ -267,7 +267,7 @@ angular.module('app').controller('DashboardController', [
         // initialize map
         $scope.loadMap = function() {
             var mapDiv = document.getElementById('map');
-            if (!mapDiv) { console.log('!mapDiv'); return; }
+            if (!mapDiv) { return; }
 
             // initialize map
             map = new google.maps.Map(document.getElementById('map'), {
@@ -368,7 +368,7 @@ angular.module('app').controller('DashboardController', [
             // click event listeners
             map.data.addListener('click', function(event) {
                 if (event.feature.getProperty('type') === 'state') {
-                    console.log('click state: '+event.feature.getProperty('name'));
+                    //console.log('click state: '+event.feature.getProperty('name'));
                     $scope.$apply(function() { params.state = event.feature.getProperty('_id'); });
                 }
             });
@@ -393,7 +393,7 @@ angular.module('app').controller('DashboardController', [
             // click event listeners
             map.data.addListener('click', function(event) {
                 if (event.feature.getProperty('type') === 'county') {
-                    console.log('click county: '+event.feature.getProperty('name'));
+                    //console.log('click county: '+event.feature.getProperty('name'));
                     $scope.$apply(function() { params.county = event.feature.getProperty('_id'); });
                     map.data.overrideStyle(event.feature, {strokeWeight: mapDefaultStyle.county.strokeWeight+6});
                     map.data.forEach(function(feature) {
@@ -415,9 +415,17 @@ angular.module('app').controller('DashboardController', [
             // fit map bounds
             fitMapBounds();
 
-            // clear other districts
+            // clear other districts & make selected county bold
             map.data.forEach(function(feature) {
-                if (feature.getProperty('type') === 'district') { map.data.remove(feature); }
+                switch(feature.getProperty('type')) {
+                    case 'district':
+                        map.data.remove(feature);
+                        break;
+                    case 'county':
+                        var fStrokeWeight = (feature.getProperty('_id') === params.county) ? mapDefaultStyle.county.strokeWeight+6 : mapDefaultStyle.county.strokeWeight;
+                        map.data.overrideStyle(feature, {strokeWeight: fStrokeWeight});
+                        break;
+                }
             });
 
             // load districts
@@ -426,7 +434,7 @@ angular.module('app').controller('DashboardController', [
             // click event listeners
             map.data.addListener('click', function(event) {
                 if (event.feature.getProperty('type') === 'district') {
-                    console.log('click district: '+event.feature.getProperty('name'));
+                    //console.log('click district: '+event.feature.getProperty('name'));
                     infowindow.setContent('<div style="margin:  10px 10px 5px 10px; text-align: center;">'+event.feature.getProperty('name')+'</div>');
                     infowindow.setPosition(event.feature.getGeometry().get());
                     infowindow.setOptions({pixelOffset: new google.maps.Size(0,-30)});
@@ -440,7 +448,7 @@ angular.module('app').controller('DashboardController', [
 
         // wait then check params before performing analysis
         function checkParams() {
-            console.log('checkParams');
+            //console.log('checkParams');
             var _params = {
                 topic: params.topic,
                 channel: params.channel,
@@ -476,7 +484,7 @@ angular.module('app').controller('DashboardController', [
             if (nV !== oV) { checkParams(); }
         });
         $scope.$watch('params.state', function(nV, oV) {
-            console.log('state changed from', oV, 'to', nV);
+            //console.log('state changed from', oV, 'to', nV);
             if (nV !== oV) {
                 if (nV === '') {
                     params.state = null;
@@ -493,13 +501,13 @@ angular.module('app').controller('DashboardController', [
             }
         });
         $scope.$watch('params.county', function(nV, oV) {
-            console.log('county changed from', oV, 'to', nV);
+            //console.log('county changed from', oV, 'to', nV);
             if (nV !== oV) {
                 if (nV === '') {
                     params.county = null;
                 } else if (!nV) {
                     checkParams();
-                    loadCountiesOnMap();
+                    if (params.state) { loadCountiesOnMap(); }
                 } else {
                     getAnalysis();
                     loadDistrictsOnMap();
