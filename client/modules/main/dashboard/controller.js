@@ -363,7 +363,7 @@ angular.module('app').controller('DashboardController', [
             map.data.revertStyle();
 
             // load states geo json
-            map.data.loadGeoJson('http://localhost:3000/data/state/list/geojson');
+            map.data.loadGeoJson('http://'+window.location.host+'/data/state/list/geojson');
 
             // click event listeners
             map.data.addListener('click', function(event) {
@@ -388,7 +388,7 @@ angular.module('app').controller('DashboardController', [
             map.data.revertStyle();
 
             // load counties
-            map.data.loadGeoJson('http://localhost:3000/data/county/list/geojson?state='+params.state);
+            map.data.loadGeoJson('http://'+window.location.host+'/data/county/list/geojson?state='+params.state);
 
             // click event listeners
             map.data.addListener('click', function(event) {
@@ -429,7 +429,7 @@ angular.module('app').controller('DashboardController', [
             });
 
             // load districts
-            map.data.loadGeoJson('http://localhost:3000/data/district/list/geojson?state='+params.state+'&county='+params.county);
+            map.data.loadGeoJson('http://'+window.location.host+'/data/district/list/geojson?state='+params.state+'&county='+params.county);
 
             // click event listeners
             map.data.addListener('click', function(event) {
