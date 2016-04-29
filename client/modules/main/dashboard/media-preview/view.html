@@ -1,0 +1,68 @@
+<!-- Dashboard Preview Social Media Modal -->
+
+<!-- Close Modal Button -->
+<div class="modal-header">
+    <span class="close" ng-click="cancel()">&times;</span>
+    <h3 class="modal-title">Social Media</h3>
+</div>
+
+<!-- Modal Body -->
+<div class="modal-body">
+
+    <!-- parameters -->
+    <p>
+        Showing <em>{{sentimentClass}}</em> social media
+        <span ng-if="word">containing <em>"{{word}}"</em></span>
+        for:
+    </p>
+    <ul>
+        <li>Channel: {{params.channel|capitalize}}</li>
+        <li ng-if="params.topic">Topic: {{getTopicName()|capitalize}}</li>
+        <li ng-if="params.state">State: {{getStateName()|capitalize}}</li>
+        <li ng-if="params.county">County: {{getCountyName()|capitalize}}</li>
+    </ul>
+
+    <!-- spinner -->
+    <div ng-if="status.processing" class="spinner"></div>
+
+    <!-- Error Message -->
+    <div ng-show="status.errorMessage"
+         class="alert alert-danger" role="alert">
+        {{status.errorMessage}}
+    </div>
+
+    <!-- Social Media -->
+    <div ng-if="!status.processing && media.$resolved">
+        <table class="table table-bordered">
+            <tbody>
+                <tr ng-repeat="mediaDoc in media">
+                    <td>
+                        <span ng-if="mediaDoc.platform === 'twitter'">
+                            <a ng-href="https://twitter.com/{{mediaDoc.data.user.screen_name}}/status/{{mediaDoc.data.id_str}}"
+                               target="_blank"
+                               data-toggle="tooltip" title="view on twitter">
+                                {{mediaDoc.text}}
+                            </a>
+                            <br>
+                            <small>{{mediaDoc.date|date:'shortDate'}} - Twitter - @{{mediaDoc.data.user.screen_name}}</small>
+                        </span>
+                        <span ng-if="mediaDoc.platform === 'faceboook'">
+                            <a ng-href="https://facebook.com/{{mediaDoc.data.id}}"
+                               target="_blank"
+                               data-toggle="tooltip" title="view on facebook">
+                                {{mediaDoc.text}}
+                            </a>
+                            <br>
+                            <small>{{mediaDoc.date|date:'shortDate'}} - Facebook - {{mediaDoc.data.from.name}}</small>
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Footer -->
+<div class="modal-footer">
+
+</div>

@@ -18,6 +18,7 @@
     <div class="btn-group"
          style="width: 100%;">
         <button ng-repeat="option in sentimentOptions"
+                ng-click="getMediaPreview(option)"
                 class="btn btn-default"
                 ng-style="{'background-color': sentimentConfig[option].color, width: getSentimentWidth(option)}"
                 style="height: 100px; min-width: 5%; max-width: 80%;">
@@ -37,6 +38,7 @@
     <div ng-repeat="option in sentimentOptions"
          class="col-xs-4">
         <button ng-repeat="ngram in analysis.ngrams[option].all | orderBy: '-frequency' | limitTo: 50"
+                ng-click="getMediaPreview(option, ngram.word)"
                 ng-style="{'background-color': sentimentConfig[option].color, '-webkit-filter': sentimentConfig[option].filter(1 / (analysis.ngrams[option].maxFreq - analysis.ngrams[option].minFreq) * (ngram.frequency - analysis.ngrams[option].minFreq))}"
                 class="btn btn-default small"
                 style="margin: 1px;">

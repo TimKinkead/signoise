@@ -1,11 +1,41 @@
+<!-- Channel-->
+<form class="form-inline"
+      style="margin-bottom: 5px;">
+    <div class="form-group">
+        <label class="text-center"
+               style="width: 70px;">
+            Channel:
+        </label>
+        <select ng-model="params.channel"
+                class="form-control"
+                style="min-width: 250px; cursor: pointer;">
+            <option ng-if="channels.$resolved"
+                    ng-repeat="channel in channels"
+                    value={{channel}}>
+                {{channel|capitalize}}
+            </option>
+        </select>
+    </div>
+    <div ng-if="status.processingChannels"
+         class="spinner-sm form-group">
+    </div>
+</form>
+
 <!-- Topic -->
 <form class="form-inline"
       style="margin-bottom: 5px;">
     <div class="form-group">
-        <label class="text-center" style="width: 70px;">Topic: </label>
+        <label class="text-center"
+               style="width: 70px;">
+            Topic:
+        </label>
         <select ng-model="params.topic"
                 class="form-control"
                 style="min-width: 250px; cursor: pointer;">
+            <option ng-if="topics.$resolved"
+                    value="">
+                ALL MEDIA/CONTENT
+            </option>
             <option ng-if="topics.$resolved"
                     ng-repeat="topic in topics"
                     value={{topic._id}}>
@@ -18,36 +48,24 @@
     </div>
 </form>
 
-<!-- Channel-->
-<form class="form-inline"
-      style="margin-bottom: 5px;">
-    <div class="form-group">
-        <label class="text-center" style="width: 70px;">Channel: </label>
-        <select ng-model="params.channel"
-                class="form-control"
-                style="min-width: 250px; cursor: pointer;">
-            <option ng-repeat="channel in channels"
-                    value={{channel}}>
-                {{channel|capitalize}}
-            </option>
-        </select>
-    </div>
-    <div ng-if="status.processingChannels"
-         class="spinner-sm form-group">
-    </div>
-</form>
-
 <!-- State -->
 <form ng-if="geoChannels.indexOf(params.channel) > -1"
       class="form-inline"
       style="margin-bottom: 5px;">
     <div class="form-group">
-        <label class="text-center" style="width: 70px;">State: </label>
+        <label class="text-center"
+               style="width: 70px;">
+            State:
+        </label>
         <select ng-model="params.state"
                 class="form-control"
                 style="min-width: 250px; cursor: pointer;">
-            <option value="">ALL STATES</option>
-            <option ng-repeat="state in states"
+            <option ng-if="states.$resolved"
+                    value="">
+                ALL STATES
+            </option>
+            <option ng-if="states.$resolved"
+                    ng-repeat="state in states"
                     value={{state._id}}>
                 {{state.name|capitalize}}
             </option>
@@ -63,12 +81,19 @@
       class="form-inline"
       style="margin-bottom: 5px;">
     <div class="form-group">
-        <label class="text-center" style="width: 70px;">County: </label>
+        <label class="text-center"
+               style="width: 70px;">
+            County:
+        </label>
         <select ng-model="params.county"
                 class="form-control"
                 style="min-width: 250px; cursor: pointer;">
-            <option value="">ALL COUNTIES</option>
-            <option ng-repeat="county in counties"
+            <option ng-if="counties.$resolved"
+                    value="">
+                ALL COUNTIES
+            </option>
+            <option ng-if="counties.$resolved"
+                    ng-repeat="county in counties"
                     value={{county._id}}>
                 {{county.name|capitalize}}
             </option>
@@ -78,3 +103,6 @@
          class="spinner-sm form-group">
     </div>
 </form>
+
+<!-- Processing Analysis -->
+<div ng-if="status.processingAnalysis" class="spinner"></div>

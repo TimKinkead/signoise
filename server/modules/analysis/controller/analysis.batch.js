@@ -47,6 +47,10 @@ exports.batch = function(req, res) {
         year = d.getFullYear(),
         minDate = new Date(year-1, month, 1),
         maxDate = new Date(year, month, 1);
+
+    // get channels
+    var channels = require('../../channel/data/channels.js');
+    if (req.query.channel) { channels = [req.query.channel]; }
     
     // get topics
     Topic.find(
@@ -55,18 +59,14 @@ exports.batch = function(req, res) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!topicDocs) { error.log(new Error('!topicDocs')); return errorMessage(); }
 
-            // get all channels
-            var channels = require('../../channel/data/channels.js');
-            if (req.query.channel) { channels = [req.query.channel]; }
-
-            // get all states
+            // get states
             State.find(
                 (req.query.state) ? {$or: [/*{_id: req.query.state},*/ {name: req.query.state}, {abbv: req.query.state}]} : {name: 'california'},
                 function(err, stateDocs) {
                     if (err) { error.log(new Error(err)); return errorMessage(); }
                     if (!stateDocs) { error.log(new Error('!stateDocs')); return errorMessage(); }
 
-                    // get all counties
+                    // get counties
                     County.find(
                         (req.query.county) ? {$or: [/*{_id: req.query.county},*/ {name: req.query.county}]} : {},
                         function(err, countyDocs) {
@@ -75,32 +75,38 @@ exports.batch = function(req, res) {
 
                             // construct queue
                             var queue = [];
-                            topicDocs.forEach(function(topicDoc) {
-                                channels.forEach(function(channel) {
+                            channels.forEach(function(channel) {
+                                queue.push({
+                                    type: (month+1)+'/1/'+year+' annual',
+                                    minDate: minDate,
+                                    maxDate: maxDate,
+                                    channel: channel
+                                });
+                                topicDocs.forEach(function(topicDoc) {
                                     queue.push({
                                         type: (month+1)+'/1/'+year+' annual',
-                                        topic: topicDoc._id,
-                                        channel: channel,
                                         minDate: minDate,
-                                        maxDate: maxDate
+                                        maxDate: maxDate,
+                                        channel: channel,
+                                        topic: topicDoc._id
                                     });
                                     stateDocs.forEach(function(stateDoc) {
                                         queue.push({
                                             type: (month+1)+'/1/'+year+' annual',
-                                            topic: topicDoc._id,
-                                            channel: channel,
                                             minDate: minDate,
                                             maxDate: maxDate,
+                                            channel: channel,
+                                            topic: topicDoc._id,
                                             state: stateDoc._id
                                         });
                                     });
                                     countyDocs.forEach(function(countyDoc) {
                                         queue.push({
                                             type: (month+1)+'/1/'+year+' annual',
-                                            topic: topicDoc._id,
-                                            channel: channel,
                                             minDate: minDate,
                                             maxDate: maxDate,
+                                            channel: channel,
+                                            topic: topicDoc._id,
                                             state: countyDoc.state,
                                             county: countyDoc._id
                                         });
@@ -127,10 +133,10 @@ exports.batch = function(req, res) {
                                 }
 
                                 var query = {
-                                    topic: queue[i].topic,
-                                    channel: queue[i].channel,
                                     minDate: queue[i].minDate,
                                     maxDate: queue[i].maxDate,
+                                    channel: queue[i].channel,
+                                    topic: (queue[i].topic) ? queue[i].topic : {$exists: false},
                                     state: (queue[i].state) ? queue[i].state : {$exists: false},
                                     county: (queue[i].county) ? queue[i].county : {$exists: false}
                                 };
