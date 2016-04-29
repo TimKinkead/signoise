@@ -23,13 +23,6 @@ var AnalysisSchema = new Schema(
         type: {
             type: String
         },
-        
-        // analysis name
-        topic: {
-            type: Schema.ObjectId,
-            ref: 'Topic',
-            required: true
-        },
 
         // start analysis date
         minDate: {
@@ -49,14 +42,22 @@ var AnalysisSchema = new Schema(
             required: true
         },
 
+        // topic
+        topic: {
+            type: Schema.ObjectId,
+            ref: 'Topic'
+        },
+
         // state
         state: {
-            type: String
+            type: Schema.ObjectId,
+            ref: 'State'
         },
 
         // county
         county: {
-            type: String
+            type: Schema.ObjectId,
+            ref: 'County'
         },
         
         // number of docs analyzed
@@ -75,9 +76,6 @@ var AnalysisSchema = new Schema(
         },
 
         // timestamp
-        modified: {
-            type: Date
-        },
         created: {
             type: Date,
             default: Date.now

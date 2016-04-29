@@ -11,7 +11,7 @@
     </h1>
 
     <!-- User Account Alerts -->
-    <div ng-include="'modules/main/dashboard/parts/user-alerts.html'"
+    <div ng-include="'modules/main/dashboard/views/user-alerts.html'"
          class="container"
          style="margin-bottom: 0;">
     </div>
@@ -24,12 +24,12 @@
      style="background: #334039; margin-bottom: 0;">
 
     <!-- Development Buttons -->
-    <div ng-include="'modules/main/dashboard/parts/dev-buttons.html'"
+    <div ng-include="'modules/main/dashboard/views/dev-buttons.html'"
          class="text-center">
     </div>
 
     <!-- Success / Error Messages -->
-    <div ng-include="'modules/main/dashboard/parts/dev-messages.html'"
+    <div ng-include="'modules/main/dashboard/views/dev-messages.html'"
          class="container">
     </div>
 
@@ -37,23 +37,23 @@
 
 <!-- Jumbo 4 (form & map) -->
 <div class="jumbotron"
-     style="background: #9ABFAA;">
-    <div ng-include="'modules/main/dashboard/parts/date-slider.html'"
+     style="background: #9ABFAA; padding-top: 48px; padding-bottom: 48px; margin-bottom: 30px;">
+    <div ng-include="'modules/main/dashboard/views/date-slider.html'"
          class="container text-center"
          style="margin-bottom: 30px;">
     </div>
     <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-3">
-            <div ng-include="'modules/main/dashboard/parts/form.html'"
+            <div ng-include="'modules/main/dashboard/views/form.html'"
                  class="container text-center">
             </div>
-            <div ng-include="'modules/main/dashboard/parts/messages.html'"
+            <div ng-include="'modules/main/dashboard/views/messages.html'"
                  class="container">
             </div>
         </div>
         <div class="col-md-7">
-            <div ng-include="'modules/main/dashboard/parts/map.html'"
+            <div ng-include="'modules/main/dashboard/views/map.html'"
                  style="height: 500px;">
             </div>
         </div>
@@ -61,17 +61,10 @@
     </div>
 </div>
 
-<!-- Jumbo 4 (heatmap)
-<div ng-if="geoChannels.indexOf(params.channel) > -1"
-     ng-include="'modules/main/dashboard/parts/map.html'"
-     class="jumbotron"
-     style="background: #B9E5CC; margin-bottom: 0;">
-</div>-->
-
 <!-- Jumbo 5 (analysis) -->
 <div class="jumbotron"
      style="background: white; margin-bottom: 0;">
-    <div ng-include="'modules/main/dashboard/parts/metrics.html'"
+    <div ng-include="'modules/main/dashboard/views/metrics.html'"
          class="container">
     </div>
 </div>

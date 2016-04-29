@@ -8,9 +8,9 @@ angular.module('app').controller('DashboardController', [
     '$resource',
     '$http',
     '$timeout',
-    '$filter',
+    '$uibModal',
     'CurrentUser',
-    function ($scope, $resource, $http, $timeout, $filter, CurrentUser) {
+    function ($scope, $resource, $http, $timeout, $modal, CurrentUser) {
 
         // variables
         var status = $scope.status = {},
@@ -51,21 +51,7 @@ angular.module('app').controller('DashboardController', [
         // Form
         
         $scope.geoChannels = ['all social media', 'district social media', 'district related social media'];
-        
-        // get topics
-        status.processingTopics = true;
-        $scope.topics = $resource('data/topic/list').query(
-            {},
-            function() {
-                status.processingTopics = false;
-                params.topic = $scope.topics[0]._id; // default
-            },
-            function(err) {
-                status.processingTopics = false;
-                errorMessages.push('Error! Could not get topics. Please try refreshing the page.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
-            }
-        );
-        
+
         // get channels
         status.processingChannels = true;
         $scope.channels = $resource('data/channel/list').query(
@@ -79,10 +65,24 @@ angular.module('app').controller('DashboardController', [
                 errorMessages.push('Error! Could not get channels. Please try refreshing the page.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
             }
         );
+        
+        // get topics
+        status.processingTopics = true;
+        var topics = $scope.topics = $resource('data/topic/list').query(
+            {},
+            function() {
+                status.processingTopics = false;
+                params.topic = $scope.topics[0]._id; // default
+            },
+            function(err) {
+                status.processingTopics = false;
+                errorMessages.push('Error! Could not get topics. Please try refreshing the page.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
+            }
+        );
 
         // get states
         status.processingStates = true;
-        $scope.states = $resource('data/state/list').query(
+        var states = $scope.states = $resource('data/state/list').query(
             {},
             function() {
                 status.processingStates = false;
@@ -94,9 +94,10 @@ angular.module('app').controller('DashboardController', [
         );
 
         // get counties
+        var counties;
         function getCounties() {
             status.processingCounties = true;
-            $scope.counties = $resource('data/county/list').query(
+            counties = $scope.counties = $resource('data/county/list').query(
                 {state: params.state},
                 function() {
                     status.processingCounties = false;
@@ -114,25 +115,26 @@ angular.module('app').controller('DashboardController', [
         // dates
         var d = new Date(),
             year = d.getFullYear(),
-            month = d.getMonth();
+            month = d.getMonth(),
+            day = d.getDate();
 
         // date slider config
         var slider = $scope.slider = {
-            min: month-12,
-            max: month,
+            min: (day > 5) ? month-12 : month-13,
+            max: (day > 5) ? month : month-1,
             options: {
-                floor: month-12,
-                ceil: month+1,
+                floor: (day > 5) ? month-13 : month-14,
+                ceil: (day > 5) ? month+1 : month,
                 showTicks: true,
                 translate: function(no) {
                     var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    if (no >= 0) { return months[no]+' 1, '+year; }
-                    else { return months[no+12]+' 1, '+(year-1); }
+                    return (no >= 0) ? months[no]+' 1, '+year : months[no+12]+' 1, '+(year-1);
                 }
             }
         };
 
-        // check date params based on slider
+        // change date params based on slider
+        // - use setTimeout to avoid constant changes from dragging
         function changeDateParams() {
             params.minDate = (slider.min >= 0) ? new Date(year, slider.min, 1) : new Date(year-1, slider.min+12, 1);
             params.maxDate = (slider.max >= 0) ? new Date(year, slider.max, 1) : new Date(year-1, slider.min+12, 1);
@@ -151,43 +153,66 @@ angular.module('app').controller('DashboardController', [
         // Analysis
         
         var analysis;
-        
+
+        // run analysis
+        function runAnalysis() {
+            //console.log('run analysis');
+            status.processingAnalysis = true;
+            errorMessages.splice(0, errorMessages.length);
+            successMessages.splice(0, successMessages.length);
+            analysis = $scope.analysis = $resource('data/analysis').get(
+                params,
+                function(data) {
+                    status.processingAnalysis = false;
+                    if (!data || !data.ngrams || !data.sentiment) {
+                        errorMessages.push('No analysis results!<br><small>Please try a different date/channel/topic/state/county combination.</small>');
+                        return;
+                    }
+                    // calculate minFreq / maxFreq for each ngram class
+                    sentimentOptions.forEach(function(option) {
+                        if (data.ngrams[option] && data.ngrams[option].all) {
+                            data.ngrams[option].all.forEach(function(ngram) {
+                                if (ngram.frequency && analysis.ngrams) {
+                                    if (!analysis.ngrams[option].minFreq) { analysis.ngrams[option].minFreq = ngram.frequency; }
+                                    if (!analysis.ngrams[option].maxFreq) { analysis.ngrams[option].maxFreq = ngram.frequency; }
+                                    if (ngram.frequency < analysis.ngrams[option].minFreq) { analysis.ngrams[option].minFreq = ngram.frequency; }
+                                    if (ngram.frequency > analysis.ngrams[option].maxFreq) { analysis.ngrams[option].maxFreq = ngram.frequency; }
+                                }
+                            });
+                        }
+                    });
+                    successMessages.push('See analysis below.');
+                },
+                function(err) {
+                    status.processingAnalysis = false;
+                    errorMessages.push('Error! Could not get analysis. Please try a different date/channel/topic/state/county combination.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
+                }
+            );
+        }
+
         // get analysis
         function getAnalysis() {
-            //console.log('getAnalysis()');
-            //console.log(params);
-            if (params.topic && params.minDate && params.maxDate && params.channel) {
-                status.processingAnalysis = true;
-                errorMessages.splice(0, errorMessages.length);
-                successMessages.splice(0, successMessages.length);
-                analysis = $scope.analysis = $resource('data/analysis').get(
-                    params,
-                    function(data) {
-                        status.processingAnalysis = false;
-                        if (!data || !data.ngrams || !data.sentiment) {
-                            errorMessages.push('No analysis results!<br><small>Please try a different topic/date/channel/state/county combination.</small>');
-                            return;
+            //console.log('get analysis');
+            var _params = {
+                minDate: params.minDate,
+                maxDate: params.maxDate,
+                channel: params.channel,
+                topic: params.topic,
+                state: params.state,
+                county: params.county
+            };
+            setTimeout(
+                function() {
+                    var run = true;
+                    for (var key in _params) {
+                        if (_params.hasOwnProperty(key) && _params[key] !== params[key]) {
+                            run = false;
                         }
-                        sentimentOptions.forEach(function(option) {
-                            if (data.ngrams[option] && data.ngrams[option].all) {
-                                data.ngrams[option].all.forEach(function(ngram) {
-                                    if (ngram.frequency && analysis.ngrams) {
-                                        if (!analysis.ngrams[option].minFreq) { analysis.ngrams[option].minFreq = ngram.frequency; }
-                                        if (!analysis.ngrams[option].maxFreq) { analysis.ngrams[option].maxFreq = ngram.frequency; }
-                                        if (ngram.frequency < analysis.ngrams[option].minFreq) { analysis.ngrams[option].minFreq = ngram.frequency; }
-                                        if (ngram.frequency > analysis.ngrams[option].maxFreq) { analysis.ngrams[option].maxFreq = ngram.frequency; }
-                                    }
-                                });
-                            } 
-                        });
-                        successMessages.push('See analysis below.');
-                    },
-                    function(err) {
-                        status.processingAnalysis = false;
-                        errorMessages.push('Error! Could not get analysis. Please try a different topic/date/channel/state/county combination.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
                     }
-                );   
-            }
+                    if (run) { runAnalysis(); }
+                },
+                1000
+            );
         }
 
         // -------------------------------------------------------------------------------------------------------------
@@ -231,6 +256,29 @@ angular.module('app').controller('DashboardController', [
                 if (!analysis.sentiment[option]) { total -= 5; }
             });
             return Math.floor((analysis.sentiment[sentimentOption] / analysis.count) * total) + '%';
+        };
+        
+        // get social media
+        $scope.getMediaPreview = function(sentimentClass, word) {
+            console.log('getMediaPreview');
+            var modalInstance = $modal.open({
+                templateUrl: 'modules/main/dashboard/media-preview/view.html',
+                controller: 'DashboardMediaPreviewController',
+                resolve: {
+                    info: {
+                        sentimentClass: sentimentClass,
+                        word: word,
+                        params: params,
+                        topics: angular.copy(topics),
+                        states: states,
+                        counties: counties
+                    }
+                }
+            });
+            modalInstance.result.then(
+                function() { console.log('close'); },
+                function() { console.log('dismiss'); }
+            );
         };
 
         // -------------------------------------------------------------------------------------------------------------
@@ -445,42 +493,23 @@ angular.module('app').controller('DashboardController', [
         // -------------------------------------------------------------------------------------------------------------
         // Watch Parameter Changes
 
-        // wait then check params before performing analysis
-        function checkParams() {
-            //console.log('checkParams');
-            var _params = {
-                topic: params.topic,
-                channel: params.channel,
-                minDate: params.minDate,
-                maxDate: params.maxDate,
-                state: params.state,
-                county: params.county
-            };
-            setTimeout(
-                function() {
-                    var performAnalysis = true;
-                    for (var key in _params) {
-                        if (_params.hasOwnProperty(key)) {
-                            if (_params[key] !== params[key]) { performAnalysis = false; }
-                        }
-                    }
-                    if (performAnalysis) { getAnalysis(); }
-                },
-                1000
-            );
-        }
-        
-        $scope.$watch('params.topic', function(nV, oV) {
+        $scope.$watch('params.minDate', function(nV, oV) {
+            if (nV !== oV) { getAnalysis(); }
+        });
+        $scope.$watch('params.maxDate', function(nV, oV) {
             if (nV !== oV) { getAnalysis(); }
         });
         $scope.$watch('params.channel', function(nV, oV) {
             if (nV !== oV) { getAnalysis(); }
         });
-        $scope.$watch('params.minDate', function(nV, oV) {
-            if (nV !== oV) { checkParams(); }
-        });
-        $scope.$watch('params.maxDate', function(nV, oV) {
-            if (nV !== oV) { checkParams(); }
+        $scope.$watch('params.topic', function(nV, oV) {
+            if (nV !== oV) {
+                if (nV === '') {
+                    params.topic = null;
+                } else {
+                    getAnalysis();
+                }
+            }
         });
         $scope.$watch('params.state', function(nV, oV) {
             //console.log('state changed from', oV, 'to', nV);
@@ -490,7 +519,7 @@ angular.module('app').controller('DashboardController', [
                 } else if (!nV) {
                     params.county = null;
                     $scope.counties = null;
-                    checkParams();
+                    getAnalysis();
                     loadStatesOnMap();
                 } else {
                     getCounties();
@@ -505,7 +534,7 @@ angular.module('app').controller('DashboardController', [
                 if (nV === '') {
                     params.county = null;
                 } else if (!nV) {
-                    checkParams();
+                    getAnalysis();
                     if (params.state) { loadCountiesOnMap(); }
                 } else {
                     getAnalysis();

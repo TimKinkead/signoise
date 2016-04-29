@@ -40,10 +40,9 @@ exports.go = function(req, res) {
         });
     }
 
-    if (!req.query.topic) { return errorMessage(400, 'Please select a topic for analysis.'); }
-    if (!req.query.channel) { return errorMessage(400, 'Please select a channel for analysis.'); }
     if (!req.query.minDate) { return errorMessage(400, 'Please select a start date for analysis.'); }
     if (!req.query.maxDate) { return errorMessage(400, 'Please select an end date for analysis.'); }
+    if (!req.query.channel) { return errorMessage(400, 'Please select a channel for analysis.'); }
     
     // clean up min/max dates
     var minDate = new Date(req.query.minDate),
@@ -60,17 +59,17 @@ exports.go = function(req, res) {
 
     // initialize analysis
     var analysis = {
-        topic: req.query.topic,
-        channel: req.query.channel,
         minDate: req.query.minDate,
-        maxDate: req.query.maxDate
+        maxDate: req.query.maxDate,
+        channel: req.query.channel
     };
+    if (req.query.topic) { analysis.topic = req.query.topic; }
     if (req.query.state) { analysis.state = req.query.state; }
     if (req.query.county) { analysis.county = req.query.county; }
 
     // save analysis & return
     function done() {
-        if (!analysis.count || !analysis.sentiment || !analysis.ngrams) { return res.status(200).send(null); }
+        if (!analysis.hasOwnProperty('count') || !analysis.sentiment || !analysis.ngrams) { return res.status(200).send(null); }
         Analysis.create(analysis, function(err, newAnalysisDoc) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); return errorMessage(); }
@@ -80,10 +79,10 @@ exports.go = function(req, res) {
     
     // look for recent analysis
     Analysis.findOne({
-            topic: analysis.topic,
-            channel: analysis.channel,
             minDate: analysis.minDate,
             maxDate: analysis.maxDate,
+            channel: analysis.channel,
+            topic: (analysis.topic) ? analysis.topic : {$exists: false},
             state: (analysis.state) ? analysis.state : {$exists: false},
             county: (analysis.county) ? analysis.county : {$exists: false},
             created: {
