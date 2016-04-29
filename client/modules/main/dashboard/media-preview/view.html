@@ -46,11 +46,11 @@
                             <br>
                             <small>{{mediaDoc.date|date:'shortDate'}} - Twitter - @{{mediaDoc.data.user.screen_name}}</small>
                         </span>
-                        <span ng-if="mediaDoc.platform === 'faceboook'">
+                        <span ng-if="mediaDoc.platform === 'facebook'">
                             <a ng-href="https://facebook.com/{{mediaDoc.data.id}}"
                                target="_blank"
                                data-toggle="tooltip" title="view on facebook">
-                                {{mediaDoc.text}}
+                                {{(mediaDoc.text.length > 200) ? mediaDoc.text.slice(0, 200)+'...' : mediaDoc.text}}
                             </a>
                             <br>
                             <small>{{mediaDoc.date|date:'shortDate'}} - Facebook - {{mediaDoc.data.from.name}}</small>
