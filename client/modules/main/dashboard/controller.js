@@ -164,8 +164,10 @@ angular.module('app').controller('DashboardController', [
                 params,
                 function(data) {
                     status.processingAnalysis = false;
+                    var msg;
                     if (!data || !data.ngrams || !data.sentiment) {
-                        errorMessages.push('No analysis results!<br><small>Please try a different date/channel/topic/state/county combination.</small>');
+                        msg = 'No analysis results!<br><small>Please try a different date/channel/topic/state/county combination.</small>';
+                        if (errorMessages.indexOf(msg) < 0) { errorMessages.push(msg); }
                         return;
                     }
                     // calculate minFreq / maxFreq for each ngram class
@@ -181,11 +183,13 @@ angular.module('app').controller('DashboardController', [
                             });
                         }
                     });
-                    successMessages.push('See analysis below.');
+                    msg = 'See analysis below.';
+                    if (successMessages.indexOf(msg) < 0) { successMessages.push(msg); }
                 },
                 function(err) {
                     status.processingAnalysis = false;
-                    errorMessages.push('Error! Could not get analysis. Please try a different date/channel/topic/state/county combination.<br><small>'+JSON.stringify(err, null, 4)+'</small>');
+                    var msg = 'Error! Could not get analysis. Please try a different date/channel/topic/state/county combination.<br><small>'+JSON.stringify(err, null, 4)+'</small>';
+                    if (errorMessages.indexOf(msg) < 0) { errorMessages.push(msg); }
                 }
             );
         }
@@ -211,7 +215,7 @@ angular.module('app').controller('DashboardController', [
                     }
                     if (run) { runAnalysis(); }
                 },
-                1000
+                500
             );
         }
 
@@ -260,7 +264,6 @@ angular.module('app').controller('DashboardController', [
         
         // get social media
         $scope.getMediaPreview = function(sentimentClass, word) {
-            console.log('getMediaPreview');
             var modalInstance = $modal.open({
                 templateUrl: 'modules/main/dashboard/media-preview/view.html',
                 controller: 'DashboardMediaPreviewController',

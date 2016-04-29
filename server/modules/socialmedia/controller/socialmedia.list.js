@@ -7,7 +7,8 @@ var mongoose = require('mongoose'),
     SocialMedia = mongoose.model('SocialMedia'),
     Topic = mongoose.model('Topic'),
     State = mongoose.model('State'),
-    County = mongoose.model('County');
+    County = mongoose.model('County'),
+    District = mongoose.model('District');
 
 //----------------------------------------------------------------------------------------------------------------------
 // Controllers
@@ -43,6 +44,7 @@ exports.list = function(req, res) {
     var query = {}, sort = {date: -1};
 
     function getMedia() {
+        //logger.bold(JSON.stringify(query, null, 4));
         SocialMedia.find(query)
             .sort(sort)
             .skip(Number(req.query.skip))
@@ -57,42 +59,9 @@ exports.list = function(req, res) {
             });
     }
 
-    // county
-    function checkCounty() {
-        if (!req.query.county) { getMedia(); return; }
-        getMedia();
-    }
-
-    // state/county
-    function checkGeo() {
-        if (req.query.county) {
-            County.findById(req.query.county)
-                .select('geometry')
-                .exec(function(err, countyDoc) {
-                    if (err) { error.log(new Error(err)); errorMessage(); return; }
-                    if (!countyDoc) { error.log(new Error('!countyDoc')); errorMessage(); return; }
-                    if (!countyDoc.geometry) { error.log(new Error('!countyDoc.geometry')); errorMessage(); return; }
-                    query.location = {$geoWithin: {$geometry: countyDoc.geometry}};
-                    getMedia();
-                });
-        } else if (req.query.state) {
-            State.findById(req.query.state)
-                .select('geometry')
-                .exec(function(err, stateDoc) {
-                    if (err) { error.log(new Error(err)); errorMessage(); return; }
-                    if (!stateDoc) { error.log(new Error('!stateDoc')); errorMessage(); return; }
-                    if (!stateDoc.geometry) { error.log(new Error('!stateDoc.geometry')); errorMessage(); return; }
-                    query.location = {$geoWithin: {$geometry: stateDoc.geometry}};
-                    getMedia();
-                });
-        } else {
-            getMedia();
-        }
-    }
-
     // topic
     function checkTopic() {
-        if (!req.query.topic) { checkGeo(); return; }
+        if (!req.query.topic) { getMedia(); return; }
         Topic.findById(req.query.topic, function(err, topicDoc) {
             if (err) { error.log(new Error(err)); errorMessage(); return; }
             if (!topicDoc) { error.log(new Error('!topicDoc')); errorMessage(); return; }
@@ -107,8 +76,66 @@ exports.list = function(req, res) {
                 {'ngrams.3.sorted.word': {$in: topicDoc.ngrams['3']}},
                 {'ngrams.4.sorted.word': {$in: topicDoc.ngrams['4']}}
             ];
-            checkGeo();
+            getMedia();
         });
+    }
+
+    // channel
+    function checkChannel() {
+        switch (req.query.channel) {
+            case 'all social media':
+                if (req.query.county) {
+                    County.findById(req.query.county)
+                        .select('geometry')
+                        .exec(function(err, countyDoc) {
+                            if (err) { error.log(new Error(err)); errorMessage(); return; }
+                            if (!countyDoc) { error.log(new Error('!countyDoc')); errorMessage(); return; }
+                            if (!countyDoc.geometry) { error.log(new Error('!countyDoc.geometry')); errorMessage(); return; }
+                            query.location = {$geoWithin: {$geometry: countyDoc.geometry}};
+                            checkTopic();
+                        });
+                } else if (req.query.state) {
+                    State.findById(req.query.state)
+                        .select('geometry')
+                        .exec(function(err, stateDoc) {
+                            if (err) { error.log(new Error(err)); errorMessage(); return; }
+                            if (!stateDoc) { error.log(new Error('!stateDoc')); errorMessage(); return; }
+                            if (!stateDoc.geometry) { error.log(new Error('!stateDoc.geometry')); errorMessage(); return; }
+                            query.location = {$geoWithin: {$geometry: stateDoc.geometry}};
+                            checkTopic();
+                        });
+                } else {
+                    checkTopic();
+                }
+                break;
+            case 'district social media':
+            case 'district related social media':
+                var seedIds = [],
+                    dQuery = {};
+                if (req.query.state) { dQuery.state = req.query.state; }
+                if (req.query.county) { dQuery.county = req.query.county; }
+                District.find(
+                    dQuery,
+                    function(err, districtDocs) {
+                        if (err) { error.log(new Error(err)); errorMessage(); return; }
+                        if (!districtDocs) { error.log(new Error('!districtDocs')); errorMessage(); return; }
+                        districtDocs.forEach(function(cV) {
+                            if (req.query.channel === 'district social media') {
+                                if (cV.facebookSeed) { seedIds.push(cV.facebookSeed); }
+                                if (cV.twitterSeed) { seedIds.push(cV.twitterSeed); }
+                            } else if (req.query.channel === 'district related social media') {
+                                if (cV.relatedTwitterSeeds) { seedIds = seedIds.concat(cV.relatedTwitterSeeds); }
+                            }
+                        });
+                        if (!seedIds.length) { error.log(new Error('!seedIds.length')); errorMessage(); return; }
+                        query.socialseed = {$in: seedIds};
+                        checkTopic();
+                    }
+                );
+                break;
+            default:
+                checkTopic();
+        }
     }
 
     // -- START CHECKING PARAMS --
@@ -159,5 +186,5 @@ exports.list = function(req, res) {
     }
 
     // check other params
-    checkTopic();
+    checkChannel();
 };
