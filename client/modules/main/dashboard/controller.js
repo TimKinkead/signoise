@@ -134,14 +134,13 @@ angular.module('app').controller('DashboardController', [
         };
 
         // change date params based on slider
-        // - use setTimeout to avoid constant changes from dragging
         function changeDateParams() {
             params.minDate = (slider.min >= 0) ? new Date(year, slider.min, 1) : new Date(year-1, slider.min+12, 1);
-            params.maxDate = (slider.max >= 0) ? new Date(year, slider.max, 1) : new Date(year-1, slider.min+12, 1);
+            params.maxDate = (slider.max >= 0) ? new Date(year, slider.max, 1) : new Date(year-1, slider.max+12, 1);
         }
         changeDateParams(); // set default date params
 
-        // watch for date slider changes
+        // watch for date slider changes & update params.minDate/maxDate
         $scope.$watch('slider.min', function(nV, oV) {
             if (nV !== oV) { changeDateParams(); }
         });

@@ -263,15 +263,11 @@ exports.analyzeSocialMedia = function(query, clbk) {
             .exec(function(err, resultDocs) {
                 if (err) { return clbk(new Error(err)); }
                 if (!resultDocs) { return clbk(new Error('!resultDocs')); }
-                if (!resultDocs.length) { return clbk(); }
-                if (resultDocs.length !== 1) {
-                    err = new Error('resultDocs.length !== 1');
-                    err.resultDocs = resultDocs;
-                    return clbk(err);
-                }
+                if (resultDocs.length > 1) { return clbk(new Error('resultDocs.length > 1')); }
 
-                // clean up results
-                var results = resultDocs[0];
+                var results = resultDocs[0] || {count: 0};
+
+                // clean up ngrams
                 if (results.ngrams && results.ngrams.constructor === Array) {
                     var newNgramResults = {};
                     results.ngrams.forEach(function(ngramObj) {

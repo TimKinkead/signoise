@@ -68,12 +68,12 @@ exports.batch = function(req, res) {
 
                     // get counties
                     County.find(
-                        (req.query.county) ? {$or: [/*{_id: req.query.county},*/ {name: req.query.county}]} : {},
+                        (req.query.county) ? {$or: [/*{_id: req.query.county},*/ {name: req.query.county}]} : {state: stateDocs[0]._id},
                         function(err, countyDocs) {
                             if (err) { error.log(new Error(err)); return errorMessage(); }
                             if (!countyDocs) { error.log(new Error('!countyDocs')); return errorMessage(); }
 
-                            // construct queue
+                            // cons truct queue
                             var queue = [];
                             channels.forEach(function(channel) {
                                 queue.push({
@@ -157,7 +157,6 @@ exports.batch = function(req, res) {
                                         {upsert: true},
                                         function(err) {
                                             if (err) { error.log(new Error(err)); }
-                                            else { console.log('analysis updated'); }
                                             nextAnalysis();
                                         }
                                     );
