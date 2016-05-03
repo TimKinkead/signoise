@@ -96,6 +96,19 @@ var AnalysisSchema = new Schema(
 //----------------------------------------------------------------------------------------------------------------------
 // Pre & Post Methods
 
+/**
+ * Pre-validation hook to set title & other fields.
+ */
+AnalysisSchema.pre('validate', function(next) {
+    if (this.minDate && this.maxDate) {
+        if (this.minDate.getMonth() === this.maxDate.getMonth() && 
+            this.minDate.getFullYear() === this.maxDate.getFullYear()-1) {
+            this.type = (this.maxDate.getMonth()+1)+'/1/'+this.maxDate.getFullYear()+' annual';
+        }
+    }
+    next();
+});
+
 //----------------------------------------------------------------------------------------------------------------------
 // Static Methods
 
