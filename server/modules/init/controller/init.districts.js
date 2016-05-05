@@ -128,7 +128,8 @@ function getTwitterSeed(screenName, clbk) {
  * @param clbk - return clbk(err, websiteDoc)
  */
 function getWebSite(webUrl, clbk) {
-    if (!webUrl || webUrl.indexOf('http') !== 0) { return clbk(); }
+    if (!webUrl) { return clbk(); }
+    if (webUrl.indexOf('http') !== 0) { webUrl = 'http://'+webUrl; }
 
     // grab subdomain
     var subdomain = WebSite.getUrlData(webUrl).subdomain;
@@ -194,6 +195,9 @@ function upsertDistricts() {
                     if (district.twitterAccount) { delete district.twitterAccount; }
 
                     // get website
+                    if (district.website.indexOf('sites.google') > -1) {
+                        logger.bold(JSON.stringify(district, null, 4));
+                    }
                     getWebSite(district.website, function(err, websiteDoc) {
                         if (err) { error.log(err); }
                         if (websiteDoc) { district.website = websiteDoc._id; }
@@ -255,7 +259,7 @@ exports.districts = function(req, res) {
                 'city',             // 'City',
                 'zip',              // 'Zip',
                 'state',            // 'State',
-                'Website (Orig)',       // ignored - see below
+                'website',          // 'Website (Orig)',
                 'DOC',                  // ignored
                 'DOCType',              // ignored
                 'latitude',         // 'Latitude',
@@ -270,7 +274,7 @@ exports.districts = function(req, res) {
                 'facebook',         // 'Facebook Account',
                 'Verified',             // ignored
                 'Comment',              // ignored
-                'website'           // 'Final Website (Redirect or lookup)'
+                'Final Website (Redirect or lookup)' // ignored
             ]
         });
     readStream.pipe(converter).pipe(writeStream)

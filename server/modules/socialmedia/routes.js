@@ -32,10 +32,6 @@ module.exports = function(app) {
     app.route('/data/socialmedia/download')
         .get(socialmedia.download);
     
-    // update social media documents that don't have social seed
-    app.route('/data/socialmedia/update')
-        .get(socialmedia.update);
-    
     // process ngrams
     app.route('/data/socialmedia/process/ngrams')
         .get(socialmedia.processNgrams);
@@ -44,8 +40,16 @@ module.exports = function(app) {
     app.route('/data/socialmedia/process/sentiment')
         .get(socialmedia.processSentiment);
 
-    // update district related social media 
-    app.route('/data/socialmedia/district/related')
+    // update social media documents that don't have social seed
+    app.route('/data/socialmedia/update/seeds')
+        .get(socialmedia.update);
+
+    // update district related social media
+    app.route('/data/socialmedia/update/district-related')
         .get(socialmedia.updateDistrictRelated);
+    
+    // update social media locations
+    app.route('/data/socialmedia/update/locations')
+        .get(socialmedia.updateLocations);
     
 };

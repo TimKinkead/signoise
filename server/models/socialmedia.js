@@ -127,6 +127,11 @@ var SocialMediaSchema = new Schema(
         sentimentProcessed: {
             type: Date
         },
+        
+        // timestamp - when the location was checked
+        locationChecked: {
+            type: Date  
+        },
 
         // timestamp - when data field was updated by a later 'pull'
         modified: {
@@ -167,7 +172,10 @@ SocialMediaSchema.pre('validate', function(next) {
             case 'twitter':
                 if (this.data.created_at) {this.date = new Date(this.data.created_at);}
                 if (this.data.text) {this.text = socialmedia.cleanTwitterText(this.data.text);}
-                if (this.data.coordinates && this.data.coordinates.coordinates) {this.location = this.data.coordinates.coordinates;}
+                if (this.data.coordinates && this.data.coordinates.coordinates) {
+                    this.location = this.data.coordinates.coordinates;
+                    this.locationChecked = new Date();
+                }
                 break;
         }
     }

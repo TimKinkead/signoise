@@ -126,7 +126,7 @@ exports.batch = function(req, res) {
                                 function nextAnalysis(delay) {
                                     i++;
                                     if (i+1 >= queue.length) { logger.bold('done with batch analysis'); return; }
-                                    if (i%25 === 0) { logger.log(i+'/'+queue.length+' ('+Math.round((i/queue.length)*100)+'%)'); }
+                                    if (i < 5 || i%25 === 0) { logger.bold('batch analysis '+i+'/'+queue.length+' ('+Math.round((i/queue.length)*100)+'%)'); }
                                     if (!queue[i]) { nextAnalysis(); return; }
                                     if (delay) { setTimeout(function() { performAnalysis(); }, 1000*60*delay); return; }
                                     performAnalysis();

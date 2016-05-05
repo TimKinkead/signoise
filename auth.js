@@ -8,7 +8,7 @@ module.exports = {
 
 	// google (for google apis)
 	googleServerKeyDev: '',
-	googleServerKey: '',
+	googleServerKey: 'AIzaSyCm74EyR_48ZuBvm_Aq6hHuczosrcm1S94',
 	googleBrowserKey: 'AIzaSyC07E5jf1GQZhBnosMHz2tlyb4lcmT01Qw',
 	googleVerificationKey: '',
 
