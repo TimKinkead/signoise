@@ -220,18 +220,25 @@ exports.saveTweet = function(tweet, seed, clbk) {
 
         // otherwise save new tweet
         else {
-            SocialMedia.create(
-                {platform: 'twitter', data: tweet, socialseed: (seed) ? seed._id : null},
-                function(err, newMediaDoc) {
-                    if (err) {return clbk(new Error(err));}
-
-                    // check tweet entities for hashtags, user_mentions, and urls
-                    if (tweet.entities) {checkTweetEntities(tweet.entities);}
-
-                    // done
-                    return clbk(null, true);
+            var socialmedia = new SocialMedia({
+                platform: 'twitter',
+                data: tweet
+            });
+            if (seed) {
+                if (seed._id) { socialmedia.socialseed = seed._id; }
+                if (seed.twitter && seed.twitter.longitude && seed.twitter.latitude) {
+                    socialmedia.location = [seed.twitter.longitude, seed.twitter.latitude];
                 }
-            );
+            }
+            socialmedia.save(function(err) {
+                if (err) {return clbk(new Error(err));}
+
+                // check tweet entities for hashtags, user_mentions, and urls
+                if (tweet.entities) {checkTweetEntities(tweet.entities);}
+
+                // done
+                return clbk(null, true);
+            });
         }
     });
 };
