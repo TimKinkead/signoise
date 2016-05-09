@@ -80,7 +80,7 @@ var DistrictSchema = new Schema(
             ref: 'SocialSeed'
         },
 
-        // related twitter accounts (just accounts, not hashtags)
+        // related twitter accounts
         relatedTwitterSeeds: [{
             type: Schema.ObjectId,
             ref: 'SocialSeed'

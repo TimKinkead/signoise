@@ -42,7 +42,8 @@ var SocialSeedSchema = new Schema({
         latitude: {type: Number},
         longitude: {type: Number},
         radius: {type: Number}, // miles
-        type: {type: String, enum: ['query', 'hashtag', 'screen_name', 'geocode']}
+        type: {type: String, enum: ['query', 'hashtag', 'screen_name', 'geocode']},
+        followerCount: {type: Number}
     },
 
     // facebook
@@ -87,6 +88,11 @@ var SocialSeedSchema = new Schema({
     // timestamp - when social media was last pulled for this seed
     lastPulled: {
         type: Date
+    },
+    
+    // timestamp - when follower count was last updated
+    followerCountUpdated: {
+        type: Date  
     },
 
     // timestamp - when the site doc was created
