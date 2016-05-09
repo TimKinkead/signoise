@@ -54,7 +54,13 @@ var StateSchema = new Schema(
         bounds: {
             type: Schema.Types.Mixed
         },
-        
+
+        // related twitter accounts
+        relatedTwitterSeeds: [{
+            type: Schema.ObjectId,
+            ref: 'SocialSeed'
+        }],
+
         // timestamps
         modified: {
             type: Date

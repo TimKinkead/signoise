@@ -44,7 +44,12 @@ function cleanUpDistrict(district) {
         if (district.twitterAccount.indexOf('/') > -1) {
             district.twitterAccount = district.twitterAccount.slice(0, district.twitterAccount.indexOf('/'));   
         }
-        district.twitterAccount = district.twitterAccount.toLowerCase();
+        if (district.twitterAccount.indexOf('?') > -1) {
+            district.twitterAccount = district.twitterAccount.slice(0, district.twitterAccount.indexOf('?'));
+        }
+        if (/^\@[a-zA-Z0-9\_]+$/.test(district.twitterAccount)) {
+            district.twitterAccount = district.twitterAccount.toLowerCase();
+        }
     }
     
     // extract facebook page name

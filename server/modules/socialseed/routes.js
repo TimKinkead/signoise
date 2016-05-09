@@ -29,4 +29,7 @@ module.exports = function(app) {
     app.route('/data/socialseed/facebook/search')
         .get(socialseed.searchFacebook);
 
+    // update follower counts for active social seeds
+    app.route('/data/socialseed/update/follower-count')
+        .get(socialseed.updateFollowerCount);
 };
