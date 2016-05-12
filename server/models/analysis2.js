@@ -70,7 +70,12 @@ var Analysis2Schema = new Schema(
             type: Schema.ObjectId,
             ref: 'SocialSeed'
         },
-
+        
+        // twitter account
+        twitterAccount: {
+            type: String
+        },
+        
         // network type
         networkType: {
             type: String,

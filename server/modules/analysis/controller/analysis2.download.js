@@ -39,6 +39,7 @@ function getCsv(headerOrData, doc) {
         {header: 'county',              data: (doc.county) ? doc.county.name : ''},
         {header: 'district',            data: (doc.district) ? doc.district.name : ''},
         {header: 'socialseed',          data: (doc.socialseed) ? doc.socialseed.title : ''},
+        {header: 'twitterAccount',      data: (doc.twitterAccount) ? doc.twitterAccount : ((doc.socialseed) ? doc.socialseed.title : '')},
         {header: 'networkType',         data: doc.networkType},
         {header: 'networkWeight',       data: doc.networkWeight},
         {header: 'rankWeight',          data: doc.rankWeight},
