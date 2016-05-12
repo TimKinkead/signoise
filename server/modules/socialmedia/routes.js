@@ -51,5 +51,9 @@ module.exports = function(app) {
     // update social media locations
     app.route('/data/socialmedia/update/locations')
         .get(socialmedia.updateLocations);
+
+    // update social media socialseeds
+    app.route('/data/socialmedia/update/socialseeds')
+        .get(socialmedia.updateSocialSeeds);
     
 };

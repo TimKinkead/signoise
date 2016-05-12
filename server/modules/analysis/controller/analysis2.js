@@ -82,7 +82,8 @@ function calcDistricts(date, topic, state, clbk) {
                     count: {$sum: 1},
                     totalCount: {$max: '$data.user.statuses_count'},
                     sentiment: {$avg: '$sentiment'},
-                    followerCount: {$max: '$data.user.followers_count'}
+                    followerCount: {$max: '$data.user.followers_count'},
+                    screen_name: {$first: '$data.user.screen_name'}
                 }}
             ])
                 .allowDiskUse(true)
@@ -106,6 +107,7 @@ function calcDistricts(date, topic, state, clbk) {
                                         county: district.county,
                                         district: district._id,
                                         socialseed: cV._id,
+                                        twitterAccount: '@'+cV.screen_name,
                                         networkType: 'district',
                                         networkWeight: (networkWeightConfig.district/resultDocs.length)/districts.length,
                                         //rankWeight: // calculate after 'district', 'related', and 'geographic' calcs
@@ -184,7 +186,8 @@ function calcRelated(date, topic, state, clbk) {
                     count: {$sum: 1},
                     totalCount: {$max: '$data.user.statuses_count'},
                     sentiment: {$avg: '$sentiment'},
-                    followerCount: {$max: '$data.user.followers_count'}
+                    followerCount: {$max: '$data.user.followers_count'},
+                    screen_name: {$first: '$data.user.screen_name'}
                 }}
             ])
                 .allowDiskUse(true)
@@ -208,6 +211,7 @@ function calcRelated(date, topic, state, clbk) {
                                         county: district.county,
                                         district: district._id,
                                         socialseed: cV._id,
+                                        twitterAccount: '@'+cV.screen_name,
                                         networkType: 'related',
                                         networkWeight: (networkWeightConfig.related/resultDocs.length)/districts.length,
                                         //rankWeight: // calculate later: (followers/totalFollowers[districts+related+geographic])/duplicates
@@ -284,6 +288,7 @@ function calcGeographic(date, topic, state, clbk) {
                         ]}
                     ],
                     socialseed: {$nin: seedIds, $exists: true},
+                    'data.user.screen_name': {$exists: true},
                     sentimentProcessed: {$exists: true},
                     ngramsProcessed: {$exists: true}
                 }
@@ -437,10 +442,16 @@ exports.analysis2 = function(req, res) {
                                     var duplicates = {},
                                         totalFollowers = 0;
                                     allAnalysisDocs.forEach(function(cV) { 
-                                        if (duplicates[cV.socialseed.toString()]) { 
+                                        /*if (duplicates[cV.socialseed.toString()]) { 
                                             duplicates[cV.socialseed.toString()]++; 
                                         } else { 
                                             duplicates[cV.socialseed.toString()] = 1; 
+                                            totalFollowers += cV.followerCount;
+                                        }*/
+                                        if (duplicates[cV.twitterAccount]) {
+                                            duplicates[cV.twitterAccount]++;
+                                        } else {
+                                            duplicates[cV.twitterAccount] = 1;
                                             totalFollowers += cV.followerCount;
                                         }
                                     });
@@ -449,7 +460,8 @@ exports.analysis2 = function(req, res) {
                                     cnt = allAnalysisDocs.length;
                                     logger.dash('saving analysis docs');
                                     allAnalysisDocs.forEach(function(cV) { 
-                                        cV.rankWeight = (cV.followerCount/totalFollowers)/duplicates[cV.socialseed.toString()];
+                                        //cV.rankWeight = (cV.followerCount/totalFollowers)/duplicates[cV.socialseed.toString()];
+                                        cV.rankWeight = (cV.followerCount/totalFollowers)/duplicates[cV.twitterAccount];
                                         Analysis2.create(cV, function(err, newAnalysisDoc) {
                                             if (err) { error.log(new Error(err)); }
                                             if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); }
