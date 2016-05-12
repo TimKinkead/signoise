@@ -237,24 +237,33 @@ function calcGeographic(date, topic, state, clbk) {
     logger.dash('calculating \'geographic\' social media');
 
     var seedIds = [],
-        results = [],
-        cnt, errs = [];
+        results = [];
 
-    function checkDone() {
-        cnt -= 1;
-        if (cnt <= 0) {
-            if (!errs.length) { errs = null; }
-            results.forEach(function(cV) {
-                cV.networkWeight =  (networkWeightConfig.geographic / results.length);
-            });
-            logger.arrow('done');
-            return clbk(errs, results);
-        }
+    var cnt, errs = [];
+    function done() {
+        if (!errs.length) { errs = null; }
+        results.forEach(function(cV) {
+            cV.networkWeight =  (networkWeightConfig.geographic / results.length);
+        });
+        logger.arrow('done');
+        return clbk(errs, results);
     }
 
     // aggregate geographic social media
-    function aggregateCountySocialMedia(county) {
+    var countyIndex = 0, counties = [];
+    function aggregateCountySocialMedia() {
+
+        function nextCounty(delay) {
+            countyIndex++;
+            if (countyIndex >= counties.length) { done(); return; }
+            if (delay) { setTimeout(function() { aggregateCountySocialMedia(); }, 1000*60*delay); return; }
+            aggregateCountySocialMedia();
+        }
+
+        var county = counties[countyIndex];
+        if (!county) { nextCounty(); }
         logger.log('  '+county.name);
+
         SocialMedia.aggregate([
             {
                 $match: {
@@ -289,8 +298,8 @@ function calcGeographic(date, topic, state, clbk) {
         ])
             .allowDiskUse(true)
             .exec(function (err, resultDocs) {
-                if (err) { errs.push(new Error(err)); checkDone(); return; }
-                if (!resultDocs) { errs.push(new Error('!resultDocs')); checkDone(); return; }
+                if (err) { errs.push(new Error(err)); nextCounty(1); return; }
+                if (!resultDocs) { errs.push(new Error('!resultDocs')); nextCounty(1); return; }
 
                 // clean up results
                 resultDocs.forEach(function (cV) {
@@ -316,7 +325,7 @@ function calcGeographic(date, topic, state, clbk) {
                 });
 
                 // done
-                checkDone();
+                nextCounty();
             });
     }
 
@@ -345,10 +354,8 @@ function calcGeographic(date, topic, state, clbk) {
                     if (!countyDocs.length) { return clbk([new Error('!countyDocs.length')]); }
 
                     // aggregate geographic social media
-                    cnt = countyDocs.length;
-                    countyDocs.forEach(function(cV) {
-                        aggregateCountySocialMedia(cV);
-                    });
+                    counties = countyDocs;
+                    aggregateCountySocialMedia();
                 });
         });
 }
