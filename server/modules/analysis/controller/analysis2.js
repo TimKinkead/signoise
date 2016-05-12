@@ -27,9 +27,9 @@ var error = require('../../error/index'),
 // Methods
 
 var networkWeightConfig = {
-    district: 0.57, // 57%
-    related: 0.29, // 29%
-    geographic: 0.14 // 14%
+    district: 57, // 57%
+    related: 29, // 29%
+    geographic: 14 // 14%
 };
 
 /**
@@ -407,8 +407,10 @@ exports.analysis2 = function(req, res) {
     }
     
     // wipe analysis2 collection
+    logger.dash('wiping analysis2 collection');
     Analysis2.remove({}, function(err) {
         if (err) { error.log(new Error(err)); errorMessage(); return; }
+        logger.arrow('done');
 
         // get topic
         Topic.findOne({name: 'common core'})
@@ -460,8 +462,8 @@ exports.analysis2 = function(req, res) {
                                     cnt = allAnalysisDocs.length;
                                     logger.dash('saving analysis docs');
                                     allAnalysisDocs.forEach(function(cV) { 
-                                        //cV.rankWeight = (cV.followerCount/totalFollowers)/duplicates[cV.socialseed.toString()];
-                                        cV.rankWeight = (cV.followerCount/totalFollowers)/duplicates[cV.twitterAccount];
+                                        //cV.rankWeight = ((cV.followerCount/totalFollowers)/duplicates[cV.socialseed.toString()])*100;
+                                        cV.rankWeight = ((cV.followerCount/totalFollowers)/duplicates[cV.twitterAccount])*100;
                                         Analysis2.create(cV, function(err, newAnalysisDoc) {
                                             if (err) { error.log(new Error(err)); }
                                             if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); }
