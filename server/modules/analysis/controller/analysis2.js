@@ -264,7 +264,7 @@ function calcGeographic(date, topic, state, clbk) {
 
         var county = counties[countyIndex];
         if (!county) { nextCounty(); }
-        logger.tab(county.name);
+        logger.tab('('+(countyIndex+1)+'/'+counties.length+') '+county.name);
 
         SocialMedia.aggregate([
             {
@@ -283,14 +283,15 @@ function calcGeographic(date, topic, state, clbk) {
                             {socialseed: {$in: county.relatedTwitterSeeds}}
                         ]}
                     ],
-                    socialseed: {$nin: seedIds},
+                    socialseed: {$nin: seedIds, $exists: true},
                     sentimentProcessed: {$exists: true},
                     ngramsProcessed: {$exists: true}
                 }
             },
             {
                 $group: {
-                    _id: '$socialseed',
+                    //_id: '$socialseed',
+                    _id: '$data.user.screen_name',
                     count: {$sum: 1},
                     totalCount: {$max: '$data.user.statuses_count'},
                     sentiment: {$avg: '$sentiment'},
@@ -314,7 +315,8 @@ function calcGeographic(date, topic, state, clbk) {
                             topic: topic._id,
                             state: state._id,
                             county: county._id,
-                            socialseed: cV._id,
+                            //socialseed: cV._id,
+                            twitterAccount: '@'+cV._id,
                             networkType: 'geographic',
                             //networkWeight: // calculate later: (networkWeightConfig['geographic'] / results.length),
                             //rankWeight: // calculate later: (followers/totalFollowers[districts+related+geographic])/duplicates
@@ -350,6 +352,7 @@ function calcGeographic(date, topic, state, clbk) {
 
             // get counties
             County.find({state: state._id})
+                .sort({name: 1})
                 .exec(function(err, countyDocs) {
                     if (err) { return clbk([new Error(err)]); }
                     if (!countyDocs) { return clbk([new Error('!countyDocs')]); }
