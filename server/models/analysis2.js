@@ -126,6 +126,10 @@ Analysis2Schema.virtual('frequency').get(function() {
     return this.count/this.totalCount;
 });
 
+Analysis2Schema.virtual('totalWeight').get(function() {
+    return this.networkWeight+this.rankWeight;
+});
+
 Analysis2Schema.virtual('weightedFrequency').get(function() {
     return (this.count/this.totalCount)*(this.networkWeight+this.rankWeight);
 });
