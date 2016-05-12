@@ -18,5 +18,12 @@ module.exports = function(app) {
     // - run via cron job
     app.route('/data/analysis/batch')
         .get(analysis.batch);
-    
+
+    // get/perform analysis
+    app.route('/data/analysis2')
+        .get(analysis.analysis2);
+
+    // download analysis
+    app.route('/data/analysis2/download')
+        .get(analysis.analysis2download);
 };
