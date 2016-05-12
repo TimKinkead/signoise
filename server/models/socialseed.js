@@ -84,6 +84,30 @@ var SocialSeedSchema = new Schema({
         total: {type: Number},
         new: {type: Number}
     }],
+    
+    // network metrics
+    networkType: {
+        type: String,
+        enum: ['district', 'related', 'geographic']
+    },
+    networkWeight: {
+        type: Number
+    },
+    impactWeight: {
+        type: Number
+    },
+    state: {
+        type: Schema.ObjectId,
+        ref: 'State'
+    },
+    county: {
+        type: Schema.ObjectId,
+        ref: 'County'
+    },
+    district: {
+        type: Schema.ObjectId,
+        ref: 'District'
+    },
 
     // timestamp - when social media was last pulled for this seed
     lastPulled: {

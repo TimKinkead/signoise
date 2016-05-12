@@ -32,4 +32,8 @@ module.exports = function(app) {
     // update follower counts for active social seeds
     app.route('/data/socialseed/update/follower-count')
         .get(socialseed.updateFollowerCount);
+
+    // calculate network weights
+    app.route('/data/socialseed/calculate/weights')
+        .get(socialseed.calculateWeights);
 };
