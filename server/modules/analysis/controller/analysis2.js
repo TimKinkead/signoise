@@ -33,11 +33,11 @@ var networkWeightConfig = {
 };
 
 /**
- *
- * @param date
- * @param topic
- * @param state
- * @param clbk
+ * Calculate 'district' weights & metrics.
+ * @param date - {minDate: ..., maxDate: ...}
+ * @param topic - mongoose topicDoc
+ * @param state - mongoose stateDoc
+ * @param clbk - return clbk(errs, results)
  */
 function calcDistricts(date, topic, state, clbk) {
     logger.dash('calculating \'district\' social media');
@@ -48,7 +48,6 @@ function calcDistricts(date, topic, state, clbk) {
     
     // get districts
     District.find({state: state._id})
-        .populate('twitterSeed', '_id media')
         .exec(function(err, districtDocs) {
             if (err) { return clbk([new Error(err)]); }
             if (!districtDocs) { return clbk([new Error('!districtDocs')]); }
@@ -56,10 +55,10 @@ function calcDistricts(date, topic, state, clbk) {
 
             // grab seed ids & construct seed map
             districtDocs.forEach(function (cV) {
-                if (cV && cV.twitterSeed && cV.twitterSeed._id) {
-                    seedIds.push(cV.twitterSeed._id);
-                    if (!seedMap[cV.twitterSeed._id.toString()]) { seedMap[cV.twitterSeed.id.toString()] = []; }
-                    seedMap[cV.twitterSeed._id.toString()].push(cV);
+                if (cV && cV.twitterSeed) {
+                    seedIds.push(cV.twitterSeed);
+                    if (!seedMap[cV.twitterSeed.toString()]) { seedMap[cV.twitterSeed.toString()] = [cV]; }
+                    else { seedMap[cV.twitterSeed.toString()].push(cV); }
                 }
             });
             
@@ -74,7 +73,7 @@ function calcDistricts(date, topic, state, clbk) {
                         {'ngrams.3.sorted.word': {$in: topic.ngrams['3']}},
                         {'ngrams.4.sorted.word': {$in: topic.ngrams['4']}}
                     ],
-                    socialseed: {$in: seedIds},
+                    socialseed: {$in: seedIds, $exists: true},
                     sentimentProcessed: {$exists: true},
                     ngramsProcessed: {$exists: true}
                 }},
@@ -109,7 +108,7 @@ function calcDistricts(date, topic, state, clbk) {
                                         socialseed: cV._id,
                                         networkType: 'district',
                                         networkWeight: (networkWeightConfig.district/resultDocs.length)/districts.length,
-                                        //rankWeight: // calculate later: (followers/totalFollowers[districts+related+geographic])/duplicates
+                                        //rankWeight: // calculate after 'district', 'related', and 'geographic' calcs
                                         followerCount: cV.followerCount,
                                         count: cV.count,
                                         totalCount: cV.totalCount,
@@ -128,22 +127,22 @@ function calcDistricts(date, topic, state, clbk) {
 }
 
 /**
- *
- * @param date
- * @param topic
- * @param state
- * @param clbk
+ * Calculate 'related' weights & metrics.
+ * @param date - {minDate: ..., maxDate: ...}
+ * @param topic - mongoose topicDoc
+ * @param state - mongoose stateDoc
+ * @param clbk - return clbk(errs, results)
  */
 function calcRelated(date, topic, state, clbk) {
     logger.dash('calculating \'related\' social media');
     
-    var seedIds = [],
+    var relatedSeedIds = [],
+        districtSeedIds = [],
         seedMap = {},
         results = [];
 
     // get districts
     District.find({state: state._id})
-        .populate('relatedTwitterSeeds', '_id media')
         .exec(function(err, districtDocs) {
             if (err) { return clbk([new Error(err)]); }
             if (!districtDocs) { return clbk([new Error('!districtDocs')]); }
@@ -151,14 +150,17 @@ function calcRelated(date, topic, state, clbk) {
 
             // grab seed ids & construct seed map
             districtDocs.forEach(function (cV) {
-                if (cV && cV.relatedTwitterSeeds) {
-                    cV.relatedTwitterSeeds.forEach(function(seed) {
-                        if (seed._id) {
-                            seedIds.push(seed._id);
-                            if (!seedMap[seed._id.toString()]) { seedMap[seed.id.toString()] = []; }
-                            seedMap[seed._id.toString()].push(cV);     
-                        }
-                    });
+                if (cV) {
+                    if (cV.twitterSeed && districtSeedIds.indexOf(cV.twitterSeed) < 0) { districtSeedIds.push(cV.twitterSeed); }
+                    if (cV.relatedTwitterSeeds) {
+                        cV.relatedTwitterSeeds.forEach(function(seedId) {
+                            if (seedId) {
+                                if (relatedSeedIds.indexOf(seedId) < 0) { relatedSeedIds.push(seedId); }
+                                if (!seedMap[seedId.toString()]) { seedMap[seedId.toString()] = [cV]; }
+                                else { seedMap[seedId.toString()].push(cV); }
+                            }
+                        });
+                    }
                 }
             });
 
@@ -173,7 +175,7 @@ function calcRelated(date, topic, state, clbk) {
                         {'ngrams.3.sorted.word': {$in: topic.ngrams['3']}},
                         {'ngrams.4.sorted.word': {$in: topic.ngrams['4']}}
                     ],
-                    socialseed: {$in: seedIds},
+                    socialseed: {$in: relatedSeedIds, $nin: districtSeedIds, $exists: true},
                     sentimentProcessed: {$exists: true},
                     ngramsProcessed: {$exists: true}
                 }},
@@ -227,11 +229,11 @@ function calcRelated(date, topic, state, clbk) {
 }
 
 /**
- *
- * @param date
- * @param topic
- * @param state
- * @param clbk
+ * Calculate 'geographic' weights & metrics.
+ * @param date - {minDate: ..., maxDate: ...}
+ * @param topic - mongoose topicDoc
+ * @param state - mongoose stateDoc
+ * @param clbk - return clbk(errs, results)
  */
 function calcGeographic(date, topic, state, clbk) {
     logger.dash('calculating \'geographic\' social media');
@@ -239,11 +241,11 @@ function calcGeographic(date, topic, state, clbk) {
     var seedIds = [],
         results = [];
 
-    var cnt, errs = [];
+    var errs = [];
     function done() {
         if (!errs.length) { errs = null; }
         results.forEach(function(cV) {
-            cV.networkWeight =  (networkWeightConfig.geographic / results.length);
+            cV.networkWeight = networkWeightConfig.geographic / results.length;
         });
         logger.arrow('done');
         return clbk(errs, results);
@@ -262,7 +264,7 @@ function calcGeographic(date, topic, state, clbk) {
 
         var county = counties[countyIndex];
         if (!county) { nextCounty(); }
-        logger.log('  '+county.name);
+        logger.tab(county.name);
 
         SocialMedia.aggregate([
             {
