@@ -27,9 +27,9 @@ var error = require('../../error/index'),
 // Methods
 
 var networkWeightConfig = {
-    district: 0.57, // 57%
-    related: 0.29, // 29%
-    geographic: 0.14 // 14%
+    district: 57, // 57%
+    related: 29, // 29%
+    geographic: 14 // 14%
 };
 
 /**
@@ -407,8 +407,10 @@ exports.analysis2 = function(req, res) {
     }
     
     // wipe analysis2 collection
+    logger.dash('wiping analysis2 collection');
     Analysis2.remove({}, function(err) {
         if (err) { error.log(new Error(err)); errorMessage(); return; }
+        logger.arrow('done');
 
         // get topic
         Topic.findOne({name: 'common core'})
