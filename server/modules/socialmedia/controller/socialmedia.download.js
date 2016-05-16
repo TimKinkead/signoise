@@ -35,6 +35,8 @@ function getCsv(downloadType, headerOrData, delimiter, doc) {
     if (!doc) { doc = {}; }
 
     var district = (doc.district) ? doc.district : {},
+        county = (doc.district && doc.district.county) ? doc.district.county : {},
+        state = (doc.district && doc.district.state) ? doc.district.state : {},
         seed = (doc.socialseed) ? doc.socialseed : {},
         tweet = (doc.platform === 'twitter' && doc.data) ? doc.data : {},
         twUser = (doc.platform === 'twitter' && doc.data && doc.data.user) ? doc.data.user : {},
@@ -46,7 +48,9 @@ function getCsv(downloadType, headerOrData, delimiter, doc) {
                 {header: '_id',         data: doc._id},
                 {header: 'platform',    data: doc.platform},
                 {header: 'date',        data: doc.date},
-                {header: 'text',        data: doc.text}
+                {header: 'text',        data: doc.text},
+                {header: 'longitude',   data: (doc.location && doc.location[0]) ? doc.location[0] : ''},
+                {header: 'latitude',    data: (doc.location && doc.location[1]) ? doc.location[1] : ''}
             ],
             seed: [
                 {header: 'seed._id',    data: seed._id},
@@ -55,9 +59,16 @@ function getCsv(downloadType, headerOrData, delimiter, doc) {
             district: [
                 {header: 'district._id',    data: district._id},
                 {header: 'district.name',   data: district.name},
-                {header: 'district.city',   data: district.city},
-                {header: 'district.county', data: district.county},
-                {header: 'district.state',  data: district.state}
+                {header: 'district.city',   data: district.city}
+            ],
+            county: [
+                {header: 'county._id',      data: county._id},
+                {header: 'county.name',     data: county.name}
+            ],
+            state: [
+                {header: 'state._id',      data: state._id},
+                {header: 'state.name',     data: state.name},
+                {header: 'state.abbv',     data: state.abbv}
             ],
             twitterTweet: [
                 {header: 'tw.id',           data: tweet.id},
@@ -99,11 +110,14 @@ function getCsv(downloadType, headerOrData, delimiter, doc) {
                 {header: 'fb.user.name',                data: fbUser.name},
                 {header: 'fb.user.picture.data.url',    data: (fbUser.picture && fbUser.picture.data) ? fbUser.picture.data.url : ''}
             ],
-            processing: [
-                {header: 'status',      data: doc.status},
-                {header: 'processed',   data: doc.processed}
+            sentiment: [
+                {header: 'sentiment', data: doc.sentiment}
             ],
+            ngrams: [],
             timestamps: [
+                {header: 'sentimentProcessed', data: doc.sentimentProcessed},
+                {header: 'ngramsProcessed', data: doc.ngramsProcessed},
+                {header: 'locationChecked', data: doc.locationChecked},
                 {header: 'modified',    data: doc.modified},
                 {header: 'created',     data: doc.created}
             ]
@@ -113,10 +127,23 @@ function getCsv(downloadType, headerOrData, delimiter, doc) {
     var fieldGroups;
     switch(downloadType) {
         case 'districts-by-state':
-            fieldGroups = ['general', 'seed', 'district', 'twitterTweet', 'twitterLocation', 'twitterUser', 'facebookPost', 'facebookUser', 'processing', 'timestamps'];
+            fieldGroups = [
+                'general', 'seed', 
+                'district', 'county', 'state', 
+                'twitterTweet', 'twitterLocation', 'twitterUser', 
+                'facebookPost', 'facebookUser', 
+                'sentiment', 'ngrams',
+                'timestamps'
+            ];
             break;
         case 'skip-limit':
-            fieldGroups = ['general', 'seed', 'twitterTweet', 'twitterLocation', 'twitterUser', 'facebookPost', 'facebookUser', 'processing', 'timestamps'];
+            fieldGroups = [
+                'general', 'seed', 
+                'twitterTweet', 'twitterLocation', 'twitterUser', 
+                'facebookPost', 'facebookUser',
+                'sentiment', 'ngrams',
+                'timestamps'
+            ];
             break;
         default:
             return '';
@@ -144,23 +171,27 @@ function getCsv(downloadType, headerOrData, delimiter, doc) {
 function getDistricts(state, clbk) {
     if (!state) { return clbk(new Error('!state')); }
     
-    Districts.find({state: state}, function(err, districtDocs) {
-        if (err) { return clbk(new Error(err)); }
-        if (!districtDocs) { return clbk(new Error('!districtDocs')); }
-        
-        return clbk(null, districtDocs);
-    });
+    Districts.find({state: state})
+        .populate('state', '_id name abbv')
+        .populate('county', '_id name')
+        .exec(function(err, districtDocs) {
+            if (err) { return clbk(new Error(err)); }
+            if (!districtDocs) { return clbk(new Error('!districtDocs')); }
+
+            return clbk(null, districtDocs);
+        });
 }
 
 /**
  * Build filename for csv file.
  * @param query - req.query
+ * @param stateAbbv - state abbreviation
  * @returns {string} - return filename
  */
-function buildFilename(query) {
+function buildFilename(query, state) {
     var filename = 'socialmedia_'+query.type+'_';
-    if (query.state) {
-        filename += query.state+'_';
+    if (state) {
+        filename += state+'_';
     }
     if (query.minDate) {
         var minDate = new Date(query.minDate),
@@ -198,6 +229,8 @@ function buildFilename(query) {
 exports.download = function(req, res) {
     logger.filename(__filename);
 
+    var stateName;
+    
     function errorMessage(code, message) {
         return res.status(code || 500).send({
             header: 'Download Social Media Error!',
@@ -214,14 +247,11 @@ exports.download = function(req, res) {
         if (req.query.minDate) {query.date.$gt = new Date(req.query.minDate);}
         if (req.query.maxDate) {query.date.$lt = new Date(req.query.maxDate);}
     }
-    logger.log(query);
-    logger.log(req.query.skip);
-    logger.log(req.query.limit);
     
     // start stream
     var streamStarted = false;
     function startStream() {
-        res.setHeader('Content-disposition', 'attachment; filename=\"'+buildFilename(req.query)+'.csv\"');
+        res.setHeader('Content-disposition', 'attachment; filename=\"'+buildFilename(req.query, stateName)+'.csv\"');
         res.contentType('text/csv');
         res.write(getCsv(req.query.type, 'header', req.query.delimiter) + '\n');
         streamStarted = true;
@@ -229,7 +259,7 @@ exports.download = function(req, res) {
 
     // stream social media data
     function streamSocialMediaData(handleDataFxn) {
-        logger.bold('streaming social media data');
+        logger.dash('streaming social media data');
         SocialMedia.find(query)
             .sort({date: -1})
             .skip((req.query.skip) ? Number(req.query.skip) : 0)
@@ -237,7 +267,7 @@ exports.download = function(req, res) {
             .populate('socialseed', 'title')
             .stream()
             .on('data', handleDataFxn)
-            .on('close', function() { res.end(); })
+            .on('close', function() { logger.arrow('done streaming data'); res.end(); })
             .on('error', function(err) { error.log(new Error(err)); return errorMessage(); });
     }
 
@@ -251,6 +281,11 @@ exports.download = function(req, res) {
             if (!districts) { error.log(new Error('!districts')); return errorMessage(); }
             logger.arrow(districts.length+' districts');
 
+            // grab state name for buildFilename
+            if (districts[0] && districts[0].state && districts[0].state.name) {
+                stateName = districts[0].state.name.toLowerCase();
+            }
+            
             // lookup district by seed id
             function lookupDistrict(seedId) {
                 if (!seedId) { return null; }

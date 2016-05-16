@@ -31,6 +31,7 @@ angular.module('app').controller('SocialMediaDownloadController', [
                 {},
                 function() { // success
                     status.processing = false;
+                    if (states && states[0] && states[0]._id) {params.state = states[0]._id;}
                 },
                 function(err) { // error
                     status.processing = false;
