@@ -31,7 +31,7 @@
                         class="form-control" style="cursor: pointer; width: 180px; margin-left: 5px;">
                     <option ng-repeat="state in states"
                             value="{{state._id}}">
-                        {{state._id|uppercase}}
+                        {{state.name|capitalize}}
                     </option>
                 </select>
             </div>
