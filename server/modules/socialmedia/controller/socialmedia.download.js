@@ -196,14 +196,14 @@ function buildFilename(query, state) {
     if (query.minDate) {
         var minDate = new Date(query.minDate),
             minYear = minDate.getFullYear(),
-            minMonth = (minDate.getMonth()+1 < 10) ? '0'+minDate.getMonth()+1 : minDate.getMonth()+1,
+            minMonth = (minDate.getMonth()+1 < 10) ? '0'+(minDate.getMonth()+1) : minDate.getMonth()+1,
             minDay = (minDate.getDate() < 10) ? '0'+minDate.getDate() : minDate.getDate();
         filename += 'from-'+minYear+'-'+minMonth+'-'+minDay+'_';
     }
     if (query.maxDate) {
         var maxDate = new Date(query.maxDate),
             maxYear = maxDate.getFullYear(),
-            maxMonth = (maxDate.getMonth()+1 < 10) ? '0'+maxDate.getMonth()+1 : maxDate.getMonth()+1,
+            maxMonth = (maxDate.getMonth()+1 < 10) ? '0'+(maxDate.getMonth()+1) : maxDate.getMonth()+1,
             maxDay = (maxDate.getDate() < 10) ? '0'+maxDate.getDate() : maxDate.getDate();
         filename += 'to-'+maxYear+'-'+maxMonth+'-'+maxDay+'_';
     }
