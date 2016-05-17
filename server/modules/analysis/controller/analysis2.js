@@ -80,7 +80,7 @@ function calcDistricts(date, topic, state, clbk) {
                 {$group: {
                     _id: '$socialseed',
                     count: {$sum: 1},
-                    totalCount: {$max: '$data.user.statuses_count'},
+                    //totalCount: {$max: '$data.user.statuses_count'},
                     sentiment: {$avg: '$sentiment'},
                     followerCount: {$max: '$data.user.followers_count'},
                     screen_name: {$first: '$data.user.screen_name'}
@@ -113,7 +113,7 @@ function calcDistricts(date, topic, state, clbk) {
                                         //rankWeight: // calculate after 'district', 'related', and 'geographic' calcs
                                         followerCount: cV.followerCount,
                                         count: cV.count,
-                                        totalCount: cV.totalCount,
+                                        //totalCount: // calculate later
                                         sentiment: cV.sentiment
                                     });
                                 });
@@ -166,6 +166,8 @@ function calcRelated(date, topic, state, clbk) {
                 }
             });
 
+            // TODO - County Related & State Related
+
             // aggregate related social media
             SocialMedia.aggregate([
                 {$match: {
@@ -184,7 +186,7 @@ function calcRelated(date, topic, state, clbk) {
                 {$group: {
                     _id: '$socialseed',
                     count: {$sum: 1},
-                    totalCount: {$max: '$data.user.statuses_count'},
+                    //totalCount: {$max: '$data.user.statuses_count'},
                     sentiment: {$avg: '$sentiment'},
                     followerCount: {$max: '$data.user.followers_count'},
                     screen_name: {$first: '$data.user.screen_name'}
@@ -217,7 +219,7 @@ function calcRelated(date, topic, state, clbk) {
                                         //rankWeight: // calculate later: (followers/totalFollowers[districts+related+geographic])/duplicates
                                         followerCount: cV.followerCount,
                                         count: cV.count,
-                                        totalCount: cV.totalCount,
+                                        //totalCount: // calculate later
                                         sentiment: cV.sentiment
                                     });
                                 });
@@ -298,7 +300,7 @@ function calcGeographic(date, topic, state, clbk) {
                     //_id: '$socialseed',
                     _id: '$data.user.screen_name',
                     count: {$sum: 1},
-                    totalCount: {$max: '$data.user.statuses_count'},
+                    //totalCount: {$max: '$data.user.statuses_count'},
                     sentiment: {$avg: '$sentiment'},
                     followerCount: {$max: '$data.user.followers_count'}
                 }
@@ -327,7 +329,7 @@ function calcGeographic(date, topic, state, clbk) {
                             //rankWeight: // calculate later: (followers/totalFollowers[districts+related+geographic])/duplicates
                             followerCount: cV.followerCount,
                             count: cV.count,
-                            totalCount: cV.totalCount,
+                            //totalCount: // calculate later
                             sentiment: cV.sentiment
                         });
                     }
@@ -396,15 +398,6 @@ exports.analysis2 = function(req, res) {
             message: message || 'We had trouble performing the analysis. Please try again.'
         });
     }
-
-    var cnt;
-    function checkDone() {
-        cnt -= 1;
-        if (cnt <= 0) {
-            logger.arrow('analysis2 complete');
-            return res.status(200).send('Analysis2 complete.');
-        }
-    }
     
     // wipe analysis2 collection
     logger.dash('wiping analysis2 collection');
@@ -440,16 +433,13 @@ exports.analysis2 = function(req, res) {
                                     if (errs && errs.length) { errs.forEach(function(err) { error.log(err); }); }
                                     if (geographicAnalysisDocs) { allAnalysisDocs = allAnalysisDocs.concat(geographicAnalysisDocs); }
 
+                                    // check analysis docs length
+                                    if (!allAnalysisDocs.length) { error.log(new Error('!allAnalysisDocs.length')); errorMessage(); return; }
+
                                     // construct duplicate map & count total followers
                                     var duplicates = {},
                                         totalFollowers = 0;
-                                    allAnalysisDocs.forEach(function(cV) { 
-                                        /*if (duplicates[cV.socialseed.toString()]) { 
-                                            duplicates[cV.socialseed.toString()]++; 
-                                        } else { 
-                                            duplicates[cV.socialseed.toString()] = 1; 
-                                            totalFollowers += cV.followerCount;
-                                        }*/
+                                    allAnalysisDocs.forEach(function(cV) {
                                         if (duplicates[cV.twitterAccount]) {
                                             duplicates[cV.twitterAccount]++;
                                         } else {
@@ -458,18 +448,53 @@ exports.analysis2 = function(req, res) {
                                         }
                                     });
 
-                                    // save analysis docs
-                                    cnt = allAnalysisDocs.length;
+                                    // calc rank weight & total count, save analysis docs
+                                    var index = 0;
                                     logger.dash('saving analysis docs');
-                                    allAnalysisDocs.forEach(function(cV) { 
-                                        //cV.rankWeight = ((cV.followerCount/totalFollowers)/duplicates[cV.socialseed.toString()])*100;
-                                        cV.rankWeight = ((cV.followerCount/totalFollowers)/duplicates[cV.twitterAccount])*100;
-                                        Analysis2.create(cV, function(err, newAnalysisDoc) {
-                                            if (err) { error.log(new Error(err)); }
-                                            if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); }
-                                            checkDone();
-                                        });
-                                    });
+                                    function saveAnalysisDoc() {
+
+                                        function nextAnalysisDoc(delay) {
+                                            index++;
+                                            if (index+1 > allAnalysisDocs.length) {
+                                                logger.arrow('done');
+                                                logger.arrow('analysis2 complete');
+                                                res.status(200).send('Analysis2 complete.');
+                                                return;
+                                            }
+                                            if (delay) {
+                                                setTimeout(function() { saveAnalysisDoc(); }, 1000*60*delay);
+                                                return;
+                                            }
+                                            saveAnalysisDoc();
+                                        }
+
+                                        var analysisDoc = allAnalysisDocs[index];
+                                        if (!analysisDoc) { nextAnalysisDoc(); return; }
+
+                                        // rank weight
+                                        analysisDoc.rankWeight = ((analysisDoc.followerCount/totalFollowers)/duplicates[analysisDoc.twitterAccount])*100;
+
+                                        // total count
+                                        SocialMedia.count(
+                                            {'data.user.screen_name': analysisDoc.twitterAccount.slice(1), date: {$gte: date.minDate, $lt: date.maxDate}},
+                                            function(err, qty) {
+                                                if (err) { error.log(new Error(err)); }
+                                                if (qty) { analysisDoc.totalCount = qty; }
+
+                                                // save analysis doc
+                                                Analysis2.create(analysisDoc, function(err, newAnalysisDoc) {
+                                                    if (err) { error.log(new Error(err)); nextAnalysisDoc(1); return; }
+                                                    if (!newAnalysisDoc) { error.log(new Error('!newAnalysisDoc')); nextAnalysisDoc(1); return; }
+                                                    
+                                                    logger.tab('('+(index+1)+'/'+allAnalysisDocs.length+') analysis doc saved');
+                                                    nextAnalysisDoc();
+                                                });
+                                            }
+                                        );
+                                    }
+                                    
+                                    // start save process
+                                    saveAnalysisDoc();
                                 });
                             });
                         });
