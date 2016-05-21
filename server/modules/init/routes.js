@@ -25,4 +25,8 @@ module.exports = function(app) {
     // initialize counties
     app.route('/data/init/counties')
         .get(init.counties);
+
+    // initialize related social seeds
+    app.route('/data/init/socialseeds/related')
+        .get(init.relatedSocialSeeds);
 };

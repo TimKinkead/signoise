@@ -54,6 +54,21 @@ var SocialSeedSchema = new Schema({
         category: {type: String}
     },
 
+    // twitter user object
+    data: {
+        type: Object
+    },
+
+    // categories
+    categories: [{
+        type: String // teacher, parent, etc 
+    }],
+
+    // categories manually validated
+    categoriesProtected: {
+        type: Boolean
+    },
+    
     // how often should social media be pulled from this seed?
     frequency: {
         type: String,
@@ -96,6 +111,8 @@ var SocialSeedSchema = new Schema({
     impactWeight: {
         type: Number
     },
+    
+    // geo data
     state: {
         type: Schema.ObjectId,
         ref: 'State'
@@ -108,6 +125,11 @@ var SocialSeedSchema = new Schema({
         type: Schema.ObjectId,
         ref: 'District'
     },
+    
+    // state/county/district manually validated
+    geoProtected: {
+        type: Boolean
+    },
 
     // timestamp - when social media was last pulled for this seed
     lastPulled: {
@@ -117,6 +139,21 @@ var SocialSeedSchema = new Schema({
     // timestamp - when follower count was last updated
     followerCountUpdated: {
         type: Date  
+    },
+
+    // timestamp - when data field was last updated
+    dataUpdated: {
+        type: Date
+    },
+
+    // timestamp - when categories field was last updated
+    categoriesUpdated: {
+        type: Date
+    },
+
+    // timestamp - when state/county/district fields were last updated
+    geoUpdated: {
+        type: Date
     },
 
     // timestamp - when the site doc was created

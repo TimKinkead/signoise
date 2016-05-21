@@ -29,17 +29,17 @@ var getTwitterTokenAndSecret = require('../../socialmedia/controller/twitter/soc
 // Main
 
 /**
- * SOCIALSEED.UPDATE.FOLLOWER.COUNT
- * - Update follower count for district social seeds via twitter api.
+ * SOCIALSEED.UPDATE.TWITTER.DATA
+ * - Update user data for social seeds via twitter api.
  * - Run this once in a while.
  */
-exports.updateFollowerCount = function(req, res) {
+exports.updateTwitterData = function(req, res) {
     logger.filename(__filename);
 
     function errorMessage(code, message) {
         return res.status(code || 500).send({
-            header: 'Update Social Seed Follower Counts Error!',
-            message: message || 'We had trouble updating the social seed follower counts. Please try again.'
+            header: 'Update Social Seed Twitter Data Error!',
+            message: message || 'We had trouble updating the social seed twitter data. Please try again.'
         });
     }
 
@@ -47,9 +47,9 @@ exports.updateFollowerCount = function(req, res) {
 
     // get social seeds
     SocialSeed.find({
-            frequency: {$in: ['hourly', 'daily', 'weekly']},
+            platform: 'twitter',
             'twitter.type': 'screen_name',
-            $or: [{followerCountUpdated: {$exists: false}}, {followerCountUpdated: {$lt: oneWeekAgo}}]
+            $or: [{dataUpdated: {$exists: false}}, {dataUpdated: {$lt: oneWeekAgo}}]
         })
         .limit(100)
         .select('twitter')
@@ -81,7 +81,7 @@ exports.updateFollowerCount = function(req, res) {
                         seedDocs.forEach(function(_seed) { seedIds.push(_seed._id); });
                         SocialSeed.update(
                             {_id: {$in: seedIds}},
-                            {$set: {'twitter.followerCount': 0, followerCountUpdated: new Date()}},
+                            {$unset: {data: true}, $set: {dataUpdated: new Date()}},
                             {multi: true},
                             function(err) { 
                                 if (err) { error.log(new Error(err)); } 
@@ -99,11 +99,12 @@ exports.updateFollowerCount = function(req, res) {
                     // update social seeds
                     data.forEach(function(twUser, dataIndex) {
                         if (twUser && twUser.screen_name) {
+                            if (twUser.status) { delete twUser.status; }
                             SocialSeed.update(
                                 {'twitter.query': '@'+twUser.screen_name.toLowerCase()},
                                 {$set: {
-                                    'twitter.followerCount': twUser.followers_count || 0,
-                                    followerCountUpdated: new Date()
+                                    data: twUser,
+                                    dataUpdated: new Date()
                                 }},
                                 function(err) {
                                     if (err) { error.log(new Error(err)); }
