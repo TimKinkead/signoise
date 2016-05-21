@@ -73,11 +73,14 @@
                 ng-click="edit(district)"
                 style="cursor:pointer;">
                 <td ng-repeat="field in fields" class="hidden-xs">
-                    <div ng-if="['state', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
+                    <div ng-if="['state', 'county', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
                         {{(dates.indexOf(field) > -1) ? (district[field]|date:'shortDate') : district[field]|capitalize}}
                     </div>
                     <div ng-if="field === 'state'">
-                        {{district.state|uppercase}}
+                        {{district.state.abbv|uppercase}}
+                    </div>
+                    <div ng-if="field === 'county'">
+                        {{district.county.name|capitalize}}
                     </div>
                     <div ng-if="field === 'website'">
                         <i ng-if="district.website" class="glyphicon glyphicon-ok"></i>
@@ -92,7 +95,7 @@
                 </td>
                 <td class="visible-xs">
                     {{district.name}} <br/>
-                    <span class="text-info">{{district.county|capitalize}} County, {{district.state|uppercase}}</span>
+                    <span class="text-info">{{district.county.name|capitalize}} County, {{district.state.abbv|uppercase}}</span>
                 </td>
             </tr>
         </tbody>

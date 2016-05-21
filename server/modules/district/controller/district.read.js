@@ -34,6 +34,8 @@ exports.read = function(req, res) {
 
     // get district
     District.findById(req.query._id)
+        .populate('state', '_id name abbv')
+        .populate('county', '_id name')
         .populate('website', 'domain subdomain url fetched ignored redirected scheduled externalReferences socialReferences')
         .populate('facebookSeed', 'title twitter facebook references media')
         .populate('twitterSeed', 'title twitter facebook references media')

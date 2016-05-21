@@ -33,11 +33,14 @@
                 <td>
 
                     <!-- General Fields -->
-                    <span ng-if="['state', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
+                    <span ng-if="['state', 'county', 'website', 'facebook', 'twitter'].indexOf(field) < 0">
                         {{(dates.indexOf(field) > -1) ? (fullDistrict[field]|date:'shortDate') : fullDistrict[field]|capitalize}}
                     </span>
                     <span ng-if="field === 'state'">
-                        {{fullDistrict.state|uppercase}}
+                        {{fullDistrict.state.abbv|uppercase}}
+                    </span>
+                    <span ng-if="field === 'county'">
+                        {{fullDistrict.county.name|capitalize}}
                     </span>
 
                     <!-- Website -->

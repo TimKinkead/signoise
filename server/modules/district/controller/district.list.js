@@ -39,6 +39,8 @@ exports.list = function(req, res) {
         .sort({name: 1})
         .skip(Number(req.query.skip))
         .limit((req.query.limit) ? Number(req.query.limit) : 100)
+        .populate('state', '_id name abbv')
+        .populate('county', '_id name')
         .exec(function(err, districtDocs) {
             if (err) { error.log(new Error(err)); return errorMessage(); }
             if (!districtDocs) { error.log(new Error('!districtDocs')); return errorMessage(); }
