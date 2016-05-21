@@ -29,10 +29,18 @@ module.exports = function(app) {
     app.route('/data/socialseed/facebook/search')
         .get(socialseed.searchFacebook);
 
-    // update follower counts for active social seeds
-    app.route('/data/socialseed/update/follower-count')
-        .get(socialseed.updateFollowerCount);
+    // update twitter user data for social seeds
+    app.route('/data/socialseed/update/twitter-data')
+        .get(socialseed.updateTwitterData);
 
+    // update twitter user data for social seeds
+    app.route('/data/socialseed/update/categories')
+        .get(socialseed.updateCategories);
+
+    // update state/county/district for social seeds
+    app.route('/data/socialseed/update/geo')
+        .get(socialseed.updateGeo);
+    
     // calculate network weights
     app.route('/data/socialseed/calculate/weights')
         .get(socialseed.calculateWeights);
