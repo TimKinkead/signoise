@@ -110,7 +110,14 @@ var SocialMediaSchema = new Schema(
                     word: {type: String},
                     count: {type: Number}
                 }]
-            }
+            },
+            all: [{
+                word: {type: String},
+                count: {type: Number},
+                gramSize: {type: Number},
+                gramCount: {type: Number},
+                wordCount: {type: Number}
+            }]
         },
 
         // sentiment - result from sentiment processing

@@ -68,12 +68,13 @@ TopicSchema.virtual('simpleKeywords').get(function() {
  * Virtual field for keyword ngrams.
  */
 TopicSchema.virtual('ngrams').get(function() {
-    var ngrams = {};
+    var ngrams = {all: []};
     this.keywords.forEach(function(keyword) {
         var words = keyword.split(' ').length.toString();
         if (!ngrams[words]) { ngrams[words] = []; }
         if (keyword.charAt(0) === '#') { keyword = keyword.slice(1); }
         ngrams[words].push(keyword);
+        ngrams.all.push(keyword);
     });
     return ngrams;
 });

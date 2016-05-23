@@ -10,7 +10,6 @@ var fs = require('fs');
 
 var mongoose = require('mongoose'),
     SocialMedia = mongoose.model('SocialMedia'),
-    SocialSeed = mongoose.model('SocialSeed'),
     District = mongoose.model('District'),
     Topic = mongoose.model('Topic'),
     State = mongoose.model('State'),
@@ -32,11 +31,11 @@ var sentimentConfig = require('./analysis.sentiment.config').sentimentConfig;
 // Methods
 
 /**
- * Get social seed ids for districts in a specific state/county.
+ * Get social seed ids for a specific state/county.
  * @param query - req.query
  * @param clbk - return clbk(err, results)
  */
-function getDistrictSeedIds(query, clbk) {
+function getSeedIds(query, clbk) {
     if (!query) { return clbk(new Error('!query')); }
 
     var seedIds = [],
@@ -58,37 +57,11 @@ function getDistrictSeedIds(query, clbk) {
                     if (cV.twitterSeed) { seedIds.push(cV.twitterSeed); }
                 } else if (query.channel === 'district related social media') {
                     if (cV.relatedTwitterSeeds) { seedIds = seedIds.concat(cV.relatedTwitterSeeds); }
-                    if (cV.relatedFacebookSeeds) { seedIds = seedIds.concat(cV.relatedFacebookSeeds); }
                 }
             });
 
             // done
             return clbk(null, seedIds);
-        }
-    );
-}
-
-/**
- * Get social seed ids for a specific state/county.
- * @param query - req.query
- * @param clbk - return clbk(err, results)
- */
-function getGeoSeedIds(query, clbk) {
-    if (!query) { return clbk(new Error('!query')); }
-    if (!query.state && !query.county) { return clbk(new Error('!query.state && !query.county')); }
-    
-    var mongoQuery = {};
-    if (query.state) { mongoQuery.state = query.state; }
-    if (query.county) { mongoQuery.county = query.county; }
-    
-    SocialSeed.find(
-        mongoQuery,
-        function(err, seedDocs) {
-            if (err) { return clbk(new Error(err)); }
-            if (!seedDocs) { return clbk(new Error('!seedDocs')); }
-
-            // remap & return seed ids
-            return seedDocs.map(function(cV) { return cV._id; });
         }
     );
 }
@@ -137,95 +110,128 @@ function getGeoJson(query, clbk) {
 // Main
 
 /**
- * ANALYSIS.SOCIALMEDIA
+ * ANALYSIS.SOCIALMEDIA.OLD
  * - Perform social media analysis and return results. (sentiment or ngrams)
  * @param query - req.query
  * @param clbk - return clbk(err, results)
  */
-exports.analyzeSocialMedia = function(query, clbk) {
+exports.analyzeSocialMediaOld = function(query, clbk) {
     //logger.filename(__filename);
     
     if (!query) { return clbk(new Error('!query')); }
     if (!query.minDate) { return clbk(new Error('!query.minDate')); }
     if (!query.maxDate) { return clbk(new Error('!query.maxDate')); }
     if (!query.channel) { return clbk(new Error('!query.channel')); }
+    
+    function dataProjection(no, bool) {
+        return {
+            sentiment: '$sentiment',
+            gramSize: '$ngrams.'+no+'.gramSize',
+            gramCount: '$ngrams.'+no+'.gramCount',
+            word: '$ngrams.'+no+'.sorted.word',
+            wordCount: '$ngrams.'+no+'.sorted.count',
+            useForGrandTotals: (no === 1) ? {$cond: {if: {$eq: ['$index1', 0]}, then: true, else: false}} : {$literal: false},
+            useForNgramTotals: (no === 1) ? {$cond: {if: {$eq: ['$index1', 0]}, then: true, else: false}} : {$literal: bool}
+        };
+    }
         
     // aggregation pipeline setup
     var pipeline = [
-        // match documents (multiple $match operations get squashed) - http://stackoverflow.com/questions/30475401/mongodb-3-0-aggregation-several-matches-vs-one-match-with-multiple-items
+        // match documents
         {$match: {
             date: {$gte: query.minDate, $lt: query.maxDate},
             sentimentProcessed: {$exists: true},
             ngramsProcessed: {$exists: true}
         }},
-        // unwind ngrams
-        {$unwind: {path: '$ngrams.all', includeArrayIndex: 'index', preserveNullAndEmptyArrays: true}},
+        // unwind ngrams.1
+        {$unwind: {path: '$ngrams.1.sorted', includeArrayIndex: 'index1', preserveNullAndEmptyArrays: true}},
+        {$project: {
+            data: [dataProjection(1)],
+            sentiment: true,
+            ngrams: {$cond: {if: {$eq: ['$index1', 0]}, then: '$ngrams', else: {$literal: {'2': {sorted: [{word: null, count: 0}]}}}}}
+        }},
+        // unwind ngrams.2
+        {$unwind: {path: '$ngrams.2.sorted', includeArrayIndex: 'index2', preserveNullAndEmptyArrays: true}},
+        {$project: {
+            data: {$cond: {if: {$or: [{$eq: ['$index2', 0]}, {$eq: ['$index2', null]}]}, then: {$concatArrays: ['$data', [dataProjection(2, true)]]}, else: [dataProjection(2, false)]}},
+            sentiment: true,
+            ngrams: {$cond: {if: {$eq: ['$index2', 0]}, then: '$ngrams', else: {$literal: {'3': {sorted: [{word: null, count: 0}]}}}}}
+        }},
+        // unwind ngrams.3
+        {$unwind: {path: '$ngrams.3.sorted', includeArrayIndex: 'index3', preserveNullAndEmptyArrays: true}},
+        {$project: {
+            data: {$cond: {if: {$or: [{$eq: ['$index3', 0]}, {$eq: ['$index3', null]}]}, then: {$concatArrays: ['$data', [dataProjection(3, true)]]}, else: [dataProjection(3, false)]}},
+            sentiment: true,
+            ngrams: {$cond: {if: {$eq: ['$index3', 0]}, then: '$ngrams', else: {$literal: {'4': {sorted: [{word: null, count: 0}]}}}}}
+        }},
+        // unwind ngrams.4
+        {$unwind: {path: '$ngrams.4.sorted', includeArrayIndex: 'index4', preserveNullAndEmptyArrays: true}},
+        {$project: {
+            data: {$cond: {if: {$or: [{$eq: ['$index4', 0]}, {$eq: ['$index4', null]}]}, then: {$concatArrays: ['$data', [dataProjection(4, true)]]}, else: [dataProjection(4, false)]}}
+        }},
+        // unwind data field
+        {$unwind: {path: '$data'}},
         // tag with sentiment class
         {$project: {
-            word: '$ngrams.all.word',
-            gramSize: '$ngrams.all.gramSize',
-            sentimentClass: {$cond: {if: {$gte: ['$sentiment', sentimentConfig.positive]}, then: 'positive', else: {
-                $cond: {if: {$lte: ['$sentiment', sentimentConfig.negative]}, then: 'negative', else: 'neutral'}
-            }}},
-            wordCount: '$ngrams.all.count',
-            totalGramCount: {$cond: {if: {$gt: ['$ngrams.all.count', 0]}, then: {$divide: ['$ngrams.all.count', '$ngrams.all.gramCount']}, else: 0}},
-            totalCount: {$cond: {if: {$eq: ['$index', 0]}, then: 1, else: 0}},
-            totalSentiment: {$cond: {if: {$eq: ['$index', 0]}, then: '$sentiment', else: 0}}
-        }},
-        // group by word / gram size / sentiment class
+            data: true,
+            sentimentClass: {$cond: {if: {$gte: ['$data.sentiment', sentimentConfig.positive]}, then: 'positive', else: {
+                $cond: {if: {$lte: ['$data.sentiment', sentimentConfig.negative]}, then: 'negative', else: 'neutral'}}
+            }}}
+        },
+        // group by sentiment class / gram size / ngram word
         {$group: {
-            _id: {word: '$word', gramSize: '$gramSize', sentimentClass: '$sentimentClass'},
-            wordCount: {$sum: '$wordCount'},
-            totalGramCount: {$sum: '$totalGramCount'},
-            totalCount: {$sum: '$totalCount'},
-            totalSentiment: {$sum: '$totalSentiment'},
-            positiveSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$totalCount', 1]}, {$gte: ['$totalSentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
-            neutralSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$totalCount', 1]}, {$gt: ['$totalSentiment', sentimentConfig.negative]}, {$lt: ['$totalSentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
-            negativeSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$totalCount', 1]}, {$lte: ['$totalSentiment', sentimentConfig.negative]}]}, then: 1, else: 0}}}
+            _id: {sentimentClass: '$sentimentClass', gramSize: '$data.gramSize', word: '$data.word'},
+            gramCount: {$sum: {$cond: {if: {$eq: ['$data.useForNgramTotals', true]}, then: '$data.gramCount', else: 0}}},
+            wordCount: {$sum: '$data.wordCount'},
+            totalCount: {$sum: {$cond: {if: {$eq: ['$data.useForGrandTotals', true]}, then: 1, else: 0}}},
+            totalSentiment: {$sum: {$cond: {if: {$eq: ['$data.useForGrandTotals', true]}, then: '$data.sentiment', else: 0}}},
+            positiveSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.useForGrandTotals', true]}, {$gte: ['$data.sentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
+            neutralSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.useForGrandTotals', true]}, {$gt: ['$data.sentiment', sentimentConfig.negative]}, {$lt: ['$data.sentiment', sentimentConfig.positive]}]}, then: 1, else: 0}}},
+            negativeSentiment: {$sum: {$cond: {if: {$and: [{$eq: ['$data.useForGrandTotals', true]}, {$lte: ['$data.sentiment', sentimentConfig.negative]}]}, then: 1, else: 0}}}
         }},
         // sort by word count
         {$sort: {wordCount: -1}},
-        // group by gram size / sentiment class
+        // group by sentiment class / gram size
         {$group: {
-            _id: {gramSize: '$_id.gramSize', sentimentClass: '$_id.sentimentClass'},
-            ngrams: {$push: {word: '$_id.word', count: '$wordCount'}},
-            totalGramCount: {$sum: '$totalGramCount'},
+            _id: {sentimentClass: '$_id.sentimentClass', gramSize: '$_id.gramSize'},
             totalCount: {$sum: '$totalCount'},
             totalSentiment: {$sum: '$totalSentiment'},
             positiveSentiment: {$sum: '$positiveSentiment'},
             neutralSentiment: {$sum: '$neutralSentiment'},
-            negativeSentiment: {$sum: '$negativeSentiment'}
+            negativeSentiment: {$sum: '$negativeSentiment'},
+            totalGramCount: {$sum: '$gramCount'},
+            ngrams: {$push: {word: '$_id.word', count: '$wordCount'}}
         }},
         // only keep top 100 ngrams
         {$project: {
             _id: true,
-            ngrams: {$slice: ['$ngrams', 100]},
-            totalGramCount: true,
             totalCount: true,
             totalSentiment: true,
             positiveSentiment: true,
             neutralSentiment: true,
-            negativeSentiment: true
+            negativeSentiment: true,
+            totalGramCount: true,
+            ngrams: {$slice: ['$ngrams', 100]}
         }},
         // group by sentiment class
         {$group: {
             _id: '$_id.sentimentClass',
-            data: {$push: {gramSize: '$_id.gramSize', ngrams: '$ngrams', totalGramCount: '$totalGramCount'}},
             totalCount: {$sum: '$totalCount'},
             totalSentiment: {$sum: '$totalSentiment'},
             positiveSentiment: {$sum: '$positiveSentiment'},
             neutralSentiment: {$sum: '$neutralSentiment'},
-            negativeSentiment: {$sum: '$negativeSentiment'}
+            negativeSentiment: {$sum: '$negativeSentiment'},
+            data: {$push: {gramSize: '$_id.gramSize', totalGramCount: '$totalGramCount', ngrams: '$ngrams'}}
         }},
         // group all
         {$group: {
             _id: null,
-            ngrams: {$push: {sentimentClass: '$_id', data: '$data'}},
             totalCount: {$sum: '$totalCount'},
             totalSentiment: {$sum: '$totalSentiment'},
             positiveSentiment: {$sum: '$positiveSentiment'},
             neutralSentiment: {$sum: '$neutralSentiment'},
-            negativeSentiment: {$sum: '$negativeSentiment'}
+            negativeSentiment: {$sum: '$negativeSentiment'},
+            ngrams: {$push: {sentimentClass: '$_id', data: '$data'}}
         }},
         // final output
         {$project: {
@@ -312,70 +318,33 @@ exports.analyzeSocialMedia = function(query, clbk) {
             if (!topicDoc.simpleKeywords.length) { return clbk(new Error('!topicDoc.simpleKeywords.length')); }
 
             pipeline[0].$match.$text = {$search: topicDoc.simpleKeywords};
-            pipeline[0].$match['ngrams.all.word'] = {$in: topicDoc.ngrams.all};
+            pipeline[0].$match.$or = [
+                {'ngrams.1.sorted.word': {$in: topicDoc.ngrams['1']}},
+                {'ngrams.2.sorted.word': {$in: topicDoc.ngrams['2']}},
+                {'ngrams.3.sorted.word': {$in: topicDoc.ngrams['3']}},
+                {'ngrams.4.sorted.word': {$in: topicDoc.ngrams['4']}}
+            ];
             performAnalysis();
         });
     }
 
     // start by checking channel
     switch (query.channel) {
-
         case 'all social media':
             if (query.state || query.county) {
-                // get geographic seed ids
-                getGeoSeedIds(query, function(err, geoSeedIds) {
+                getGeoJson(query, function(err, geoJsonGeom) {
                     if (err) { return clbk(err); }
-                    if (!geoSeedIds) { return clbk(new Error('!geoSeedIds')); }
-                    // get geojson data
-                    getGeoJson(query, function(err, geoJsonGeom) {
-                        if (err) { return clbk(err); }
-                        if (!geoJsonGeom) { return clbk(new Error('!geoJsonGeom')); }
-                        // set $match params
-                        pipeline[0].$match.$or = [
-                            {socialseed: {$in: geoSeedIds}},
-                            {location: {$geoWithin: {$geometry: geoJsonGeom}}}
-                        ];
-                        getTopic();
-                    });
-                });            
-            } else {
-                getTopic();
-            }
-            break;
-
-        case 'geographic social media':
-            if (query.state || query.county) {
-                // get district seed ids
-                getDistrictSeedIds(query, function(err, districtSeedIds) {
-                    if (err) { return clbk(err); }
-                    if (!districtSeedIds) { return clbk(new Error('!districtSeedIds')); }
-                    if (!districtSeedIds.length) { pipeline[0].$match.socialseed = {$nin: districtSeedIds}; }
-                    // get geographic seed ids
-                    getGeoSeedIds(query, function(err, geoSeedIds) {
-                        if (err) { return clbk(err); }
-                        if (!geoSeedIds) { return clbk(new Error('!geoSeedIds')); }
-                        // get geojson data
-                        getGeoJson(query, function(err, geoJsonGeom) {
-                            if (err) { return clbk(err); }
-                            if (!geoJsonGeom) { return clbk(new Error('!geoJsonGeom')); }
-                            // set $match params
-                            pipeline[0].$match.$or = [
-                                {socialseed: {$in: geoSeedIds}},
-                                {location: {$geoWithin: {$geometry: geoJsonGeom}}}
-                            ];
-                            getTopic();
-                        });
-                    });
+                    if (!geoJsonGeom) { return clbk(new Error('!geoJsonGeom')); }
+                    pipeline[0].$match.location = {$geoWithin: {$geometry: geoJsonGeom}};
+                    getTopic();
                 });
             } else {
-                pipeline[0].$match.$or = [{state: {$exists: true}}, {location: {$exists: true}}];
                 getTopic();
             }
             break;
-        
         case 'district social media':
         case 'district related social media':
-            getDistrictSeedIds(query, function(err, seedIds) {
+            getSeedIds(query, function(err, seedIds) {
                 if (err) { return clbk(err); }
                 if (!seedIds) { return clbk(new Error('!seedIds')); }
                 if (!seedIds.length) { return clbk(null, {count: 0}); }
@@ -383,7 +352,6 @@ exports.analyzeSocialMedia = function(query, clbk) {
                 getTopic();
             });
             break;
-        
         default:
             return clbk(new Error('channel "'+query.channel+'" is not supported'));
     }

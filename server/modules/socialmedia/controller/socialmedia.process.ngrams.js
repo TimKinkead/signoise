@@ -35,7 +35,7 @@ function getNgrams(text, clbk) {
     if (!text) { return clbk(); }
 
     var ngramService = 'http://52.37.246.19:8080/ngrams',
-        ngrams = {},
+        ngrams = {all: []},
         errs = [],
         cnt;
 
@@ -61,7 +61,22 @@ function getNgrams(text, clbk) {
             },
             function(err, response, body) {
                 if (err) { errs.push(new Error(err)); }
-                if (body) { ngrams[gramSize.toString()] = body; }
+                if (body) { 
+                    ngrams[gramSize.toString()] = body;
+                    if (body.sorted && body.sorted.length) {
+                        body.sorted.forEach(function(cV) {
+                            if (cV.word && cV.count && body.gramSize && body.gramCount && body.wordCount) {
+                                ngrams.all.push({
+                                    word: cV.word,
+                                    count: cV.count,
+                                    gramSize: body.gramSize,
+                                    gramCount: body.gramCount,
+                                    wordCount: body.wordCount
+                                });
+                            } 
+                        });
+                    }
+                }
                 checkDone();
             }
         );
