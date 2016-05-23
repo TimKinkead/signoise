@@ -37,8 +37,30 @@ var error = require('../../error'),
  */
 function cleanUpDistrict(district) {
     if (!district) {return null;}
+
+    // jurisdiction
+    if (!district.jurisdiction || ['district', 'county', 'state'].indexOf(district.jurisdiction) < 0) {
+        if (district.name) {
+            var dnlc = district.name.toLowerCase();
+            if (dnlc.indexOf('state') > -1 && dnlc.indexOf('office') > -1) {
+                district.jurisdiction = 'state';
+                if (district.county) { delete district.county; }
+            } else if (dnlc.indexOf('county') > -1 && dnlc.indexOf('unified') < 0 && dnlc.indexOf('union') < 0) {
+                district.jurisdiction = 'county';
+            } else {
+                district.jurisdiction = 'district';
+            }
+        } else {
+            district.jurisdiction = 'district';
+        }
+    }
     
-    // extract twitter screen_name
+    // location
+    if (district.longitude && district.latitude) {
+        district.location = [district.longitude, district.latitude];
+    }
+    
+    // twitter screen_name
     if (district.twitter) {
         district.twitterAccount = '@'+district.twitter.replace(/https?:\/\/(www.)?twitter.com\//, '');
         if (district.twitterAccount.indexOf('/') > -1) {
@@ -52,7 +74,7 @@ function cleanUpDistrict(district) {
         }
     }
     
-    // extract facebook page name
+    // facebook page name
     if (district.facebook) {
         district.facebookAccount = district.facebook.replace(/https?:\/\/(www.)?facebook.com\//, '');
         district.facebookAccount = district.facebookAccount.replace('pages/', '');
@@ -63,22 +85,20 @@ function cleanUpDistrict(district) {
         }
     }
     
-    // clean up other fields
+    // counts
     if (district.studentCount && typeof district.studentCount !== 'number') { delete district.studentCount; }
     if (district.lepCount && typeof district.lepCount !== 'number') { delete district.lepCount; }
     if (district.iepCount && typeof district.iepCount !== 'number') { delete district.iepCount; }
     if (district.frlCount && typeof district.frlCount !== 'number') { delete district.frlCount; }
     if (district.fetchCount && typeof district.fetchCount !== 'number') { delete district.fetchCount; }
-    if (district.modified) { district.modified = new Date(district.modified); }
     
     // delete unnecessary fields
     var fields = [
-        'name', 'cdsId', 'ncesId',
+        'name', 'state', 'county', 'jurisdiction', 'location',
+        'cdsId', 'ncesId',
         'website', 'facebookAccount', 'twitterAccount',
-        'street', 'city', 'state', 'zip', 'county',
-        'latitude', 'longitude',
-        'studentCount', 'lepCount', 'iepCount', 'frlCount', 'fetchCount',
-        'modified'
+        'street', 'city', 'zip',
+        'studentCount', 'lepCount', 'iepCount', 'frlCount', 'fetchCount'
     ];
     for (var key in district) {
         if (district.hasOwnProperty(key)) {
@@ -88,13 +108,6 @@ function cleanUpDistrict(district) {
         }
     }
 
-    // location
-    if (district.longitude && district.latitude) {
-        district.location = [district.longitude, district.latitude];
-        delete district.longitude;
-        delete district.latitude;
-    }
-    
     // done
     return district;
 }
@@ -162,22 +175,22 @@ function getWebSite(webUrl, clbk) {
 function upsertDistricts() {
     
     var districts = require('../data/districts.json'),
-        districtIndex = 0;
+        index = 0;
 
     // create districts
     function createDistrict() {
         
         function nextDistrict() {
-            if ((districtIndex+1) >= districts.length) {
-                logger.bold('Done creating ' + districts.length + ' districts.');
+            index++;
+            if ((index+1) > districts.length) {
+                logger.bold('Done initializing ' + districts.length + ' districts.');
                 return;
             }
-            districtIndex++;
             createDistrict();
         }
 
         // init district
-        var district = cleanUpDistrict(districts[districtIndex]);
+        var district = cleanUpDistrict(districts[index]);
         if (!district) { error.log(new Error('!district')); nextDistrict(); return; }
 
         // get state
@@ -196,35 +209,36 @@ function upsertDistricts() {
                 // get twitter account social seed
                 getTwitterSeed(district.twitterAccount, function(err, twitterSeed) {
                     if (err) { error.log(err); }
-                    if (twitterSeed) { district.twitterSeed = twitterSeed._id; }
+                    //if (twitterSeed) { district.twitterSeed = twitterSeed._id; } // turned off b/c some spreadsheet data is bad!
                     if (district.twitterAccount) { delete district.twitterAccount; }
 
                     // get website
-                    if (district.website.indexOf('sites.google') > -1) {
-                        logger.bold(JSON.stringify(district, null, 4));
-                    }
                     getWebSite(district.website, function(err, websiteDoc) {
                         if (err) { error.log(err); }
                         if (websiteDoc) { district.website = websiteDoc._id; }
                         else { delete district.website; }
 
                         // check if district already exists
-                        District.findOne({cdsId: district.cdsId, ncesId: district.ncesId})
+                        District.findOne({name: district.name, county: district.county, state: district.state})
                             .exec(function(err, districtDoc) {
                                 if (err) { error.log(new Error(err)); nextDistrict(); return; }
 
-                                // update district if it exists
-                                if (districtDoc) { districtDoc = _.extend(districtDoc, district); }
-
-                                // otherwise create new district
-                                else { districtDoc = new District(district); }
+                                // update or create new district
+                                var action;
+                                if (districtDoc) {
+                                    action = 'updated';
+                                    districtDoc = _.extend(districtDoc, district);
+                                } else {
+                                    action = 'created';
+                                    districtDoc = new District(district);
+                                }
 
                                 // save new or updated district doc
                                 districtDoc.save(function(err) {
                                     if (err) { error.log(new Error(err)); nextDistrict(); return; }
 
                                     // done
-                                    logger.result(district.name + ' district created');
+                                    logger.result(district.name + ' district '+action);
                                     nextDistrict();
                                 });
                             });

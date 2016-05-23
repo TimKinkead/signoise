@@ -40,6 +40,13 @@ var DistrictSchema = new Schema(
             required: true
         },
 
+        // district or county or state
+        jurisdiction: {
+            type: String,
+            enum: ['district', 'county', 'state'],
+            required: true
+        },
+
         // location [longitude, latitude]
         location: [{
             type: Number
