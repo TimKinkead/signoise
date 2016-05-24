@@ -50,7 +50,7 @@ angular.module('app').controller('DashboardController', [
         // -------------------------------------------------------------------------------------------------------------
         // Form
         
-        $scope.geoChannels = ['all social media', 'district social media', 'district related social media'];
+        $scope.geoChannels = ['all social media', 'district social media', 'district related social media', 'geographic social media'];
 
         // get channels
         status.processingChannels = true;
