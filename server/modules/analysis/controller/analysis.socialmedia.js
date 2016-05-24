@@ -88,7 +88,7 @@ function getGeoSeedIds(query, clbk) {
             if (!seedDocs) { return clbk(new Error('!seedDocs')); }
 
             // remap & return seed ids
-            return seedDocs.map(function(cV) { return cV._id; });
+            return clbk(seedDocs.map(function(cV) { return cV._id; }));
         }
     );
 }
