@@ -8,7 +8,8 @@ try {
         'ui.bootstrap',
         'ngResource',
         'ngSanitize',
-        'rzModule'
+        'rzModule',
+        'ngVis'
     ]);
 
     // ---------

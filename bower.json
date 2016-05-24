@@ -10,7 +10,8 @@
     "angular-sanitize": "~1.5",
     "angular-bootstrap": "~1.2.1",
     "angular-ui-router": "~0.2.18",
-    "angularjs-slider": "^2.11.0"
+    "angularjs-slider": "^2.11.0",
+    "angular-visjs": "^4.0.2"
   },
   "devDependencies": {
     "angular-mocks": "~1.5"

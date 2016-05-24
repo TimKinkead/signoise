@@ -87,6 +87,13 @@ angular.module('app').config([
             controller: 'WebSitesController',
             data: {memberOnly: true}
         });
+        
+        $stateProvider.state('webNetwork', {
+            url: '/web-network',
+            templateUrl: 'modules/main/web-network/view.html',
+            controller: 'WebNetworkController',
+            data: {memberOnly: true}
+        });
 
     }
 ]);

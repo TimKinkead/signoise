@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="edSpaceApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>Ed Sector Intelligence</title>
+
+    <!-- Bootstrap core CSS -->
+    <!--link href="bootstrap-3.3.2-dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <!--link href="bootstrap-3.3.2-dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="theme.css" rel="stylesheet">
+
+    
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+    
+<body>
+
+        <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html#/">Education Space</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="index.html#/">Home</a></li>
+            <li><a href="#/orgs">Orgs</a></li>
+            <li><a href="#/candidates">Candidates</a></li>
+            
+            <li class="dropdown">
+              <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Shared <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#/sharedlinks">Links</a></li>
+                <li><a href="#/terms/orgs">Organizations</a></li>
+                <li><a href="#/terms/people">People</a></li>
+                <li><a href="#/terms/locs">Locations</a></li>
+              </ul>
+            </li><!-- /dropdown -->
+            <li><a href="network.html">Network</a></li>
+              
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+    
+    <!--
+    <script type="text/javascript" src="viz/vis.js"></script>
+    <link href="viz/vis.css" rel="stylesheet" type="text/css" />
+    -->    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.7.0/vis.min.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    #mynetwork {
+      width: 1100px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+<div class="container theme-showcase" role="main" >
+
+    <div class="page-header">
+        <h2>The Network Test</h2>
+    </div>
+
+    <div id="mynetwork"></div>
+
+</div>
+
+
+    
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
+    
+    <!--script src="test.js"></script-->
+    <script src="couples.js"></script>
+    
+    <script>
+$(document).ready(function(){
+    
+    // NOTE: data comes from test.js
+    
+    createNetwork = function() {
+        var container = document.getElementById('mynetwork');
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        
+        var options = {
+            
+            // 4.7 options
+            //configure: {enabled: true},
+            "physics": { 
+                //"enabled": false,
+                "repulsion": {
+                    "nodeDistance": 275,
+                    "damping": 0.15
+                },
+                "solver": "repulsion"
+            },
+            
+            edges: {
+                color:{inherit:true},
+                width: 0.15,
+                smooth: {
+                    type: 'continuous'
+                },
+                "arrows": {
+                  "to": {
+                    "enabled": true
+                  }
+                },                
+            },
+
+            nodes: {
+                shape: 'dot',
+                "size": 18,
+                // scaling: {min: 10, max: 30},
+                font: {
+                  size: 12,
+                  face: 'Tahoma'
+                }
+            },
+            
+        };
+        
+        var network = new vis.Network(container, data, options);
+    };
+    
+    createNetwork();
+});
+</script>
+    
+</body>
+</html>  
+
