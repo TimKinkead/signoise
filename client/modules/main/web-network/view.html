@@ -1,0 +1,54 @@
+<!-- Web Network Graph -->
+
+<!-- channel selector -->
+<div class="container text-center" style="margin-top: 20px; margin-bottom: 20px;">
+    <form class="form-inline"
+          style="margin: auto;">
+        <div class="form-group">
+            <label>View: </label>
+            <select ng-model="params.channel"
+                    class="form-control"
+                    style="cursor: pointer; max-width: 300px;">
+                <option ng-repeat="channel in networkChannels"
+                        value="{{channel}}">
+                    {{channel|capitalize}}
+                </option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- success message -->
+<div ng-if="status.successMessage"
+     class="container"
+     style="max-width: 750px;">
+    <div class="alert alert-success"
+         style="margin: 10px 0 0;">
+        <span ng-click="closeSuccessMessage()"
+              class="close">
+            &times
+        </span>
+        {{status.successMessage}}
+    </div>
+</div>
+
+<!-- error message -->
+<div ng-if="status.errorMessage"
+     class="container"
+     style="max-width: 750px;">
+    <div class="alert alert-danger"
+         style="margin: 10px 0 0;">
+        <span ng-click="closeErrorMessage()"
+              class="close">
+            &times
+        </span>
+        {{status.errorMessage}}
+    </div>
+</div>
+
+<span ng-if="status.processing" class="spinner"></span>
+
+<div ng-if="data.$resolved"
+     style="height: 800px; min-height: 800px;">
+    <vis-network data="data" options="options" events="events"></vis-network>
+</div>

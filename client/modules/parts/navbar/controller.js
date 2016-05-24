@@ -19,6 +19,10 @@ angular.module('app').controller('NavbarController', [
             {state: 'webpages', name: 'Web Pages'}
         ];
 
+        $scope.graphs = [
+            {state: 'webNetwork', name: 'Web Network'}
+        ];
+
         $scope.logout = function (e) {
             if (e) {e.preventDefault();}
 

@@ -13,7 +13,9 @@ module.exports = (function() {
         'lib/angular-resource/angular-resource.min.js',
         'lib/angular-ui-router/release/angular-ui-router.min.js',
         'lib/angular-sanitize/angular-sanitize.min.js',
-        'lib/angularjs-slider/dist/rzslider.min.js'
+        'lib/angularjs-slider/dist/rzslider.min.js',
+        'lib/vis/dist/vis.min.js',
+        'lib/angular-visjs/angular-vis.js'
     ];
 
     var appRoot = 'client/',
