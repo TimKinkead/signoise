@@ -37,6 +37,7 @@ var sentimentConfig = require('./analysis.sentiment.config').sentimentConfig;
  * @param clbk - return clbk(err, results)
  */
 function getDistrictSeedIds(query, clbk) {
+    logger.dash('getDistrictSeedIds');
     if (!query) { return clbk(new Error('!query')); }
 
     var seedIds = [],
@@ -63,6 +64,7 @@ function getDistrictSeedIds(query, clbk) {
             });
 
             // done
+            logger.arrow(districtDocs.length+' districts, '+seedIds.length+' seeds');
             return clbk(null, seedIds);
         }
     );
@@ -74,6 +76,7 @@ function getDistrictSeedIds(query, clbk) {
  * @param clbk - return clbk(err, results)
  */
 function getGeoSeedIds(query, clbk) {
+    logger.dash('getGeoSeedIds');
     if (!query) { return clbk(new Error('!query')); }
     if (!query.state && !query.county) { return clbk(new Error('!query.state && !query.county')); }
     
@@ -88,7 +91,9 @@ function getGeoSeedIds(query, clbk) {
             if (!seedDocs) { return clbk(new Error('!seedDocs')); }
 
             // remap & return seed ids
-            return clbk(seedDocs.map(function(cV) { return cV._id; }));
+            var seedIds = seedDocs.map(function(cV) { return cV._id; });
+            logger.arrow(seedIds.length+' seeds');
+            return clbk(null, seedIds);
         }
     );
 }
@@ -99,6 +104,7 @@ function getGeoSeedIds(query, clbk) {
  * @param clbk - return clbk(err, geoJsonGeom)
  */
 function getGeoJson(query, clbk) {
+    logger.dash('getGeoJson');
     if (!query) { return clbk(new Error('!query')); }
     
     // get geo json for county
@@ -111,6 +117,7 @@ function getGeoJson(query, clbk) {
                     err.county = query.county;
                     return clbk(err);
                 }
+                logger.arrow('got county geometry');
                 return clbk(null, countyDoc.geometry);
             });
     } 
@@ -125,6 +132,7 @@ function getGeoJson(query, clbk) {
                     err.state = query.state;
                     return clbk(err);
                 }
+                logger.arrow('got state geometry');
                 return clbk(null, stateDoc.geometry);
             });
     }
@@ -143,7 +151,7 @@ function getGeoJson(query, clbk) {
  * @param clbk - return clbk(err, results)
  */
 exports.analyzeSocialMedia = function(query, clbk) {
-    //logger.filename(__filename);
+    logger.filename(__filename);
     
     if (!query) { return clbk(new Error('!query')); }
     if (!query.minDate) { return clbk(new Error('!query.minDate')); }
@@ -252,6 +260,8 @@ exports.analyzeSocialMedia = function(query, clbk) {
         }
 
         // aggregation analysis
+        logger.dash('starting aggregation');
+        logger.bold(JSON.stringify(pipeline[0], null, 4));
         SocialMedia.aggregate(pipeline)
             .allowDiskUse(true)
             .exec(function(err, resultDocs) {
@@ -296,12 +306,14 @@ exports.analyzeSocialMedia = function(query, clbk) {
                 }
 
                 // done
+                logger.arrow('aggregation complete');
                 return clbk(null, results);
             });
     }
 
     // get full topic doc
     function getTopic() {
+        logger.dash('getTopic');
         if (!query.topic) { performAnalysis(); return; }
         Topic.findById(query.topic, function(err, topicDoc) {
             if (err) { return clbk(new Error(err)); }
@@ -313,6 +325,8 @@ exports.analyzeSocialMedia = function(query, clbk) {
 
             pipeline[0].$match.$text = {$search: topicDoc.simpleKeywords};
             pipeline[0].$match['ngrams.all.word'] = {$in: topicDoc.ngrams.all};
+
+            logger.arrow('topic retrieved');
             performAnalysis();
         });
     }
