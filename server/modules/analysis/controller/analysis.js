@@ -18,9 +18,9 @@ var error = require('../../error'),
     logger = require('../../logger');
 
 //----------------------------------------------------------------------------------------------------------------------
-// Methods
+// MethodsOl
 
-var analyzeSocialMedia = require('./analysis.socialmedia').analyzeSocialMedia;
+var analyzeSocialMedia = require('./analysis.socialmedia').analyzeSocialMediaOld;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Main
