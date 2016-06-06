@@ -5,6 +5,7 @@
 
 var mongoose = require('mongoose'),
     SocialSeed = mongoose.model('SocialSeed'),
+    SocialMedia = mongoose.model('SocialMedia'),
     State = mongoose.model('State'),
     County = mongoose.model('County');
 
@@ -30,7 +31,7 @@ exports.updateGeo = function(req, res) {
     var stateMap = {}, // {california: {...}
         statesById = {}, // {ObjectId('123'): 'california'}
         statesByAbbv = {}, // {CA: 'california'}
-        oneWeekAgo = (function() { var d = new Date(); d.setDate(d.getDate()-7); return d; })(),
+        twoWeeksAgo = (function() { var d = new Date(); d.setDate(d.getDate()-14); return d; })(),
         limit = 1000;
     
     function errorMessage(code, message) {
@@ -85,7 +86,7 @@ exports.updateGeo = function(req, res) {
                             ]},
                             {$or: [
                                 {geoUpdated: {$exists: false}},
-                                {geoUpdated: {$lt: oneWeekAgo}}
+                                {geoUpdated: {$lt: twoWeeksAgo}}
                             ]}
                         ],
                         geoProtected: {$ne: true}
@@ -97,7 +98,28 @@ exports.updateGeo = function(req, res) {
                             if (!seedDocs.length) { res.status(200).send('No seeds to update right now.'); return; }
                             logger.arrow(seedDocs.length+' seeds');
 
-                            seedDocs.forEach(function(seed, index) {
+                            var seedIndex = 0;
+                            function updateSeed() {
+                                
+                                function nextSeed(delay) {
+                                    if (seedIndex === 0 || (seedIndex+1)%10 === 0 || seedIndex === seedDocs.length-1) {
+                                        logger.tab((seedIndex+1)+'/'+seedDocs.length+' seed updated ('+Math.round((seedIndex+1)/seedDocs.length*100)+'%)');   
+                                    }
+                                    seedIndex++;
+                                    if (seedIndex >= seedDocs.length) {
+                                        logger.bold('Done updating social seeds & social media.');
+                                        return;
+                                    }
+                                    if (delay) {
+                                        setTimeout(function() { updateSeed(); }, 1000*60*delay);
+                                        return;
+                                    }
+                                    updateSeed();
+                                }
+                                
+                                var seed = seedDocs[seedIndex];
+                                if (!seed) { nextSeed(); return; }
+
                                 var i, x,
                                     loc = seed.data.location || '',
                                     loc1grams,
@@ -130,10 +152,9 @@ exports.updateGeo = function(req, res) {
                                         break;
                                     }
                                 }
-                                if (!state) { return; }
 
                                 // county
-                                if (/county/i.test(loc+' '+desc)) {
+                                if (state && /county/i.test(loc+' '+desc)) {
                                     for (i=0, x=ngrams.length; i<x; i++) {
                                         if (state.counties[ngrams[i].toLowerCase()]) {
                                             county = state.counties[ngrams[i].toLowerCase()];
@@ -144,19 +165,30 @@ exports.updateGeo = function(req, res) {
 
                                 // update seed
                                 var update = {$set: {geoUpdated: new Date()}};
-                                if (state && !seed.state) { update.$set.state = state._id; }
-                                if (county && !seed.county) { update.$set.county = county._id; }
+                                if (state) { update.$set.state = state._id; }
+                                if (county) { update.$set.county = county._id; }
                                 SocialSeed.update(
                                     {_id: seed._id},
                                     update,
                                     function(err) {
-                                        if (err) { error.log(new Error(err)); }
-                                        if (index === 0 || index%10 === 0 || index+1 === limit) {
-                                            logger.tab((index+1)+'/'+seedDocs.length+' seed updated ('+Math.round((index+1)/seedDocs.length*100)+'%)');
-                                        }
+                                        if (err) { error.log(new Error(err)); nextSeed(1); return; }
+                                        
+                                        // update social media
+                                        SocialMedia.update(
+                                            {socialseed: seed._id},
+                                            update,
+                                            {multi: true},
+                                            function(err) {
+                                                if (err) { error.log(new Error(err)); nextSeed(1); return; }
+                                                nextSeed();
+                                            }
+                                        );
                                     }
                                 );
-                            });
+                            }
+                            
+                            // start
+                            updateSeed();
 
                             return res.status(200).send('Working on updating seed state/county.');
                         });

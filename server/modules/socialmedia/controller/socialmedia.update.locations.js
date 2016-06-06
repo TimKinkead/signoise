@@ -80,7 +80,11 @@ function getLocation(locationName, clbk) {
                                 if (err) { return clbk(new Error(err), null, true); }
 
                                 // return lng/lat
-                                return clbk(null, place.centroid, true);
+                                if (['city'].indexOf(place.place_type) > -1) {
+                                    return clbk(null, place.centroid, true);
+                                } else {
+                                    return clbk(null, null, true);
+                                }
                             }
                         );
                     }

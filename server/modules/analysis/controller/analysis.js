@@ -20,7 +20,8 @@ var error = require('../../error'),
 //----------------------------------------------------------------------------------------------------------------------
 // Methods
 
-var analyzeSocialMedia = require('./analysis.socialmedia').analyzeSocialMedia;
+var analyzeSocialMedia = require('./analysis.socialmedia.old').analyzeSocialMediaOld;
+//var analyzeSocialMedia = require('./analysis.socialmedia').analyzeSocialMedia;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Main

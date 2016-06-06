@@ -43,13 +43,13 @@ exports.updateTwitterData = function(req, res) {
         });
     }
 
-    var oneWeekAgo = (function() { var d = new Date(); d.setDate(d.getDate()-7); return d; })();
+    var twoWeeksAgo = (function() { var d = new Date(); d.setDate(d.getDate()-14); return d; })();
 
     // get social seeds
     SocialSeed.find({
             platform: 'twitter',
             'twitter.type': 'screen_name',
-            $or: [{dataUpdated: {$exists: false}}, {dataUpdated: {$lt: oneWeekAgo}}]
+            $or: [{dataUpdated: {$exists: false}}, {dataUpdated: {$lt: twoWeeksAgo}}]
         })
         .limit(100)
         .select('twitter')

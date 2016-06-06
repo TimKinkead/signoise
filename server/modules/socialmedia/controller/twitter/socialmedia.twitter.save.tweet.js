@@ -206,9 +206,16 @@ exports.saveTweet = function(tweet, seed, clbk) {
 
         // update tweet data if it already exists
         if (mediaDoc) {
+            var update = {$set: {data: tweet, modified: new Date()}};
+            if (seed) {
+                if (seed._id) { update.$set.seed = seed._id; }
+                if (seed.district) { update.$set.district = seed.district; }
+                if (seed.county) { update.$set.county = seed.county; }
+                if (seed.state) { update.$set.state = seed.state; }
+            }
             SocialMedia.update(
                 {_id: mediaDoc._id},
-                {$set: {data: tweet, modified: new Date()}},
+                update,
                 function(err) {
                     if (err) {return clbk(new Error(err));}
 
@@ -226,6 +233,9 @@ exports.saveTweet = function(tweet, seed, clbk) {
             });
             if (seed) {
                 if (seed._id) { socialmedia.socialseed = seed._id; }
+                if (seed.district) { socialmedia.district = seed.district; }
+                if (seed.county) { socialmedia.county = seed.county; }
+                if (seed.state) { socialmedia.state = seed.state; }
                 if (seed.twitter && seed.twitter.longitude && seed.twitter.latitude) {
                     socialmedia.location = [seed.twitter.longitude, seed.twitter.latitude];
                 }

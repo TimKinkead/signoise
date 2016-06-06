@@ -46,6 +46,21 @@ var SocialMediaSchema = new Schema(
         location: [{
             type: Number
         }],
+
+        // geo data
+        // - from social seed
+        district: {
+            type: Schema.ObjectId,
+            ref: 'District'
+        },
+        county: {
+            type: Schema.ObjectId,
+            ref: 'County'
+        },
+        state: {
+            type: Schema.ObjectId,
+            ref: 'State'
+        },
         
         // the social seed used to pull this social media
         // - necessary for connecting fb posts to fb groups/pages
@@ -138,6 +153,11 @@ var SocialMediaSchema = new Schema(
         // timestamp - when the location was checked
         locationChecked: {
             type: Date  
+        },
+
+        // timestamp - when state/county/district fields were last updated
+        geoUpdated: {
+            type: Date
         },
 
         // timestamp - when data field was updated by a later 'pull'
