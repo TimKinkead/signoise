@@ -48,7 +48,7 @@
 
 <span ng-if="status.processing" class="spinner"></span>
 
-<div ng-if="data.$resolved"
-     style="height: 800px; min-height: 800px; color: white;">
+<div ng-if="data != {} && data.$resolved"
+     style="height: 800px; min-height: 800px; background-color: white;">
     <vis-network data="data" options="options" events="events"></vis-network>
 </div>
