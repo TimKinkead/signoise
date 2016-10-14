@@ -6,7 +6,7 @@ This project uses a MEAN stack. (MongoDB, Express, Angular, Node)
 
 ### Getting Started
 * Download [GitHub Desktop](https://desktop.github.com/).
-  * Use GitHub Desktop to clone this repository (signal-noise) to your local machine.
+  * Use GitHub Desktop to clone this repository (signoise) to your local machine.
 * Download an [IDE](http://paulb.gd/comparing-nodejs-ides/)
   * Use your IDE to open the project files.
 * Install [MongoDB](https://www.mongodb.org/downloads#production).
