@@ -2,7 +2,7 @@
 
 <div class="container">
 
-    <div>
+    <div style="margin-top: 10px;">
         <div class="pull-right">
             <button class="btn btn-success" style="margin-bottom: 5px;" ng-click="download()">Download CSV File</button>
         </div>
@@ -28,8 +28,14 @@
         </div>
     </div>
 
-    <h1 class="text-center">Web Pages</h1>
-    <table class="table table-bordered">
+    <h1 class="text-center"
+        style="color: white;">
+        Web Pages
+    </h1>
+
+
+    <table class="table table-bordered"
+           style="background-color: white;">
         <thead>
         <th ng-repeat="field in fields"
             style="cursor: pointer;" class="hidden-xs">

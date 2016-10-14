@@ -40,7 +40,8 @@ angular.module('app').controller('WebNetworkController', [
                     // scaling: {min: 10, max: 30},
                     font: {
                         size: 12,
-                        face: 'Tahoma'
+                        face: 'Tahoma',
+                        color: 'white'
                     }
                 }
             },

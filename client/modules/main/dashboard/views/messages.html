@@ -2,7 +2,7 @@
 <div ng-if="successMessages.length">
     <div ng-repeat="message in successMessages"
          class="alert alert-success"
-         style="margin-top: 10px;">
+         style="margin: 10px 0;">
         <span ng-click="closeSuccessMessage($index)"
               class="close">
             &times
@@ -15,7 +15,7 @@
 <div ng-if="errorMessages.length">
     <div ng-repeat="message in errorMessages"
          class="alert alert-danger"
-         style="margin-top: 10px;">
+         style="margin: 10px 0;">
         <span ng-click="closeErrorMessage($index)"
               class="close">
             &times

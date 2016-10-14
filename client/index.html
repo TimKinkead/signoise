@@ -28,9 +28,15 @@
     <link rel="stylesheet" href="styles.css"/>
 </head>
 
-<body>
+<body style="overflow-y: scroll;">
+
+    <!-- Background -->
+    <div class="fixed-size-full-height"
+         style="position:fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: -1; background-size: cover; background-position: center center;  background: linear-gradient( rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7) ), url('https://s3.amazonaws.com/pg-signoise/background-01.jpg');">
+    </div>
+
     <!-- NAV & APP -->
-    <div navbar></div>
+    <div id="main-nav" navbar></div>
     <div ui-view></div>
 
     <!-- STARTUP VARS -->
@@ -43,8 +49,10 @@
     <script type="text/javascript" src="{{file}}"></script>
     {% endfor %}
 
+    <!-- Google Maps -->
     <script type="text/javascript"
             src="https://maps.googleapis.com/maps/api/js{{googleBrowserKey}}">
     </script>
+
 </body>
 </html>

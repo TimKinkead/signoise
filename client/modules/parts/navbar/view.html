@@ -1,7 +1,7 @@
 <!-- Navigation Bar -->
 
 <nav class="navbar navbar-default"
-     style="margin-bottom: 0;">
+     style="margin-bottom: 0; border-radius: 0;">
     <div class="container-fluid">
 
         <!-- brand & toggle for mobile -->
@@ -13,17 +13,23 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href ui-sref="home">
-                Signal in the Noise
+                COSINE
             </a>
         </div>
 
         <!-- navbar buttons, dropdowns, etc -->
         <div class="collapse navbar-collapse" id="navbar-collapse">
 
-            <!-- dashboard & tables -->
             <ul class="nav navbar-nav"
                 ng-if="user.username">
-                <li ui-sref-active="active"><a href ui-sref="dashboard">Dashboard</a></li>
+
+                <!-- social media -->
+                <li ui-sref-active="active"><a href ui-sref="dashboard">Social Media</a></li>
+
+                <!-- education network -->
+                <li ui-sref-active="active"><a href ui-sref="webNetwork">Education Network</a></li>
+
+                <!-- tables -->
                 <li class="dropdown" uib-dropdown>
                     <a href="#" class="dropdown-toggle" uib-dropdown-toggle>
                         Tables <span class="caret"></span>
@@ -34,6 +40,8 @@
                         </li>
                     </ul>
                 </li>
+
+                <!--
                 <li class="dropdown" uib-dropdown>
                     <a href="#" class="dropdown-toggle" uib-dropdown-toggle>
                         Graphs <span class="caret"></span>
@@ -44,6 +52,7 @@
                         </li>
                     </ul>
                 </li>
+                -->
             </ul>
 
             <!-- user drop down -or- sign up / login buttons -->

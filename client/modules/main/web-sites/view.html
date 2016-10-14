@@ -2,7 +2,7 @@
 
 <div class="container">
 
-    <div>
+    <div style="margin-top: 10px;">
         <button class="btn btn-success pull-right" style="margin-bottom: 5px;" ng-click="create()">Create</button>
         <div class="btn-group">
             <button class="btn btn-filter" ng-model="filterBy" uib-btn-radio="'active'">
@@ -20,8 +20,13 @@
         </div>
     </div>
 
-    <h1 class="text-center">Web Sites</h1>
-    <table class="table table-bordered table-hover">
+    <h1 class="text-center"
+        style="color: white;">
+        Web Sites
+    </h1>
+
+    <table class="table table-bordered table-hover"
+           style="background-color: white;">
         <thead>
             <th style="cursor: pointer;" class="hidden-xs"
                 ng-repeat="field in fields"

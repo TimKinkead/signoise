@@ -31,3 +31,4 @@ server/modules/init/data/states.json
 
 # Temp Directory
 temp
+.DS_Store

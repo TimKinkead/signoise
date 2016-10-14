@@ -44,7 +44,7 @@ function saveScreenName(sn, index, total) {
 function bulkInsert() {
     console.log('\n-- saving screen names --\n');
 
-    var screenNames = require('./twitter.screen_names_2.json'),
+    var screenNames = require('./twitter.screen_names_3.js'),
         total = screenNames.length;
 
     var timeout = 0,
@@ -57,5 +57,5 @@ function bulkInsert() {
 }
 
 // start
-//bulkInsert();
+bulkInsert();
 
