@@ -1,7 +1,7 @@
 <!-- Web Network Graph -->
 
 <!-- channel selector -->
-<div class="container text-center" style="margin-top: 20px; margin-bottom: 20px;">
+<div class="container text-center" style="margin-top: 20px; margin-bottom: 20px; color: white;">
     <form class="form-inline"
           style="margin: auto;">
         <div class="form-group">
@@ -49,6 +49,6 @@
 <span ng-if="status.processing" class="spinner"></span>
 
 <div ng-if="data.$resolved"
-     style="height: 800px; min-height: 800px;">
+     style="height: 800px; min-height: 800px; color: white;">
     <vis-network data="data" options="options" events="events"></vis-network>
 </div>

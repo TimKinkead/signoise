@@ -1,27 +1,20 @@
 <!-- Dashboard -->
 
-<!-- Jumbo 1 (title & alerts) -->
-<div class="jumbotron"
-     style="background: #677F71; margin-bottom: 0;">
+<!-- title -->
+<h1 class="text-center"
+    style="color: white; margin-top: 35px;">
+    Social Media
+</h1>
 
-    <!-- Title -->
-    <h1 class="text-center"
-        style="color: whitesmoke;">
-        Dashboard
-    </h1>
-
-    <!-- User Account Alerts -->
-    <div ng-include="'modules/main/dashboard/views/user-alerts.html'"
-         class="container"
-         style="margin-bottom: 0;">
-    </div>
-
+<!-- User Account Alerts -->
+<div ng-include="'modules/main/dashboard/views/user-alerts.html'"
+     class="container"
+     style="margin-bottom: 0;">
 </div>
 
-<!-- Jumbo 2 (dev btns & messages) -->
+<!-- Dev Buttons & Messages -->
 <div ng-if="envVar.SERVER === 'local' || envVar.PORT === '3000'"
-     class="jumbotron"
-     style="background: #334039; margin-bottom: 0;">
+     style="margin: 20px 0 0 0;">
 
     <!-- Development Buttons -->
     <div ng-include="'modules/main/dashboard/views/dev-buttons.html'"
@@ -35,7 +28,50 @@
 
 </div>
 
-<!-- Jumbo 4 (form & map) -->
+<!-- Date Slider -->
+<div ng-include="'modules/main/dashboard/views/date-slider.html'"
+     class="container text-center"
+     style="margin-top: 10px; margin-bottom: 30px;">
+</div>
+
+<!-- Form -->
+<div ng-include="'modules/main/dashboard/views/form.html'"
+     class="container text-center">
+</div>
+
+<!-- Messages -->
+<div ng-include="'modules/main/dashboard/views/messages.html'"
+     class="container"
+     style="max-width: 500px;">
+</div>
+
+<!-- Map -->
+<div ng-include="'modules/main/dashboard/views/map.html'"
+     class="container"
+     style="height: 500px; margin-top: 10px;">
+</div>
+
+<!--
+<div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-3">
+        <div ng-include="'modules/main/dashboard/views/form.html'"
+             class="container pull-left">
+        </div>
+        <div ng-include="'modules/main/dashboard/views/messages.html'"
+             class="container">
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div ng-include="'modules/main/dashboard/views/map.html'"
+             style="height: 500px;">
+        </div>
+    </div>
+    <div class="col-md-1"></div>
+</div>
+-->
+
+<!--
 <div class="jumbotron"
      style="background: #9ABFAA; padding-top: 48px; padding-bottom: 48px; margin-bottom: 30px;">
     <div ng-include="'modules/main/dashboard/views/date-slider.html'"
@@ -60,12 +96,11 @@
         <div class="col-md-1"></div>
     </div>
 </div>
+--.
 
-<!-- Jumbo 5 (analysis) -->
-<div class="jumbotron"
-     style="background: white; margin-bottom: 0;">
-    <div ng-include="'modules/main/dashboard/views/metrics.html'"
-         class="container">
-    </div>
+<!-- Analysis -->
+<div ng-include="'modules/main/dashboard/views/metrics.html'"
+     style="color: white; margin-bottom: 20px;"
+     class="container">
 </div>
 

@@ -3,7 +3,8 @@
 <div class="container">
 
     <!-- Create & Download Buttons -->
-    <div class="container">
+    <div class="container"
+         style="margin-top: 10px;">
         <button ng-click="create()" class="btn btn-success pull-right"
                 style="margin: 0 2px;">
             Create
@@ -15,10 +16,14 @@
     </div>
 
     <!-- Title -->
-    <h1 class="text-center">Districts</h1>
+    <h1 class="text-center"
+        style="color: white; margin-top: 35px;">
+        Districts
+    </h1>
 
     <!-- Filter By State Drop Down -->
-    <div ng-if="!status.processingStates">
+    <div ng-if="!status.processingStates"
+         style="color: white;">
         <label>State: </label>
         <select ng-model="filterBy.state"
                 class="form-control" style="cursor: pointer; max-width: 300px;">
@@ -31,7 +36,8 @@
     </div>
 
     <!-- Filter By County Drop Down -->
-    <div ng-if="filterBy.state && !status.processingCounties">
+    <div ng-if="filterBy.state && !status.processingCounties"
+         style="color: white;">
         <label>County: </label>
         <select ng-model="filterBy.county"
                 class="form-control" style="cursor: pointer; max-width: 300px;">
@@ -56,7 +62,7 @@
     </div>
 
     <!-- Table (desktop & mobile) -->
-    <table class="table table-bordered table-hover" style="margin-top: 15px;">
+    <table class="table table-bordered table-hover" style="margin-top: 15px;background-color: white;">
         <thead>
             <th class="hidden-xs"
                 ng-repeat="field in fields">

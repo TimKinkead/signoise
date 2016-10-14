@@ -118,8 +118,9 @@ exports.updateLocations = function(req, res) {
     
     // get social media docs
     SocialMedia.find({
+            'location.0': {$exists: false},
             locationChecked: {$exists: false},
-            'data.user.location': {$exists: true}
+            'data.user.location': {$exists: true, $ne: ''}
         })
         .limit((req.query.limit) ? Number(req.query.limit) : 1000)
         .exec(function(err, mediaDocs) {
